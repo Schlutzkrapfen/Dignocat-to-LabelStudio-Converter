@@ -38,20 +38,25 @@ def debug(page):
         print("Tooltip content found in DOM")
         print(html[html.find("Künstliche")-200:html.find("Künstliche")+500])
 
-def get_user_Data(page):
+def get_user_Data(page,user_id):
     """Gets a single User Data"""
     # Gets the Buttons
     # Get all condition buttons
     buttons = page.query_selector_all("button.ConditionButton-module_container_Vda6L")
-
-    for button in buttons:
+    canvas =  page.query_selector("canvas")
+    page.wait_for_timeout(3000)  
+    for i, button in enumerate(buttons):
         # Hover over each button
         button.hover()
-        page.wait_for_timeout(500)  # Small pause to let hover effects render
+        page.wait_for_timeout(300)  # Small pause to let hover effects render
+        # Take a screenshot of just the canvas element
         
         # Get the span text inside the button
         name = button.query_selector("span:first-child")
         percentage = button.query_selector("span.p3")
+        picture_path = f"output/{user_id}-{i}-{name.inner_text()}-{percentage.inner_text()}.png" 
+        print(f"Saved {picture_path}")
+        canvas.screenshot(path=picture_path)
         if name and percentage:
             print(f"{name.inner_text()} - {percentage.inner_text()}")
 
@@ -83,8 +88,11 @@ def go_to_the_right_side(page):
     page.query_selector("div.ReportCard-module_container_ONmLU").click()
     
     page.wait_for_timeout(3000)
+
+    print("Please Remove the Mouse Away from the Screen!!! it can interfier with the hover Buttons")
+    input("Press Enter to continue...")   
     print(f"Now on: {page.url}")
-    #get_user_Data(page)
+    #get_user_Data(page,0)
     debug(page)
     
 
