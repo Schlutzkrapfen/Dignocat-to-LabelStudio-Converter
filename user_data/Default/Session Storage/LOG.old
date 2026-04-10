@@ -1,3 +1,6 @@
-2026/04/09-11:02:19.225 6f4f Reusing MANIFEST /home/david/Documents/Dignocat-to-LabelStudio-Converter/user_data/Default/Session Storage/MANIFEST-000001
-2026/04/09-11:02:19.225 6f4f Recovering log #3
-2026/04/09-11:02:19.225 6f4f Reusing old log /home/david/Documents/Dignocat-to-LabelStudio-Converter/user_data/Default/Session Storage/000003.log 
+2026/04/10-11:00:15.272 35fd Reusing MANIFEST /home/david/Documents/Dignocat-to-LabelStudio-Converter/user_data/Default/Session Storage/MANIFEST-000001
+2026/04/10-11:00:15.272 35fd Recovering log #3
+2026/04/10-11:00:15.272 35fd Reusing old log /home/david/Documents/Dignocat-to-LabelStudio-Converter/user_data/Default/Session Storage/000003.log 
+2026/04/10-11:00:20.415 3600 Level-0 table #5: started
+2026/04/10-11:00:20.419 3600 Level-0 table #5: 15651 bytes OK
+2026/04/10-11:00:20.420 3600 Delete type=0 #3
