@@ -10,9 +10,9 @@ USER_DATA_DIR = 'user_data'
 # Allow imports from the src/ folder
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
-from webcrawler import login, go_to_patient_report, get_user_data
-#from json_maker import make_json
-        
+from webcrawler import login, go_to_patient_report, get_user_data,get_refrence_image
+#from json_maker import 
+
 
 def main():
     os.makedirs("output", exist_ok=True)
@@ -27,7 +27,12 @@ def main():
             user_id = 0
             go_to_patient_report(page,user_id)
 
+            #print("Please Remove the Mouse Away from the Screen!!! it can interfier with the hover Buttons")
+            #input("Press Enter to continue...")   
+            
+            get_refrence_image(page,user_id)
             get_user_data(page, user_id)
+
         finally:
             pass
     
