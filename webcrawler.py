@@ -38,6 +38,13 @@ def debug(page):
         print("Tooltip content found in DOM")
         print(html[html.find("Künstliche")-200:html.find("Künstliche")+500])
 
+
+def make_json(user_id):
+    """makes out of One user a usefull json"""
+
+    pass
+
+
 def get_user_Data(page,user_id):
     """Gets a single User Data"""
     # Gets the Buttons
@@ -92,8 +99,8 @@ def go_to_the_right_side(page):
     print("Please Remove the Mouse Away from the Screen!!! it can interfier with the hover Buttons")
     input("Press Enter to continue...")   
     print(f"Now on: {page.url}")
-    #get_user_Data(page,0)
-    debug(page)
+    get_user_Data(page,0)
+    #debug(page)
     
 
 def main():
