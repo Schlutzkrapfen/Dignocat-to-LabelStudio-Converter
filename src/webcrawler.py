@@ -23,19 +23,6 @@ def login(page):
         page.wait_for_timeout(2000)
         print("Login successful!")
 
-def debug(page):
-    '''A Empty function for Debug stuff'''
-    buttons = page.query_selector_all("button.ConditionButton-module_container_Vda6L")
-    buttons[0].hover()
-    input("Press Enter to continue...")   
-
-    # Print the full page HTML after hover so we can find the tooltip element
-    html = page.inner_html("body")
-    # Search for anything that appeared - look for the text you see in the tooltip
-    if "Künstliche" in html or "Endodontisch" in html:
-        print("Tooltip content found in DOM")
-        print(html[html.find("Künstliche")-200:html.find("Künstliche")+500])
-
 
 
 
@@ -58,8 +45,6 @@ def get_user_data(page,user_id):
         picture_path = f"output/{user_id}-{i}-{name.inner_text()}-{percentage.inner_text()}.png" 
         print(f"Saved {picture_path}")
         canvas.screenshot(path=picture_path)
-        if name and percentage:
-            print(f"{name.inner_text()} - {percentage.inner_text()}")
 
 
 def deactiveted_showButtons(page):
@@ -97,12 +82,14 @@ def go_to_patient_report(page,user_id):
     
     page.wait_for_timeout(3000)
 
-    print("Please Remove the Mouse Away from the Screen!!! it can interfier with the hover Buttons")
-    input("Press Enter to continue...")   
     print(f"Now on: {page.url}")
-    #debug(page)
     
 
 
-        
+def get_refrence_image(page,user_id):
+    """gets a empty Image for refrence"""
+    canvas =  page.query_selector("canvas")
+    picture_path = f"output/{user_id}.png" 
+    canvas.screenshot(path=picture_path)
+    print(f"Saved {picture_path}")
     
