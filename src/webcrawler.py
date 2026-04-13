@@ -4,9 +4,7 @@ from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
 
-from playwright.sync_api import sync_playwright
 
-USER_DATA_DIR = 'user_data' 
 
 def login(page):    
     """Handles the manual login and ensures the session is saved."""
@@ -39,13 +37,9 @@ def debug(page):
         print(html[html.find("Künstliche")-200:html.find("Künstliche")+500])
 
 
-def make_json(user_id):
-    """makes out of One user a usefull json"""
-
-    pass
 
 
-def get_user_Data(page,user_id):
+def get_user_data(page,user_id):
     """Gets a single User Data"""
     # Gets the Buttons
     # Get all condition buttons
@@ -68,7 +62,15 @@ def get_user_Data(page,user_id):
             print(f"{name.inner_text()} - {percentage.inner_text()}")
 
 
-def go_to_the_right_side(page):
+def deactiveted_showButtons(page):
+
+    buttons = page.query_selector("button.MaskFilterButton-module_container_EFNpE")
+
+    for button in buttons:
+        is_active = not button.is_enabled()  # disabled = active/pressed
+        print(f"{button.text}: {'ACTIVE' if is_active else 'inactive'}")
+
+def go_to_patient_report(page,user_id):
     """Goes to the right page"""
     print("Opening data page...")
     page.goto('https://app.diagnocat.eu/patients', wait_until="domcontentloaded", timeout=60000)
@@ -82,8 +84,7 @@ def go_to_the_right_side(page):
     rows = page.query_selector_all(row_selector)
     print(f"Found {len(rows)} patient rows")
 
-    # Click the first row (index 0), second would be index 1, third index 2
-    rows[0].click()
+    rows[user_id].click()
     print("Clicked first patient row")
 
     # Wait for the patient detail page to load
@@ -99,17 +100,9 @@ def go_to_the_right_side(page):
     print("Please Remove the Mouse Away from the Screen!!! it can interfier with the hover Buttons")
     input("Press Enter to continue...")   
     print(f"Now on: {page.url}")
-    get_user_Data(page,0)
     #debug(page)
     
 
-def main():
-    with sync_playwright() as p:
-        context: BrowserContext = p.chromium.launch_persistent_context(USER_DATA_DIR, headless=False)
-        page = context.new_page()
-        login(page)
 
-        go_to_the_right_side(page)
         
     
-main()
