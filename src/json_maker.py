@@ -1,5 +1,6 @@
 import os
 
+import json
 import numpy as np
 from PIL import Image, ImageChops
 
@@ -7,24 +8,25 @@ from PIL import Image, ImageChops
 
 # Save the diff — black = same, white/colored = different
 
-def get_difference():
+def get_difference(refrence_path,image_path):
     """Gets the Picutres that ware taken, on the null index is the refrence Image returns the savepath"""
 
+    
+    img1 = Image.open(refrence_path)
+    img2 = Image.open(image_path)
+    diff = ImageChops.difference(img1, img2)
     base_dir = os.path.dirname(os.path.abspath(__file__))
     output_dir = os.path.join(base_dir, "../output")
-    
-    img1 = Image.open(os.path.join(output_dir, "0.png"))
-    img2 = Image.open(os.path.join(output_dir, "0-0-Füllung-96%.png"))
-    diff = ImageChops.difference(img1, img2)
     save_path = os.path.join(output_dir,"diff.png")
     diff.save(save_path)
     return(save_path)
 
 def get_json_cordinates(difference_image):
+    '''Converts the coordiantes to usfull Label Studio Values'''
     img_width, img_height = get_image_size(difference_image)  
     x_pixels,y_pixels ,x2pixel,y2pixel = get_coordinates(difference_image)
-    width_pixels = x_pixels -x2pixel
-    height_pixels = y_pixels -y2pixel
+    width_pixels  = -x_pixels+x2pixel
+    height_pixels = -y_pixels+y2pixel
     x_pct = to_percent(x_pixels, img_width)
     y_pct = to_percent(y_pixels, img_height)
     w_pct = to_percent(width_pixels, img_width)
@@ -33,10 +35,11 @@ def get_json_cordinates(difference_image):
 
 
 
-def get_coordinates():
+def get_coordinates(difference_path):
+    '''gets the coordinates for the Pixels'''
     base_dir = os.path.dirname(os.path.abspath(__file__))
     output_dir = os.path.join(base_dir, "../output")
-    img = Image.open("output/diff.png")
+    img = Image.open(difference_path)
     arr = np.array(img)
 
     # Find all pixels that are not black
@@ -44,26 +47,24 @@ def get_coordinates():
     coords = np.argwhere(non_black)  # Returns [row, col] pairs
 
     if len(coords) == 0:
-        return False
         print("No differences found!")
+        return 0,0,0,0
     else:
         top_left     = coords.min(axis=0)  # smallest row, smallest col
         bottom_right = coords.max(axis=0)  # largest row, largest col
 
-        print(f"Top-left:     x={top_left[1]},  y={top_left[0]}")
-        print(f"Bottom-right: x={bottom_right[1]}, y={bottom_right[0]}")
-        return top_left,bottom_right
+        return top_left[1],top_left[0],bottom_right[1],bottom_right[0]
 
 def get_info(filename):
-    name, ext = os.path.splitext(filename)  
-    parts = name.split("-")                 
+    filename = os.path.basename(filename)  # removes "output/" 
+    name, ext = os.path.splitext(filename)
+    parts = name.split("-")
+    return parts
+    #user_id    = parts[0]   # "0"
+    #sub_index  = parts[1]   # "0"
+    #label      = parts[2]   # "Füllung"
+    #confidence = parts[3]   # "96%"
 
-    index      = parts[0]   # "0"
-    sub_index  = parts[1]   # "0"
-    label      = parts[2]   # "Füllung"
-    confidence = parts[3]   # "96%"
-
-    print(index, sub_index, label, confidence)
 
 
 def get_image_size(imagePath):
@@ -73,10 +74,36 @@ def get_image_size(imagePath):
 def to_percent(value, dimension):
     return (value / dimension) * 100
 
+def outer_json(id,sub_index, inner_json):
+    '''Makes the outer Json file that is just needed onec per Person'''
+    task = []
+    predictions ={"id":sub_index,"result":inner_json}
+    task.append({"id":id,"data":{'image':''},"predictions":[predictions], } )
+    return task
+
+def to_confidence(value):
+    '''Converets a Prozent value to a Float value (ex. 50% ->0.5)'''
+    if "%" not in value:
+        print(f"Warning: '{value}' is not a percentage!")
+        return 0.0
+    return int(value.strip("%")) / 100
+
+def inner_json(label,x,y,w,h,sub_index,prozent):
+    '''Makes the inner Json everything that is used every Annotation'''
+    task = []
+    values ={"rotation":0,"rectanglelabels":[label],  "x": x, "y":y,"width":  w,"height": h }
+    task.append({"from_name": "label","to_name": "image", "type":"rectanglelabels","id":"ann"+sub_index,"value":values,"score":to_confidence(prozent)})
+    return task
+
+def dump_json(task):
+    '''SAVE JSON'''
+    with open('output.json', 'w') as f:
+        json.dump(task, f, indent=2)
+    print(f"saved json to output.json ")
+    
+
 def main():
-    difference = get_difference()
-    x,y,x1,y2=  get_json_cordinates(difference)
-    get_info("0-0-Füllung-96%.png")
+    print(get_info("output/0-64-Dentin-99%.png"))
+    print("worked")
 
-
-main()
+#main()
