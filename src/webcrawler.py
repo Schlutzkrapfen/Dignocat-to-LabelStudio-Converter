@@ -33,6 +33,7 @@ def get_user_data(page,user_id):
     buttons = page.query_selector_all("button.ConditionButton-module_container_Vda6L")
     canvas =  page.query_selector("canvas")
     page.wait_for_timeout(3000)  
+    saved_screenshoots = []
     for i, button in enumerate(buttons):
         # Hover over each button
         button.hover()
@@ -44,8 +45,10 @@ def get_user_data(page,user_id):
         percentage = button.query_selector("span.p3")
         picture_path = f"output/{user_id}-{i}-{name.inner_text()}-{percentage.inner_text()}.png" 
         print(f"Saved {picture_path}")
+        saved_screenshoots.append(picture_path)
         canvas.screenshot(path=picture_path)
-
+    
+    return saved_screenshoots
 
 def deactiveted_showButtons(page):
 
@@ -92,4 +95,5 @@ def get_refrence_image(page,user_id):
     picture_path = f"output/{user_id}.png" 
     canvas.screenshot(path=picture_path)
     print(f"Saved {picture_path}")
+    return picture_path
     
