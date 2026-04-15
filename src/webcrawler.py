@@ -1,7 +1,3 @@
-from playwright.sync_api._generated import BrowserContext
-import requests
-from bs4 import BeautifulSoup
-from playwright.sync_api import sync_playwright
 import os
 
 
@@ -67,23 +63,23 @@ def get_user_data(page,user_id):
     return saved_screenshoots
 
 def deactivated_showButtons(page):
+    page.wait_for_timeout(3000)  
     buttons = page.query_selector_all("button.MaskFilterButton-module_container_EFNpE")
     for button in buttons:
-        label = button.inner_text()
+        is_disabled = page.evaluate("btn => btn.hasAttribute('disabled')", button)
+        
+        if is_disabled:
+            continue
         
         classes = page.evaluate("btn => Array.from(btn.classList)", button)
-        
         is_active = len(classes) > 2
-        
-        print(f"{label}: {'ACTIVE' if is_active else 'inactive'}")
         
         if  is_active:
             button.click()
 
 
+
 def get_pationt_amount(page):
-    page.goto('https://app.diagnocat.eu/patients', wait_until="domcontentloaded", timeout=60000)
-    page.wait_for_selector("body", timeout=15000)
 
     # --- Click the first patient row ---
     row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"

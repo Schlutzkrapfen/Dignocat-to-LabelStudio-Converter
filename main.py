@@ -22,6 +22,7 @@ def main():
         page = context.new_page()
         try:
             login(page)
+            outer_task = []
             for i in range(get_pationt_amount(page)):
                 user_id = i
                 go_to_patient_report(page,user_id)
@@ -29,8 +30,8 @@ def main():
                 images_paths =get_user_data(page, user_id)
                 print(refrence_image_path)
                 print(images_paths)
-                task = []
                 id = 0
+                task = []
                 for paths in images_paths:
                     parts = get_info(paths)
                     id = parts[0]
@@ -42,7 +43,8 @@ def main():
 
                         x,y,w,h=  get_json_cordinates(difference_path)
                     task+= (inner_json("Füllung",x,y,w,h,parts[1],parts[3]))
-            dump_json (outer_json(id,user_id,task)
+                outer_task += outer_json(id,user_id,task)    
+            dump_json (outer_task
 
 )
         finally:
