@@ -2,7 +2,7 @@ from playwright.sync_api._generated import BrowserContext
 import requests
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
-
+import os
 
 
 
@@ -24,6 +24,17 @@ def login(page):
         print("Login successful!")
 
 
+def get_theeh_picture(page,teeth_id,user_id):
+   picture_path = f"output/{user_id}-{teeth_id}.png"
+   if os.path.exists(picture_path):
+       return picture_path
+   section = page.locator(f'section[id$="{teeth_id}"]')
+   div = section.locator('div.ConditionTitle-module_container_vpIP9')
+   div.hover()
+   canvas =  page.query_selector("canvas")
+   page.wait_for_timeout(300)  # Small pause to let hover effects render
+   canvas.screenshot(path=picture_path)
+   return picture_path
 
 
 def get_user_data(page,user_id):
@@ -33,57 +44,75 @@ def get_user_data(page,user_id):
     buttons = page.query_selector_all("button.ConditionButton-module_container_Vda6L")
     canvas =  page.query_selector("canvas")
     page.wait_for_timeout(3000)  
+
     saved_screenshoots = []
     for i, button in enumerate(buttons):
         # Hover over each button
         button.hover()
-        page.wait_for_timeout(300)  # Small pause to let hover effects render
-        # Take a screenshot of just the canvas element
-        
-        # Get the span text inside the button
+        section_id =  button.evaluate("el => el.closest('section').id")
+        last_4 = section_id[-4:]
+
         name = button.query_selector("span:first-child")
         percentage = button.query_selector("span.p3")
-        picture_path = f"output/{user_id}-{i}-{name.inner_text()}-{percentage.inner_text()}.png" 
+        picture_path = f"output/{user_id}_{i}_{name.inner_text()}_{percentage.inner_text()}_{last_4}.png" 
+        if os.path.exists(picture_path):
+            print(f"Skipping {picture_path}, already exists")
+            saved_screenshoots.append(picture_path)
+            continue
+        page.wait_for_timeout(300)  # Small pause to let hover effects render
         print(f"Saved {picture_path}")
         saved_screenshoots.append(picture_path)
         canvas.screenshot(path=picture_path)
     
     return saved_screenshoots
 
-def deactiveted_showButtons(page):
-
-    buttons = page.query_selector("button.MaskFilterButton-module_container_EFNpE")
-
+def deactivated_showButtons(page):
+    buttons = page.query_selector_all("button.MaskFilterButton-module_container_EFNpE")
     for button in buttons:
-        is_active = not button.is_enabled()  # disabled = active/pressed
-        print(f"{button.text}: {'ACTIVE' if is_active else 'inactive'}")
+        label = button.inner_text()
+        
+        classes = page.evaluate("btn => Array.from(btn.classList)", button)
+        
+        is_active = len(classes) > 2
+        
+        print(f"{label}: {'ACTIVE' if is_active else 'inactive'}")
+        
+        if  is_active:
+            button.click()
 
-def go_to_patient_report(page,user_id):
-    """Goes to the right page"""
-    print("Opening data page...")
+
+def get_pationt_amount(page):
     page.goto('https://app.diagnocat.eu/patients', wait_until="domcontentloaded", timeout=60000)
     page.wait_for_selector("body", timeout=15000)
-    page.wait_for_timeout(3000)
 
     # --- Click the first patient row ---
     row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
     page.wait_for_selector(row_selector, timeout=10000)
     
     rows = page.query_selector_all(row_selector)
-    print(f"Found {len(rows)} patient rows")
+    return len(rows)
+
+def go_to_patient_report(page,user_id):
+    """Goes to the right page"""
+    print("Opening data page...")
+    page.goto('https://app.diagnocat.eu/patients', wait_until="domcontentloaded", timeout=60000)
+    page.wait_for_selector("body", timeout=15000)
+
+    # --- Click the first patient row ---
+    row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
+    page.wait_for_selector(row_selector, timeout=10000)
+    
+    rows = page.query_selector_all(row_selector)
 
     rows[user_id].click()
     print("Clicked first patient row")
 
-    # Wait for the patient detail page to load
-    page.wait_for_timeout(3000)
     print(f"Now on: {page.url}")
 
     # Wait for the next page
     page.wait_for_selector("div.ReportCard-module_container_ONmLU", timeout=10000)
     page.query_selector("div.ReportCard-module_container_ONmLU").click()
     
-    page.wait_for_timeout(3000)
 
     print(f"Now on: {page.url}")
     
@@ -91,6 +120,7 @@ def go_to_patient_report(page,user_id):
 
 def get_refrence_image(page,user_id):
     """gets a empty Image for refrence"""
+    deactivated_showButtons(page)
     canvas =  page.query_selector("canvas")
     picture_path = f"output/{user_id}.png" 
     canvas.screenshot(path=picture_path)

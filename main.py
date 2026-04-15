@@ -10,9 +10,8 @@ USER_DATA_DIR = 'user_data'
 # Allow imports from the src/ folder
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
-from webcrawler import login, go_to_patient_report, get_user_data,get_refrence_image
+from webcrawler import login, go_to_patient_report, get_user_data,get_refrence_image,get_theeh_picture,get_pationt_amount
 from json_maker import get_difference,get_json_cordinates,get_info,dump_json,outer_json,inner_json
-
 
 def main():
     os.makedirs("output", exist_ok=True)
@@ -21,35 +20,34 @@ def main():
     with sync_playwright() as p:
         context = p.chromium.launch_persistent_context(USER_DATA_DIR, headless=False)
         page = context.new_page()
-
         try:
             login(page)
-            user_id = 0
-            go_to_patient_report(page,user_id)
-            refrence_image_path= get_refrence_image(page,user_id)
-            images_paths =get_user_data(page, user_id)
-            print(refrence_image_path)
-            print(images_paths)
-            task = []
-            id = 0
-            user_id = 0
-            for paths in images_paths:
-                difference_path = get_difference(refrence_image_path,paths)
-                x,y,w,h=  get_json_cordinates(difference_path)
-                parts = get_info(paths)
-                id = parts[0]
-                user_id = parts[1]
-                task+= (inner_json("Füllung",x,y,w,h,parts[1],parts[3]))
+            for i in range(get_pationt_amount(page)):
+                user_id = i
+                go_to_patient_report(page,user_id)
+                refrence_image_path= get_refrence_image(page,user_id)
+                images_paths =get_user_data(page, user_id)
+                print(refrence_image_path)
+                print(images_paths)
+                task = []
+                id = 0
+                for paths in images_paths:
+                    parts = get_info(paths)
+                    id = parts[0]
+                    user_id = parts[1]
+                    difference_path = get_difference(refrence_image_path,paths)
+                    x,y,w,h=  get_json_cordinates(difference_path)
+                    if w== 0 and h ==0:
+                        difference_path = get_theeh_picture(page, parts[4], id)
+
+                        x,y,w,h=  get_json_cordinates(difference_path)
+                    task+= (inner_json("Füllung",x,y,w,h,parts[1],parts[3]))
             dump_json (outer_json(id,user_id,task)
 
 )
-
-
         finally:
             pass
     
-
-
 
 if __name__ == "__main__":
     main()
