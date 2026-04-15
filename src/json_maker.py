@@ -85,7 +85,12 @@ def to_confidence(value):
     if "%" not in value:
         print(f"Warning: '{value}' is not a percentage!")
         return 0.0
-    return int(value.strip("%")) / 100
+    cleaned = value.strip("%").strip()
+    try:
+        return int(cleaned) / 100
+    except ValueError:
+        print(f"Warning: '{value}' could not be converted!")
+        return 0.0
 
 def inner_json(label,x,y,w,h,sub_index,prozent):
     '''Makes the inner Json everything that is used every Annotation'''
