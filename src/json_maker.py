@@ -10,7 +10,6 @@ from PIL import Image, ImageChops
 
 def get_difference(refrence_path,image_path):
     """Gets the Picutres that ware taken, on the null index is the refrence Image returns the savepath"""
-
     
     img1 = Image.open(refrence_path)
     img2 = Image.open(image_path)
@@ -47,7 +46,6 @@ def get_coordinates(difference_path):
     coords = np.argwhere(non_black)  # Returns [row, col] pairs
 
     if len(coords) == 0:
-        print("No differences found!")
         return 0,0,0,0
     else:
         top_left     = coords.min(axis=0)  # smallest row, smallest col
@@ -58,12 +56,13 @@ def get_coordinates(difference_path):
 def get_info(filename):
     filename = os.path.basename(filename)  # removes "output/" 
     name, ext = os.path.splitext(filename)
-    parts = name.split("-")
+    parts = name.split("_")
     return parts
     #user_id    = parts[0]   # "0"
     #sub_index  = parts[1]   # "0"
     #label      = parts[2]   # "Füllung"
     #confidence = parts[3]   # "96%"
+
 
 
 
