@@ -29,6 +29,8 @@ source venv/bin/activate
 
 # Install requirements
 pip install -r requirements.txt
+# Install the necessary browser (Chromium)
+playwright install chromium
 ```
 #### On Windows:
 Bash
@@ -41,6 +43,8 @@ python -m venv venv
 
 # Install requirements
 pip install -r requirements.txt
+# Install the necessary browser (Chromium)
+playwright install chromium
 ```
 
 ## Configuration (Setup)
