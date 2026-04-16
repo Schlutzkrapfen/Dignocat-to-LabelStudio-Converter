@@ -25,7 +25,7 @@ pip install -r requirements.txt
 ## Configuration (Setup)
 
 Before running the script, you must configure how the labels are translated. This is done in the label_mapping.csv file.
-###Mapping the CSV
+### Mapping the CSV
 
 The CSV file contains three columns: diagnocat_label, code, and label_category.
 
