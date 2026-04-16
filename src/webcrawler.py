@@ -80,7 +80,6 @@ def deactivated_showButtons(page):
 
 
 def get_pationt_amount(page):
-
     # --- Click the first patient row ---
     row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
     page.wait_for_selector(row_selector, timeout=10000)
