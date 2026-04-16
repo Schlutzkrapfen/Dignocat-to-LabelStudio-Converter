@@ -103,11 +103,5 @@ def dump_json(task):
     '''SAVE JSON'''
     with open('output.json', 'w') as f:
         json.dump(task, f, indent=2)
-    print(f"saved json to output.json ")
+    print(f"saved json to output/output.json")
     
-
-def main():
-    print(get_info("output/0-64-Dentin-99%.png"))
-    print("worked")
-
-#main()
