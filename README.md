@@ -15,10 +15,31 @@ cd Dignocat-to-LabelStudio-Converter
 
 
 ### 2. Install Dependencies
-
 Install the required Python libraries using the requirements.txt file:
+#### On Linux/macOS:
+
+
 Bash
 ```bash
+# Create a virtual environment
+python3 -m venv venv
+
+# Activate it
+source venv/bin/activate
+
+# Install requirements
+pip install -r requirements.txt
+```
+#### On Windows:
+Bash
+```bash
+# Create a virtual environment
+python -m venv venv
+
+# Activate it
+.\venv\Scripts\activate
+
+# Install requirements
 pip install -r requirements.txt
 ```
 
