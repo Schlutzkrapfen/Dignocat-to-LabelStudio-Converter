@@ -1,9 +1,15 @@
-Endodontisch behandelter ZahnZement-Rootfilling
-FüllungMetall-Filling
-Künstliche ZahnkroneMetal-Crown
-Parodontaler KnochenverlustHorizontal Bone loss (to enamel-dentin-border)
-Periapikale RadioluzenzPPC/Ostitis/Zyst
-PeriimplantitisPPC/Ostitis/Zyst
-Sekundäre KariesCaries
-WurzelDeep Caries
-Zeichen von KariesCaries
+diagnocat_label	code	label_category
+Endodontisch behandelter Zahn	Zement-Rootfilling	"Zement/Guttapercha
+"
+Füllung	Metall-Filling	"metal
+"
+Künstliche Zahnkrone	Metal-Crown	"metal
+"
+Parodontaler Knochenverlust	Horizontal Bone loss (to enamel-dentin-border)	Peridontology
+Periapikale Radioluzenz	PPC/Ostitis/Zyst	"PPC/Ostitis/Zyst
+"
+Periimplantitis	PPC/Ostitis/Zyst	"PPC/Ostitis/Zyst
+"
+Sekundäre Karies	Caries	pathology
+Wurzel	Deep Caries	pathology
+Zeichen von Karies	Caries	pathology

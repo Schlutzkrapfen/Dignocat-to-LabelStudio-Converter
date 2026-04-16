@@ -16,7 +16,8 @@ from label_converter import map_label,load_label_mapping
 
 def main():
     os.makedirs("output", exist_ok=True)
-    load_label_mapping
+    label_Data = load_label_mapping()
+
     #Starts the browser
     with sync_playwright() as p:
         context = p.chromium.launch_persistent_context(USER_DATA_DIR, headless=False)
@@ -35,9 +36,10 @@ def main():
                 task = []
                 for paths in images_paths:
                     parts = get_info(paths)
-                    label = map_label(parts[2])
+                    label,label_categorie = map_label(parts[2],label_Data)
                     if label == None:
                         continue
+
                     id = parts[0]
                     user_id = parts[1]
                     difference_path = get_difference(refrence_image_path,paths)
@@ -46,7 +48,8 @@ def main():
                         paths = get_theeh_picture(page, parts[4], id)
                         difference_path = get_difference(refrence_image_path,paths)
                         x,y,w,h = get_json_cordinates(difference_path)
-                    task += (inner_json("Füllung",x,y,w,h,parts[1],parts[3]))
+                    
+                    task += (inner_json(label,x,y,w,h,parts[1],parts[3],label_categorie))
                 outer_task += outer_json(id,user_id,task)    
             dump_json (outer_task)
         finally:
