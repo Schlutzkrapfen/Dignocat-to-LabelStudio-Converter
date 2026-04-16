@@ -73,11 +73,11 @@ def get_image_size(imagePath):
 def to_percent(value, dimension):
     return (value / dimension) * 100
 
-def outer_json(id,sub_index, inner_json):
+def outer_json(user_id,id, inner_json):
     '''Makes the outer Json file that is just needed onec per Person'''
     task = []
-    predictions ={"id":sub_index,"result":inner_json}
-    task.append({"id":id,"data":{'image':''},"predictions":[predictions], } )
+    predictions ={"id":id,"result":inner_json}
+    task.append({"id":user_id,"data":{'image':f'/data/local-files/?d=output/{user_id}.png'},"predictions":[predictions], } )
     return task
 
 def to_confidence(value):
@@ -103,5 +103,5 @@ def dump_json(task):
     '''SAVE JSON'''
     with open('output.json', 'w') as f:
         json.dump(task, f, indent=2)
-    print(f"saved json to output/output.json")
+    print(f"saved json to output.json")
     

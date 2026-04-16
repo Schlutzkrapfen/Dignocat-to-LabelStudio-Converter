@@ -11,3 +11,6 @@
 *.vsix
 user_data/*
 output/*
+user_data/
+*.~lock.*#
+output.json

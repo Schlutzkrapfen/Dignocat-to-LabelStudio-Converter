@@ -406,7 +406,7 @@
   {
     "id": "1",
     "data": {
-      "image": "/home/david/Documents/Dignocat-to-LabelStudio-Converter/output.json"
+      "image": "/data/local-files/?d=output/1.png"
     },
     "predictions": [
       {
@@ -422,10 +422,10 @@
               "rectanglelabels": [
                 "Metal-Crown"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 28.737541528239202,
+              "y": 50.208333333333336,
+              "width": 4.485049833887043,
+              "height": 4.583333333333333
             },
             "score": 0.9
           },
@@ -439,10 +439,10 @@
               "rectanglelabels": [
                 "Horizontal Bone loss (to enamel-dentin-border)"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 28.903654485049834,
+              "y": 48.541666666666664,
+              "width": 4.318936877076411,
+              "height": 2.2916666666666665
             },
             "score": 0.69
           },
@@ -456,10 +456,10 @@
               "rectanglelabels": [
                 "Metal-Crown"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 37.04318936877076,
+              "y": 50.416666666666664,
+              "width": 3.322259136212625,
+              "height": 4.375
             },
             "score": 0.9
           },
@@ -473,10 +473,10 @@
               "rectanglelabels": [
                 "Horizontal Bone loss (to enamel-dentin-border)"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 36.87707641196013,
+              "y": 49.166666666666664,
+              "width": 0.6644518272425249,
+              "height": 1.4583333333333333
             },
             "score": 0.65
           },
@@ -490,10 +490,10 @@
               "rectanglelabels": [
                 "Metall-Filling"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 40.033222591362126,
+              "y": 51.041666666666664,
+              "width": 2.6578073089700998,
+              "height": 3.125
             },
             "score": 0.89
           },
@@ -507,10 +507,10 @@
               "rectanglelabels": [
                 "Metall-Filling"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 42.19269102990033,
+              "y": 49.166666666666664,
+              "width": 3.488372093023256,
+              "height": 6.25
             },
             "score": 0.9
           },
@@ -524,10 +524,10 @@
               "rectanglelabels": [
                 "Metal-Crown"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 45.01661129568107,
+              "y": 50.83333333333333,
+              "width": 2.823920265780731,
+              "height": 4.375
             },
             "score": 0.7
           },
@@ -541,10 +541,10 @@
               "rectanglelabels": [
                 "Zement-Rootfilling"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 45.182724252491695,
+              "y": 43.541666666666664,
+              "width": 2.823920265780731,
+              "height": 11.666666666666666
             },
             "score": 0.87
           },
@@ -558,10 +558,10 @@
               "rectanglelabels": [
                 "Metal-Crown"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 47.3421926910299,
+              "y": 51.041666666666664,
+              "width": 3.1561461794019934,
+              "height": 4.583333333333333
             },
             "score": 0.74
           },
@@ -575,10 +575,10 @@
               "rectanglelabels": [
                 "Zement-Rootfilling"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 47.3421926910299,
+              "y": 44.166666666666664,
+              "width": 2.990033222591362,
+              "height": 11.458333333333332
             },
             "score": 0.94
           },
@@ -592,10 +592,10 @@
               "rectanglelabels": [
                 "Metal-Crown"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 50.332225913621265,
+              "y": 50.208333333333336,
+              "width": 2.990033222591362,
+              "height": 5.625
             },
             "score": 0.79
           },
@@ -609,10 +609,10 @@
               "rectanglelabels": [
                 "Zement-Rootfilling"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 50.332225913621265,
+              "y": 43.958333333333336,
+              "width": 2.823920265780731,
+              "height": 11.875
             },
             "score": 0.91
           },
@@ -626,10 +626,10 @@
               "rectanglelabels": [
                 "Metal-Crown"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 55.3156146179402,
+              "y": 50.83333333333333,
+              "width": 2.990033222591362,
+              "height": 5.0
             },
             "score": 0.89
           },
@@ -643,10 +643,10 @@
               "rectanglelabels": [
                 "Metal-Crown"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 57.475083056478404,
+              "y": 51.041666666666664,
+              "width": 3.322259136212625,
+              "height": 4.791666666666667
             },
             "score": 0.55
           },
@@ -660,10 +660,10 @@
               "rectanglelabels": [
                 "Metal-Crown"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 59.46843853820598,
+              "y": 52.916666666666664,
+              "width": 3.1561461794019934,
+              "height": 3.5416666666666665
             },
             "score": 0.51
           },
@@ -677,10 +677,10 @@
               "rectanglelabels": [
                 "Metal-Crown"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 61.96013289036545,
+              "y": 52.5,
+              "width": 4.651162790697675,
+              "height": 4.791666666666667
             },
             "score": 0.9
           },
@@ -694,10 +694,10 @@
               "rectanglelabels": [
                 "Horizontal Bone loss (to enamel-dentin-border)"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 66.11295681063123,
+              "y": 50.625,
+              "width": 0.9966777408637874,
+              "height": 2.5
             },
             "score": 0.63
           },
@@ -711,10 +711,10 @@
               "rectanglelabels": [
                 "Metall-Filling"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 66.44518272425249,
+              "y": 53.125,
+              "width": 3.6544850498338874,
+              "height": 3.3333333333333335
             },
             "score": 0.98
           },
@@ -728,10 +728,10 @@
               "rectanglelabels": [
                 "Caries"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 66.77740863787376,
+              "y": 52.916666666666664,
+              "width": 0.6644518272425249,
+              "height": 0.8333333333333334
             },
             "score": 0.73
           },
@@ -745,10 +745,10 @@
               "rectanglelabels": [
                 "Horizontal Bone loss (to enamel-dentin-border)"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 66.11295681063123,
+              "y": 50.625,
+              "width": 4.152823920265781,
+              "height": 2.5
             },
             "score": 0.7
           },
@@ -762,10 +762,10 @@
               "rectanglelabels": [
                 "Metal-Crown"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 55.81395348837209,
+              "y": 57.291666666666664,
+              "width": 3.488372093023256,
+              "height": 5.208333333333334
             },
             "score": 0.87
           },
@@ -779,10 +779,10 @@
               "rectanglelabels": [
                 "Metall-Filling"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 54.98338870431893,
+              "y": 57.91666666666667,
+              "width": 1.495016611295681,
+              "height": 5.625
             },
             "score": 0.86
           },
@@ -796,10 +796,10 @@
               "rectanglelabels": [
                 "Horizontal Bone loss (to enamel-dentin-border)"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 53.820598006644516,
+              "y": 60.62499999999999,
+              "width": 0.6644518272425249,
+              "height": 1.4583333333333333
             },
             "score": 0.55
           },
@@ -813,10 +813,10 @@
               "rectanglelabels": [
                 "Horizontal Bone loss (to enamel-dentin-border)"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 51.993355481727576,
+              "y": 60.416666666666664,
+              "width": 2.4916943521594686,
+              "height": 1.6666666666666667
             },
             "score": 0.6
           },
@@ -830,10 +830,10 @@
               "rectanglelabels": [
                 "Horizontal Bone loss (to enamel-dentin-border)"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 50.498338870431894,
+              "y": 60.416666666666664,
+              "width": 2.3255813953488373,
+              "height": 1.6666666666666667
             },
             "score": 0.62
           },
@@ -847,10 +847,10 @@
               "rectanglelabels": [
                 "Horizontal Bone loss (to enamel-dentin-border)"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 48.671096345514954,
+              "y": 60.62499999999999,
+              "width": 2.4916943521594686,
+              "height": 1.4583333333333333
             },
             "score": 0.62
           },
@@ -864,10 +864,10 @@
               "rectanglelabels": [
                 "Horizontal Bone loss (to enamel-dentin-border)"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 48.671096345514954,
+              "y": 60.62499999999999,
+              "width": 0.8305647840531563,
+              "height": 1.4583333333333333
             },
             "score": 0.57
           },
@@ -881,10 +881,10 @@
               "rectanglelabels": [
                 "Metall-Filling"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 44.518272425249165,
+              "y": 57.70833333333333,
+              "width": 1.8272425249169437,
+              "height": 3.3333333333333335
             },
             "score": 0.91
           },
@@ -898,10 +898,10 @@
               "rectanglelabels": [
                 "Zement-Rootfilling"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 44.518272425249165,
+              "y": 56.666666666666664,
+              "width": 2.4916943521594686,
+              "height": 12.5
             },
             "score": 0.9
           },
@@ -915,10 +915,10 @@
               "rectanglelabels": [
                 "Horizontal Bone loss (to enamel-dentin-border)"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 44.01993355481728,
+              "y": 60.62499999999999,
+              "width": 0.8305647840531563,
+              "height": 1.6666666666666667
             },
             "score": 0.53
           },
@@ -932,10 +932,10 @@
               "rectanglelabels": [
                 "Zement-Rootfilling"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 41.69435215946844,
+              "y": 56.875,
+              "width": 3.488372093023256,
+              "height": 11.666666666666666
             },
             "score": 0.92
           },
@@ -949,10 +949,10 @@
               "rectanglelabels": [
                 "Horizontal Bone loss (to enamel-dentin-border)"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 41.86046511627907,
+              "y": 60.416666666666664,
+              "width": 2.990033222591362,
+              "height": 1.875
             },
             "score": 0.53
           },
@@ -966,10 +966,10 @@
               "rectanglelabels": [
                 "Metall-Filling"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 39.8671096345515,
+              "y": 56.875,
+              "width": 2.6578073089700998,
+              "height": 3.75
             },
             "score": 0.88
           },
@@ -983,10 +983,10 @@
               "rectanglelabels": [
                 "Zement-Rootfilling"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 39.53488372093023,
+              "y": 56.875,
+              "width": 3.322259136212625,
+              "height": 10.416666666666668
             },
             "score": 0.92
           },
@@ -1000,10 +1000,10 @@
               "rectanglelabels": [
                 "Horizontal Bone loss (to enamel-dentin-border)"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 39.202657807308974,
+              "y": 59.791666666666664,
+              "width": 3.322259136212625,
+              "height": 1.875
             },
             "score": 0.76
           },
@@ -1017,10 +1017,10 @@
               "rectanglelabels": [
                 "PPC/Ostitis/Zyst"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 39.3687707641196,
+              "y": 65.83333333333333,
+              "width": 1.3289036544850499,
+              "height": 1.6666666666666667
             },
             "score": 0.31
           },
@@ -1034,10 +1034,10 @@
               "rectanglelabels": [
                 "Metal-Crown"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 34.883720930232556,
+              "y": 56.041666666666664,
+              "width": 5.48172757475083,
+              "height": 5.208333333333334
             },
             "score": 0.91
           },
@@ -1051,10 +1051,10 @@
               "rectanglelabels": [
                 "Zement-Rootfilling"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 33.5548172757475,
+              "y": 56.25,
+              "width": 6.4784053156146175,
+              "height": 10.833333333333334
             },
             "score": 0.92
           },
@@ -1068,10 +1068,10 @@
               "rectanglelabels": [
                 "Horizontal Bone loss (to enamel-dentin-border)"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 34.38538205980066,
+              "y": 59.583333333333336,
+              "width": 5.647840531561462,
+              "height": 2.083333333333333
             },
             "score": 0.76
           },
@@ -1085,10 +1085,10 @@
               "rectanglelabels": [
                 "PPC/Ostitis/Zyst"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 33.88704318936877,
+              "y": 65.83333333333333,
+              "width": 3.488372093023256,
+              "height": 1.875
             },
             "score": 0.38
           },
@@ -1102,10 +1102,10 @@
               "rectanglelabels": [
                 "Metall-Filling"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 31.727574750830566,
+              "y": 56.25,
+              "width": 3.6544850498338874,
+              "height": 3.3333333333333335
             },
             "score": 0.75
           },
@@ -1119,10 +1119,10 @@
               "rectanglelabels": [
                 "Caries"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 34.053156146179404,
+              "y": 59.166666666666664,
+              "width": 0.9966777408637874,
+              "height": 1.0416666666666665
             },
             "score": 0.75
           },
@@ -1136,10 +1136,10 @@
               "rectanglelabels": [
                 "Horizontal Bone loss (to enamel-dentin-border)"
               ],
-              "x": 0.0,
-              "y": 0.0,
-              "width": 0.0,
-              "height": 0.0
+              "x": 34.38538205980066,
+              "y": 59.583333333333336,
+              "width": 0.6644518272425249,
+              "height": 1.875
             },
             "score": 0.6
           }
@@ -1150,7 +1150,7 @@
   {
     "id": "2",
     "data": {
-      "image": ""
+      "image": "/data/local-files/?d=output/2.png"
     },
     "predictions": [
       {

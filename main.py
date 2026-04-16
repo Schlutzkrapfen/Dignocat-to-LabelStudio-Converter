@@ -1,10 +1,8 @@
 import os
 import sys
+import logging
 
 from playwright.sync_api import sync_playwright
-from playwright.sync_api._generated import BrowserContext
-import requests
-from bs4 import BeautifulSoup
 
 USER_DATA_DIR = 'user_data' 
 # Allow imports from the src/ folder
@@ -30,8 +28,6 @@ def main():
                 go_to_patient_report(page,user_id)
                 refrence_image_path= get_refrence_image(page,user_id)
                 images_paths =get_user_data(page, user_id)
-                print(refrence_image_path)
-                print(images_paths)
                 id = 0
                 task = []
                 for paths in images_paths:
@@ -39,19 +35,21 @@ def main():
                     label,label_categorie = map_label(parts[2],label_Data)
                     if label == None:
                         continue
-                    print(f"Converted {parts[2]} into {label}")
-
-                    id = parts[0]
-                    user_id = parts[1]
+                    user_id = parts[0]
+                    id = parts[1]
                     difference_path = get_difference(refrence_image_path,paths)
                     x,y,w,h =  get_json_cordinates(difference_path)
                     if w == 0 and h == 0:
+                        logging.warning(f"Something went wrong with id= {id},user_id={user_id},label={label}/{parts[2]},thoot_id = {parts[4]}\n removed the broken Picture. ")
+                        os.remove(paths)
                         paths = get_theeh_picture(page, parts[4], id)
                         difference_path = get_difference(refrence_image_path,paths)
                         x,y,w,h = get_json_cordinates(difference_path)
-                    
-                    task += (inner_json(label,x,y,w,h,parts[1],parts[3],label_categorie))
-                outer_task += outer_json(id,user_id,task)    
+                        if w == 0 and h == 0:
+                            logging.error("Failed")
+                            continue
+                    task += (inner_json(label,x,y,w,h,id,parts[3],label_categorie))
+                outer_task += outer_json(user_id,id,task)    
             dump_json (outer_task)
         finally:
             pass

@@ -1,5 +1,5 @@
 import os
-
+import logging
 
 
 def login(page):    
@@ -21,7 +21,7 @@ def login(page):
 
 
 def get_theeh_picture(page,teeth_id,user_id):
-   picture_path = f"output/{user_id}-{teeth_id}.png"
+   picture_path = f"output/teeth-screenshoots/{user_id}-{teeth_id}.png"
    if os.path.exists(picture_path):
        return picture_path
    section = page.locator(f'section[id$="{teeth_id}"]')
@@ -39,18 +39,31 @@ def get_user_data(page,user_id):
     # Get all condition buttons
     buttons = page.query_selector_all("button.ConditionButton-module_container_Vda6L")
     canvas =  page.query_selector("canvas")
-    page.wait_for_timeout(3000)  
 
     saved_screenshoots = []
     for i, button in enumerate(buttons):
-        # Hover over each button
+        has_p2 = button.evaluate("el => el.classList.contains('p2')")
+
+        if not has_p2:
+            # Walk up the DOM until we find an ancestor with class "p2"
+            button = button.evaluate("""el => {
+                let current = el.parentElement;
+                while (current) {
+                    if (current.classList.contains('p2')) return true;
+                    current = current.parentElement;
+                }
+                return false;
+            }""")
+            if not button:
+                logging.warning("No hover Button found with the right Class")
+                continue
         button.hover()
         section_id =  button.evaluate("el => el.closest('section').id")
         last_4 = section_id[-4:]
 
         name = button.query_selector("span:first-child")
         percentage = button.query_selector("span.p3")
-        picture_path = f"output/{user_id}_{i}_{name.inner_text()}_{percentage.inner_text()}_{last_4}.png" 
+        picture_path = f"output/screenshots/{user_id}_{i}_{name.inner_text()}_{percentage.inner_text()}_{last_4}.png" 
         if os.path.exists(picture_path):
             print(f"Skipping {picture_path}, already exists")
             saved_screenshoots.append(picture_path)
