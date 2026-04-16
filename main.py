@@ -39,6 +39,7 @@ def main():
                     label,label_categorie = map_label(parts[2],label_Data)
                     if label == None:
                         continue
+                    print(f"Converted {parts[2]} into {label}")
 
                     id = parts[0]
                     user_id = parts[1]

@@ -9,7 +9,7 @@
         "id": "76",
         "result": [
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann0",
@@ -26,7 +26,7 @@
             "score": 0.96
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann6",
@@ -60,7 +60,7 @@
             "score": 0.43
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann11",
@@ -77,7 +77,7 @@
             "score": 0.94
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann14",
@@ -94,7 +94,7 @@
             "score": 0.72
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann18",
@@ -111,7 +111,7 @@
             "score": 0.94
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann22",
@@ -128,7 +128,7 @@
             "score": 0.96
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann27",
@@ -145,7 +145,7 @@
             "score": 0.96
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann32",
@@ -162,7 +162,7 @@
             "score": 0.96
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann39",
@@ -179,7 +179,7 @@
             "score": 0.96
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann42",
@@ -196,7 +196,7 @@
             "score": 0.95
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann45",
@@ -213,7 +213,7 @@
             "score": 0.93
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann48",
@@ -230,7 +230,7 @@
             "score": 0.97
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann52",
@@ -264,7 +264,7 @@
             "score": 0.35
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann56",
@@ -298,7 +298,7 @@
             "score": 0.7
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann63",
@@ -315,7 +315,7 @@
             "score": 0.94
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann66",
@@ -332,7 +332,7 @@
             "score": 0.94
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann69",
@@ -383,7 +383,7 @@
             "score": 0.51
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann76",
@@ -406,14 +406,14 @@
   {
     "id": "1",
     "data": {
-      "image": ""
+      "image": "/home/david/Documents/Dignocat-to-LabelStudio-Converter/output.json"
     },
     "predictions": [
       {
         "id": "115",
         "result": [
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann0",
@@ -447,7 +447,7 @@
             "score": 0.69
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann4",
@@ -481,7 +481,7 @@
             "score": 0.65
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann8",
@@ -498,7 +498,7 @@
             "score": 0.89
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann13",
@@ -515,7 +515,7 @@
             "score": 0.9
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann19",
@@ -532,7 +532,7 @@
             "score": 0.7
           },
           {
-            "from_name": "Zement/Guttapercha\n",
+            "from_name": "Zement/Guttapercha",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann20",
@@ -549,7 +549,7 @@
             "score": 0.87
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann24",
@@ -566,7 +566,7 @@
             "score": 0.74
           },
           {
-            "from_name": "Zement/Guttapercha\n",
+            "from_name": "Zement/Guttapercha",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann25",
@@ -583,7 +583,7 @@
             "score": 0.94
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann28",
@@ -600,7 +600,7 @@
             "score": 0.79
           },
           {
-            "from_name": "Zement/Guttapercha\n",
+            "from_name": "Zement/Guttapercha",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann29",
@@ -617,7 +617,7 @@
             "score": 0.91
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann32",
@@ -634,7 +634,7 @@
             "score": 0.89
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann33",
@@ -651,7 +651,7 @@
             "score": 0.55
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann34",
@@ -668,7 +668,7 @@
             "score": 0.51
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann35",
@@ -702,7 +702,7 @@
             "score": 0.63
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann39",
@@ -753,7 +753,7 @@
             "score": 0.7
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann50",
@@ -770,7 +770,7 @@
             "score": 0.87
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann52",
@@ -872,7 +872,7 @@
             "score": 0.57
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann71",
@@ -889,7 +889,7 @@
             "score": 0.91
           },
           {
-            "from_name": "Zement/Guttapercha\n",
+            "from_name": "Zement/Guttapercha",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann74",
@@ -923,7 +923,7 @@
             "score": 0.53
           },
           {
-            "from_name": "Zement/Guttapercha\n",
+            "from_name": "Zement/Guttapercha",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann81",
@@ -957,7 +957,7 @@
             "score": 0.53
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann87",
@@ -974,7 +974,7 @@
             "score": 0.88
           },
           {
-            "from_name": "Zement/Guttapercha\n",
+            "from_name": "Zement/Guttapercha",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann91",
@@ -1008,7 +1008,7 @@
             "score": 0.76
           },
           {
-            "from_name": "PPC/Ostitis/Zyst\n",
+            "from_name": "PPC/Ostitis/Zyst",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann98",
@@ -1025,7 +1025,7 @@
             "score": 0.31
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann99",
@@ -1042,7 +1042,7 @@
             "score": 0.91
           },
           {
-            "from_name": "Zement/Guttapercha\n",
+            "from_name": "Zement/Guttapercha",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann100",
@@ -1076,7 +1076,7 @@
             "score": 0.76
           },
           {
-            "from_name": "PPC/Ostitis/Zyst\n",
+            "from_name": "PPC/Ostitis/Zyst",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann107",
@@ -1093,7 +1093,7 @@
             "score": 0.38
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann108",
@@ -1157,7 +1157,7 @@
         "id": "108",
         "result": [
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann0",
@@ -1191,7 +1191,7 @@
             "score": 0.82
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann4",
@@ -1208,7 +1208,7 @@
             "score": 0.82
           },
           {
-            "from_name": "PPC/Ostitis/Zyst\n",
+            "from_name": "PPC/Ostitis/Zyst",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann5",
@@ -1225,7 +1225,7 @@
             "score": 0.56
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann6",
@@ -1242,7 +1242,7 @@
             "score": 0.78
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann7",
@@ -1259,7 +1259,7 @@
             "score": 0.91
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann10",
@@ -1276,7 +1276,7 @@
             "score": 0.89
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann11",
@@ -1293,7 +1293,7 @@
             "score": 0.9
           },
           {
-            "from_name": "Zement/Guttapercha\n",
+            "from_name": "Zement/Guttapercha",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann12",
@@ -1310,7 +1310,7 @@
             "score": 0.75
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann15",
@@ -1327,7 +1327,7 @@
             "score": 0.88
           },
           {
-            "from_name": "Zement/Guttapercha\n",
+            "from_name": "Zement/Guttapercha",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann16",
@@ -1344,7 +1344,7 @@
             "score": 0.93
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann19",
@@ -1361,7 +1361,7 @@
             "score": 0.89
           },
           {
-            "from_name": "Zement/Guttapercha\n",
+            "from_name": "Zement/Guttapercha",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann20",
@@ -1395,7 +1395,7 @@
             "score": 0.68
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann26",
@@ -1412,7 +1412,7 @@
             "score": 0.9
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann27",
@@ -1446,7 +1446,7 @@
             "score": 0.58
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann31",
@@ -1480,7 +1480,7 @@
             "score": 0.65
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann35",
@@ -1514,7 +1514,7 @@
             "score": 0.87
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann40",
@@ -1548,7 +1548,7 @@
             "score": 0.89
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann48",
@@ -1565,7 +1565,7 @@
             "score": 0.83
           },
           {
-            "from_name": "PPC/Ostitis/Zyst\n",
+            "from_name": "PPC/Ostitis/Zyst",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann49",
@@ -1582,7 +1582,7 @@
             "score": 0.66
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann50",
@@ -1599,7 +1599,7 @@
             "score": 0.87
           },
           {
-            "from_name": "PPC/Ostitis/Zyst\n",
+            "from_name": "PPC/Ostitis/Zyst",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann51",
@@ -1616,7 +1616,7 @@
             "score": 0.69
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann52",
@@ -1633,7 +1633,7 @@
             "score": 0.87
           },
           {
-            "from_name": "PPC/Ostitis/Zyst\n",
+            "from_name": "PPC/Ostitis/Zyst",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann53",
@@ -1650,7 +1650,7 @@
             "score": 0.51
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann54",
@@ -1667,7 +1667,7 @@
             "score": 0.83
           },
           {
-            "from_name": "Zement/Guttapercha\n",
+            "from_name": "Zement/Guttapercha",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann55",
@@ -1752,7 +1752,7 @@
             "score": 0.64
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann70",
@@ -1786,7 +1786,7 @@
             "score": 0.61
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann76",
@@ -1803,7 +1803,7 @@
             "score": 0.82
           },
           {
-            "from_name": "Zement/Guttapercha\n",
+            "from_name": "Zement/Guttapercha",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann78",
@@ -1871,7 +1871,7 @@
             "score": 0.61
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann87",
@@ -1888,7 +1888,7 @@
             "score": 0.81
           },
           {
-            "from_name": "Zement/Guttapercha\n",
+            "from_name": "Zement/Guttapercha",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann88",
@@ -1922,7 +1922,7 @@
             "score": 0.57
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann94",
@@ -1939,7 +1939,7 @@
             "score": 0.87
           },
           {
-            "from_name": "PPC/Ostitis/Zyst\n",
+            "from_name": "PPC/Ostitis/Zyst",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann95",
@@ -1956,7 +1956,7 @@
             "score": 0.54
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann96",
@@ -1973,7 +1973,7 @@
             "score": 0.84
           },
           {
-            "from_name": "metal\n",
+            "from_name": "metal",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann97",
@@ -1990,7 +1990,7 @@
             "score": 0.84
           },
           {
-            "from_name": "Zement/Guttapercha\n",
+            "from_name": "Zement/Guttapercha",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann102",
@@ -2024,7 +2024,7 @@
             "score": 0.58
           },
           {
-            "from_name": "PPC/Ostitis/Zyst\n",
+            "from_name": "PPC/Ostitis/Zyst",
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann108",

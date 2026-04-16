@@ -9,7 +9,7 @@ def load_label_mapping():
         for row in reader:
             mapping[row["diagnocat_label"]] = {
                 "code": row["code"],
-                "label_category": row["label_category"]
+                "label_category": row["label_category"].strip()
             }
     return mapping
 
@@ -17,4 +17,6 @@ def map_label(diagnocat_label, labels):
     entry = labels.get(diagnocat_label, None)
     if entry is None:
         return None, None
+    if entry["label_category"] is None:
+        entry["label_category"] = "label"
     return entry["code"], entry["label_category"]
