@@ -92,11 +92,11 @@ def to_confidence(value):
         print(f"Warning: '{value}' could not be converted!")
         return 0.0
 
-def inner_json(label,x,y,w,h,sub_index,prozent):
+def inner_json(label,x,y,w,h,sub_index,prozent,label_catorgie):
     '''Makes the inner Json everything that is used every Annotation'''
     task = []
     values ={"rotation":0,"rectanglelabels":[label],  "x": x, "y":y,"width":  w,"height": h }
-    task.append({"from_name": "label","to_name": "image", "type":"rectanglelabels","id":"ann"+sub_index,"value":values,"score":to_confidence(prozent)})
+    task.append({"from_name": label_catorgie,"to_name": "image", "type":"rectanglelabels","id":"ann"+sub_index,"value":values,"score":to_confidence(prozent)})
     return task
 
 def dump_json(task):
