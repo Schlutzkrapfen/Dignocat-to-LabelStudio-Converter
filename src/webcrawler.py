@@ -17,7 +17,6 @@ def login(page):
         # Crucial: Wait a moment for cookies to sync to the 'user_data' folder
         page.wait_for_timeout(2000)
         print("Login successful!")
-    remove_overlay(page)
 
 
 def get_theeh_picture(page,teeth_id,user_id):
@@ -73,6 +72,7 @@ def get_user_data(page,user_id):
         saved_screenshoots.append(picture_path)
         canvas.screenshot(path=picture_path)
     
+    remove_overlay(page)
     return saved_screenshoots
 
 def deactivated_showButtons(page):
