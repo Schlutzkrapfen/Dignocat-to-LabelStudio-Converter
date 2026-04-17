@@ -85,7 +85,7 @@ To map the DiagnoCat label "Füllung" to "Metal-Filling", your CSV row should lo
 Once the setup is complete, start the script:
 Bash
 ```bash
-    python main.py
+python main.py
 ```
 A browser window will pop up asking you to Sign In to DiagnoCat.
 
