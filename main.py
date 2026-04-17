@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import argparse
 
 from playwright.sync_api import sync_playwright
 
@@ -11,6 +12,32 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 from webcrawler import login, go_to_patient_report, get_user_data,get_refrence_image,get_theeh_picture,get_pationt_amount
 from json_maker import get_difference,get_json_cordinates,get_info,dump_json,outer_json,inner_json
 from label_converter import map_label,load_label_mapping 
+
+
+def parse_id_range(total: int):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("ids", nargs="*")
+    args = parser.parse_args()
+
+    def flip(i): return total - 1 - i
+
+    raw_indices = []
+    match args.ids:
+        case []:                        
+            raw_indices = list(range(total))
+        case [s] if s.endswith("+"):    
+            raw_indices = list(range(int(s[:-1]), total))    
+        case [s] if s.endswith("-"):    
+            raw_indices = list(0, range(int(s[:-1]))) 
+        case [a, b]:                    
+            if int(b)+1 > total:
+                b = total -1
+            raw_indices = list(range(int(a), int(b) + 1))
+                
+        case [s]:                       
+            raw_indices = [int(s)]
+
+    return [flip(i) for i in raw_indices]
 
 def main():
     os.makedirs("output", exist_ok=True)
@@ -23,7 +50,7 @@ def main():
         try:
             login(page)
             outer_task = []
-            for i in range(get_pationt_amount(page)):
+            for i in parse_id_range(get_pationt_amount(page)):
                 user_id = i
                 go_to_patient_report(page,user_id)
                 refrence_image_path= get_refrence_image(page,user_id)
