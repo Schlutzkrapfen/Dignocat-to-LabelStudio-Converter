@@ -73,7 +73,7 @@ def main():
                         difference_path = get_difference(refrence_image_path,paths)
                         x,y,w,h = get_json_cordinates(difference_path)
                         if w == 0 and h == 0:
-                            logging.error("Failed")
+                            logging.error("Failed to get the  hole thoot Picture as replacement")
                             continue
                     task += (inner_json(label,x,y,w,h,id,parts[3],label_categorie))
                 outer_task += outer_json(user_id,id,task)    
