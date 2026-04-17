@@ -42,21 +42,21 @@ def get_user_data(page,user_id):
 
     saved_screenshoots = []
     for i, button in enumerate(buttons):
-        has_p2 = button.evaluate("el => el.classList.contains('p2')")
+      #  has_p2 = button.evaluate("el => el.classList.contains('p2')")
 
-        if not has_p2:
-            # Walk up the DOM until we find an ancestor with class "p2"
-            button = button.evaluate("""el => {
-                let current = el.parentElement;
-                while (current) {
-                    if (current.classList.contains('p2')) return true;
-                    current = current.parentElement;
-                }
-                return false;
-            }""")
-            if not button:
-                logging.warning("No hover Button found with the right Class")
-                continue
+        #if not has_p2:
+            ## Walk up the DOM until we find an ancestor with class "p2"
+            #button = button.evaluate("""el => {
+                #let current = el.parentElement;
+                #while (current) {
+                    #if (current.classList.contains('p2')) return true;
+                    #current = current.parentElement;
+                #}
+                #return false;
+            #}""")
+            #if not button:
+                #logging.warning("No hover Button found with the right Class")
+                #continue
         button.hover()
         section_id =  button.evaluate("el => el.closest('section').id")
         last_4 = section_id[-4:]
