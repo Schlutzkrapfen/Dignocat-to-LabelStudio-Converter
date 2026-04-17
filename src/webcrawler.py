@@ -5,7 +5,7 @@ import logging
 def login(page):    
     """Handles the manual login and ensures the session is saved."""
     print("Checking login status...")
-    
+    remove_overlay(page)
     page.goto('https://app.diagnocat.eu/sign-in')
 
     # If we are already logged in, the site might auto-redirect to /patients
@@ -125,6 +125,11 @@ def go_to_patient_report(page,user_id):
     print(f"Now on: {page.url}")
     
 
+def remove_overlay(page):
+    page.evaluate("""
+    const el = document.querySelector('#hs-web-interactives-top-anchor');
+    if (el) el.remove();
+""")
 
 def get_refrence_image(page,user_id):
     """gets a empty Image for refrence"""
