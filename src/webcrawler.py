@@ -72,7 +72,6 @@ def get_user_data(page,user_id):
         saved_screenshoots.append(picture_path)
         canvas.screenshot(path=picture_path)
     
-    remove_overlay(page)
     return saved_screenshoots
 
 def deactivated_showButtons(page):
@@ -122,6 +121,7 @@ def go_to_patient_report(page,user_id):
     page.query_selector("div.ReportCard-module_container_ONmLU").click()
     
 
+    remove_overlay(page)
     print(f"Now on: {page.url}")
     
 
