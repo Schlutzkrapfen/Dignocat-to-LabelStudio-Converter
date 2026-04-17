@@ -76,7 +76,7 @@ def to_percent(value, dimension):
 def outer_json(user_id,id, inner_json):
     '''Makes the outer Json file that is just needed onec per Person'''
     task = []
-    predictions ={"id":id,"result":inner_json}
+    predictions ={"id":id,"result":inner_json,"model_version":"Diagnocat"}
     task.append({"id":user_id,"data":{'image':f'/data/local-files/?d=output/{user_id}.png'},"predictions":[predictions], } )
     return task
 
