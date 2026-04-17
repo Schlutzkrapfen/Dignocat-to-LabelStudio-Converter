@@ -5,7 +5,6 @@ import logging
 def login(page):    
     """Handles the manual login and ensures the session is saved."""
     print("Checking login status...")
-    remove_overlay(page)
     page.goto('https://app.diagnocat.eu/sign-in')
 
     # If we are already logged in, the site might auto-redirect to /patients
@@ -18,6 +17,7 @@ def login(page):
         # Crucial: Wait a moment for cookies to sync to the 'user_data' folder
         page.wait_for_timeout(2000)
         print("Login successful!")
+    remove_overlay(page)
 
 
 def get_theeh_picture(page,teeth_id,user_id):
