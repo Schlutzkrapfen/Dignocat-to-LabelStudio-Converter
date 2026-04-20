@@ -10,13 +10,18 @@ from PIL import Image, ImageChops
 
 def get_difference(refrence_path,image_path):
     """Gets the Picutres that ware taken, on the null index is the refrence Image returns the savepath"""
-    
-    img1 = Image.open(refrence_path)
-    img2 = Image.open(image_path)
+    img1 = Image.open(refrence_path).convert("RGB")
+    img2 = Image.open(image_path).convert("RGB")
+
+    if img1.size != img2.size:
+        img2 = img2.resize(img1.size, Image.LANCZOS)
     diff = ImageChops.difference(img1, img2)
     base_dir = os.path.dirname(os.path.abspath(__file__))
     output_dir = os.path.join(base_dir, "../output")
     save_path = os.path.join(output_dir,"diff.png")
+
+    
+
     diff.save(save_path)
     return(save_path)
 
@@ -39,10 +44,9 @@ def get_coordinates(difference_path):
     base_dir = os.path.dirname(os.path.abspath(__file__))
     output_dir = os.path.join(base_dir, "../output")
     img = Image.open(difference_path)
+    img = Image.open(difference_path).convert("L")  # grayscale
     arr = np.array(img)
-
-    # Find all pixels that are not black
-    non_black = np.any(arr > 0, axis=2)  # True where any channel > 0
+    non_black = arr > 10
     coords = np.argwhere(non_black)  # Returns [row, col] pairs
 
     if len(coords) == 0:
