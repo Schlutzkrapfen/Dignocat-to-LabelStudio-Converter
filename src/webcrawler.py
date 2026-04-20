@@ -18,7 +18,15 @@ def login(page):
         page.wait_for_timeout(2000)
         print("Login successful!")
 
+def get_thooth_description(page,teeth_id):
+    '''returns what the tooht has for a name'''
+    section = page.locator(f'section[id$="{teeth_id}"]')
+    div = section.locator('div.ConditionTitle-module_container_vpIP9')
+    tooth_name = div.inner_text()
+    tooth_type = tooth_name.split()[0]
+    return tooth_type
 
+    
 def get_theeh_picture(page,teeth_id,user_id):
    picture_path = f"output/teeth-screenshoots/{user_id}-{teeth_id}.png"
    if os.path.exists(picture_path):
@@ -41,21 +49,7 @@ def get_user_data(page,user_id):
 
     saved_screenshoots = []
     for i, button in enumerate(buttons):
-      #  has_p2 = button.evaluate("el => el.classList.contains('p2')")
-
-        #if not has_p2:
-            ## Walk up the DOM until we find an ancestor with class "p2"
-            #button = button.evaluate("""el => {
-                #let current = el.parentElement;
-                #while (current) {
-                    #if (current.classList.contains('p2')) return true;
-                    #current = current.parentElement;
-                #}
-                #return false;
-            #}""")
-            #if not button:
-                #logging.warning("No hover Button found with the right Class")
-                #continue
+        #TODO: make a way to go to first one to change it.
         button.hover()
         section_id =  button.evaluate("el => el.closest('section').id")
         last_4 = section_id[-4:]

@@ -9,7 +9,7 @@ USER_DATA_DIR = 'user_data'
 # Allow imports from the src/ folder
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
-from webcrawler import login, go_to_patient_report, get_user_data,get_refrence_image,get_theeh_picture,get_pationt_amount
+from webcrawler import login, go_to_patient_report, get_user_data,get_refrence_image,get_theeh_picture,get_pationt_amount,get_thooth_description
 from json_maker import get_difference,get_json_cordinates,get_info,dump_json,outer_json,inner_json
 from label_converter import map_label,load_label_mapping 
 
@@ -39,6 +39,7 @@ def parse_id_range(total: int):
 
     return [flip(i) for i in raw_indices]
 
+
 def main():
     os.makedirs("output", exist_ok=True)
     label_Data = load_label_mapping()
@@ -61,6 +62,18 @@ def main():
                 task = []
                 for paths in images_paths:
                     parts = get_info(paths)
+                    not_conv_label = get_thooth_description(page,parts[4])
+                    label,label_categorie = map_label(not_conv_label,label_Data)
+                    
+                    print(not_conv_label)
+                    if label != None:
+                        paths = get_theeh_picture(page, parts[4], id)
+                        difference_path = get_difference(refrence_image_path,paths)
+                        x,y,w,h = get_json_cordinates(difference_path)
+                        if w > 50:
+                            logging.error("Something went wrong with the Picture getting")
+                        task += (inner_json(label,x,y,w,h,id,parts[3],label_categorie))
+                        
                     label,label_categorie = map_label(parts[2],label_Data)
                     if label == None:
                         continue
