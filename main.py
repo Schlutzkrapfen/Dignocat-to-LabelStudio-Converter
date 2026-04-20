@@ -6,10 +6,11 @@ import argparse
 from playwright.sync_api import sync_playwright
 
 USER_DATA_DIR = 'user_data' 
+Error_prozentage = 50
 # Allow imports from the src/ folder
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
-from webcrawler import login, go_to_patient_report, get_user_data,get_refrence_image,get_theeh_picture,get_pationt_amount,get_thooth_description
+from webcrawler import login, go_to_patient_report, get_user_data,get_refrence_image,get_theeh_picture,get_pationt_amount,get_tooth_descriptions,get_thooth_id
 from json_maker import get_difference,get_json_cordinates,get_info,dump_json,outer_json,inner_json
 from label_converter import map_label,load_label_mapping 
 
@@ -52,33 +53,41 @@ def main():
             login(page)
             outer_task = []
             page_amount = get_pationt_amount(page)
+
             for i in parse_id_range(page_amount):
                 user_id = i
                 go_to_patient_report(page,user_id)
                 user_id = page_amount -1 - i
                 refrence_image_path= get_refrence_image(page,user_id)
+                not_conv_labels = get_tooth_descriptions(page)
+                task= []
+
+                for i,non_conv_label in enumerate(not_conv_labels):
+                    label,label_categorie = map_label(non_conv_label["type"],label_Data)
+                    if label == None:
+                        continue
+                    thooth_id = get_thooth_id(page,non_conv_label["id"])
+                    paths = get_theeh_picture(page, thooth_id, user_id)
+                    print(thooth_id)
+                    print(f"Saved {paths}")
+                    difference_path = get_difference(refrence_image_path,paths)
+                    x,y,w,h = get_json_cordinates(difference_path)
+                    if w > Error_prozentage:
+                        logging.error("Something went wrong with getting a thooth picture")
+                    task += (inner_json(label,x,y,w,h,str(i),"100%",label_categorie))
+                thooth_leng = len(refrence_image_path)
                 images_paths =get_user_data(page, user_id)
                 id = 0
-                task = []
                 for paths in images_paths:
                     parts = get_info(paths)
-                    not_conv_label = get_thooth_description(page,parts[4])
-                    label,label_categorie = map_label(not_conv_label,label_Data)
                     
-                    print(not_conv_label)
-                    if label != None:
-                        paths = get_theeh_picture(page, parts[4], id)
-                        difference_path = get_difference(refrence_image_path,paths)
-                        x,y,w,h = get_json_cordinates(difference_path)
-                        if w > 50:
-                            logging.error("Something went wrong with the Picture getting")
-                        task += (inner_json(label,x,y,w,h,id,parts[3],label_categorie))
+                       
                         
                     label,label_categorie = map_label(parts[2],label_Data)
                     if label == None:
                         continue
                     user_id = parts[0]
-                    id = parts[1]
+                    id = str(int(parts[1]) +thooth_leng)
                     difference_path = get_difference(refrence_image_path,paths)
                     x,y,w,h =  get_json_cordinates(difference_path)
                     if w == 0 and h == 0:

@@ -18,27 +18,50 @@ def login(page):
         page.wait_for_timeout(2000)
         print("Login successful!")
 
-def get_thooth_description(page,teeth_id):
-    '''returns what the tooht has for a name'''
-    section = page.locator(f'section[id$="{teeth_id}"]')
-    div = section.locator('div.ConditionTitle-module_container_vpIP9')
-    tooth_name = div.inner_text()
-    tooth_type = tooth_name.split()[0]
-    return tooth_type
+def get_tooth_descriptions(page):
+    '''returns what all teeth have for a name'''
+    divs = page.locator('div.ConditionTitle-module_container_vpIP9').all()
+    tooth_types = []
+    for div in divs:
+        parts = div.inner_text().split()
+        tooth_types.append({
+            "type": parts[0],
+            "id": parts[1]
+        })
+    return tooth_types
 
     
-def get_theeh_picture(page,teeth_id,user_id):
-   picture_path = f"output/teeth-screenshoots/{user_id}-{teeth_id}.png"
-   if os.path.exists(picture_path):
-       return picture_path
-   section = page.locator(f'section[id$="{teeth_id}"]')
-   div = section.locator('div.ConditionTitle-module_container_vpIP9')
-   div.hover()
-   canvas =  page.query_selector("canvas")
-   page.wait_for_timeout(300)  # Small pause to let hover effects render
-   canvas.screenshot(path=picture_path)
-   return picture_path
+def get_theeh_picture(page, teeth_id, user_id):
+    picture_path = f"output/teeth-screenshoots/{user_id}-{teeth_id}.png"
+    
+    if os.path.exists(picture_path):
+        return picture_path
+    
+    section = page.locator(f'section[id$="{teeth_id}"]')
+    div = section.locator('div.ConditionTitle-module_container_vpIP9')
+    div.hover()
+    
+    page.wait_for_timeout(300)  # Small pause to let hover effects render
+    
+    canvas = page.locator("canvas").first  
+    canvas.screenshot(path=picture_path)
+    
+    return picture_path
 
+def get_thooth_id(page, thoot_id):
+    thoot_id = int(thoot_id)
+    sections = page.locator('section.WidgetCard-module_container_1PPfu').all()
+    for section in sections:
+        div = section.locator('div.ConditionTitle-module_container_vpIP9')
+        id = int(div.inner_text().split()[-1])
+        if id == thoot_id:
+            print(id)
+            section_id = section.evaluate("el => el.id")
+            return section_id[-4:]
+
+    
+    
+    return "0000"
 
 def get_user_data(page,user_id):
     """Gets a single User Data"""
@@ -49,7 +72,6 @@ def get_user_data(page,user_id):
 
     saved_screenshoots = []
     for i, button in enumerate(buttons):
-        #TODO: make a way to go to first one to change it.
         button.hover()
         section_id =  button.evaluate("el => el.closest('section').id")
         last_4 = section_id[-4:]
