@@ -52,8 +52,9 @@ def main():
             outer_task = []
             page_amount = get_pationt_amount(page)
             for i in parse_id_range(page_amount):
-                user_id = page_amount -1 - i
+                user_id = i
                 go_to_patient_report(page,user_id)
+                user_id = page_amount -1 - i
                 refrence_image_path= get_refrence_image(page,user_id)
                 images_paths =get_user_data(page, user_id)
                 id = 0
