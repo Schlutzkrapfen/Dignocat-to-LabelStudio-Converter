@@ -87,6 +87,17 @@ Bash
 ```bash
 python main.py
 ```
+
+You can optionally pass **ID arguments** to control which items are processed:
+
+| Syntax | Description | Example |
+|--------|-------------|---------|
+| *(no args)* | Process all items | `python main.py` |
+| `N` | Process a single item by index | `python main.py 3` |
+| `N+` | Process from index N to the end | `python main.py 5+` |
+| `A B` | Process a range from index A to B (inclusive) | `python main.py 2 7` |
+
+
 A browser window will pop up asking you to Sign In to DiagnoCat.
 
 <img width="2109" height="1371" alt="image" src="https://github.com/user-attachments/assets/1b043b62-92eb-426d-b9d1-38dcbe2560c9" />
