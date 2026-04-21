@@ -53,6 +53,8 @@ def get_thooth_id(page, thoot_id):
     sections = page.locator('section.WidgetCard-module_container_1PPfu').all()
     for section in sections:
         div = section.locator('div.ConditionTitle-module_container_vpIP9')
+        if div.count() == 0:
+            continue
         id = int(div.inner_text().split()[-1])
         if id == thoot_id:
             print(id)

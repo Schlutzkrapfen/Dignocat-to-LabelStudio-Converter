@@ -67,6 +67,8 @@ def main():
                     if label == None:
                         continue
                     thooth_id = get_thooth_id(page,non_conv_label["id"])
+                    if thooth_id == "0000":
+                        continue
                     paths = get_theeh_picture(page, thooth_id, user_id)
                     print(thooth_id)
                     print(f"Saved {paths}")
