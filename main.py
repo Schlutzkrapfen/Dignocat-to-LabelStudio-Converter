@@ -7,6 +7,7 @@ from playwright.sync_api import sync_playwright
 
 USER_DATA_DIR = 'user_data' 
 Error_prozentage = 50
+screenshot_quality_mulitplayer = 4
 # Allow imports from the src/ folder
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
@@ -47,7 +48,12 @@ def main():
 
     #Starts the browser
     with sync_playwright() as p:
-        context = p.chromium.launch_persistent_context(USER_DATA_DIR, headless=False)
+        context = p.chromium.launch_persistent_context(
+            USER_DATA_DIR, 
+            headless=False,
+            #How good the quality of the Screenshots is
+            device_scale_factor=screenshot_quality_mulitplayer,  
+            )
         page = context.new_page()
         try:
             login(page)
