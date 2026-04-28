@@ -8,6 +8,8 @@ from playwright.sync_api import sync_playwright
 USER_DATA_DIR = 'user_data' 
 Error_prozentage = 50
 screenshot_quality_mulitplayer = 4
+#How big you Diagnocat is 
+LabelstudioSize = 26
 # Allow imports from the src/ folder
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
@@ -61,9 +63,14 @@ def main():
             page_amount = get_pationt_amount(page)
 
             for i in parse_id_range(page_amount):
-                user_id = i
+                if LabelstudioSize > 18:
+                    user_id = i + LabelstudioSize -18
+                else:
+                    user_id = i 
+                print(f"USERID = {user_id}")
                 go_to_patient_report(page,user_id)
-                user_id = page_amount -1 - i
+
+                user_id = page_amount -1 - i 
                 refrence_image_path= get_refrence_image(page,user_id)
                 not_conv_labels = get_tooth_descriptions(page)
                 task= []
