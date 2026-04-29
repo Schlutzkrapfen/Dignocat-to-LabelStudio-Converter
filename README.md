@@ -1,5 +1,3 @@
-# !!!!THIS SCRIPT DOESEN'T WORK WITH A BIGGER SIZE THAN 18 in Diagnocat in one go!!!!
-
 # DiagnoCat to Label Studio Converter
 
 This script automates the process of converting **DiagnoCat** dental annotations into a JSON format that **Label Studio** can import directly. It works by using a web crawler to fetch data from your DiagnoCat account for your uploaded images.
