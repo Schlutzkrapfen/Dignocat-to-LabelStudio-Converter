@@ -58,7 +58,7 @@ def main():
             login(page)
             outer_task = []
             page_amount = get_patient_amount(page)
-            print(page_amount)
+            print(f"You have {page_amount} patience")
 
             for i in parse_id_range(page_amount):
                # if LabelstudioSize > 18:
