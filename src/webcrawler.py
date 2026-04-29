@@ -108,14 +108,28 @@ def deactivated_showButtons(page):
             button.click()
 
 
-
-def get_pationt_amount(page):
-    # --- Click the first patient row ---
+def get_patient_amount(page):
+    '''Gets the Patient amount from Diagnocat page'''
     row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
+    
     page.wait_for_selector(row_selector, timeout=10000)
     
-    rows = page.query_selector_all(row_selector)
-    return len(rows)
+    # Keep scrolling until no new rows appear
+    previous_count = 0
+    while True:
+        rows = page.query_selector_all(row_selector)
+        current_count = len(rows)
+        
+        if current_count == previous_count:
+            break  # No new rows loaded, we're done
+        
+        previous_count = current_count
+        
+        # Scroll the last row into view to trigger loading
+        rows[-1].scroll_into_view_if_needed()
+        page.wait_for_timeout(1000)  # Wait for new rows to load
+    
+    return current_count
 
 def go_to_patient_report(page,user_id):
     """Goes to the right page"""
@@ -123,11 +137,19 @@ def go_to_patient_report(page,user_id):
     page.goto('https://app.diagnocat.eu/patients', wait_until="domcontentloaded", timeout=60000)
     page.wait_for_selector("body", timeout=15000)
 
-    # --- Click the first patient row ---
     row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
     page.wait_for_selector(row_selector, timeout=10000)
     
-    rows = page.query_selector_all(row_selector)
+     # Scroll until we have enough rows loaded to reach user_id
+    while True:
+        rows = page.query_selector_all(row_selector)
+        
+        if len(rows) > user_id:
+            break  # We have enough rows, stop scrolling
+        
+        # Not enough rows yet — scroll down to load more
+        rows[-1].scroll_into_view_if_needed()
+        page.wait_for_timeout(1000)
 
     rows[user_id].click()
     print("Clicked first patient row")
