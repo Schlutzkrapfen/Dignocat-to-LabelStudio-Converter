@@ -127,7 +127,7 @@ def get_patient_amount(page):
         
         # Scroll the last row into view to trigger loading
         rows[-1].scroll_into_view_if_needed()
-        page.wait_for_timeout(1000)  # Wait for new rows to load
+        page.wait_for_timeout(1500)  # Wait for new rows to load
     
     return current_count
 
@@ -149,7 +149,7 @@ def go_to_patient_report(page,user_id):
         
         # Not enough rows yet — scroll down to load more
         rows[-1].scroll_into_view_if_needed()
-        page.wait_for_timeout(1000)
+        page.wait_for_timeout(1500)
 
     rows[user_id].click()
     print("Clicked first patient row")
