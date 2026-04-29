@@ -75,7 +75,7 @@ def main():
                 print(f"USERID = {user_id}")
                 go_to_patient_report(page,user_id)
 
-                user_id = page_amount  - i 
+                user_id = page_amount  - i -1  
                 refrence_image_path= get_refrence_image(page,user_id)
                 not_conv_labels = get_tooth_descriptions(page)
                 task= []
