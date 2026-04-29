@@ -8,12 +8,10 @@ from playwright.sync_api import sync_playwright
 USER_DATA_DIR = 'user_data' 
 Error_prozentage = 50
 screenshot_quality_mulitplayer = 4
-#How big you Diagnocat is 
-LabelstudioSize = 26
 # Allow imports from the src/ folder
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
-from webcrawler import login, go_to_patient_report, get_user_data,get_refrence_image,get_theeh_picture,get_pationt_amount,get_tooth_descriptions,get_thooth_id
+from webcrawler import login, go_to_patient_report, get_user_data,get_refrence_image,get_theeh_picture,get_patient_amount,get_tooth_descriptions,get_thooth_id
 from json_maker import get_difference,get_json_cordinates,get_info,dump_json,outer_json,inner_json
 from label_converter import map_label,load_label_mapping 
 
@@ -23,7 +21,6 @@ def parse_id_range(total: int):
     parser.add_argument("ids", nargs="*")
     args = parser.parse_args()
 
-    def flip(i): return total - 1 - i
 
     raw_indices = []
     match args.ids:
@@ -37,10 +34,10 @@ def parse_id_range(total: int):
             if int(b)+1 > total:
                 b = total -1
             raw_indices = list(range(int(a), int(b) + 1))
-                
         case [s]:                       
             raw_indices = [int(s)]
 
+    def flip(i): return total  - i
     return [flip(i) for i in raw_indices]
 
 
@@ -60,13 +57,14 @@ def main():
         try:
             login(page)
             outer_task = []
-            page_amount = get_pationt_amount(page)
+            page_amount = get_patient_amount(page)
+            print(page_amount)
 
             for i in parse_id_range(page_amount):
-                if LabelstudioSize > 18:
-                    user_id = i + LabelstudioSize -18
-                else:
-                    user_id = i 
+               # if LabelstudioSize > 18:
+                    #user_id = i + LabelstudioSize -18
+                #else:
+                user_id = i 
                 print(f"USERID = {user_id}")
                 go_to_patient_report(page,user_id)
 
