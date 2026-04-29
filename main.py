@@ -25,17 +25,25 @@ def parse_id_range(total: int):
     raw_indices = []
     match args.ids:
         case []:                        
-            raw_indices = list(range(total+1))
+            raw_indices = list(range(total))
+            
         case [s] if s.endswith("+"):    
-            raw_indices = list(range(int(s[:-1]), total +1))    
+            raw_indices = list(range(int(s[:-1]), total ))    
+            if int(s[:-1])>= total:
+                logging.error("The start number was to big")
         case [s] if s.endswith("-"):    
             raw_indices = list(0, range(int(s[:-1]))) 
         case [a, b]:                    
             if int(b)+1 > total:
                 b = total -1
             raw_indices = list(range(int(a), int(b) + 1))
+            if int(a)>= total:
+                logging.error("The start number was to big")
         case [s]:                       
             raw_indices = [int(s)]
+            if int(s)>= total:
+                logging.error("The number was to big")
+    
 
     def flip(i): return total  - i -1 
     return [flip(i) for i in raw_indices]
@@ -61,14 +69,13 @@ def main():
             print(f"You have {page_amount} patience")
 
             for i in parse_id_range(page_amount):
-               # if LabelstudioSize > 18:
-                    #user_id = i + LabelstudioSize -18
-                #else:
-                user_id = i 
+                user_id = i  
+                if user_id < 0:
+                    continue
                 print(f"USERID = {user_id}")
                 go_to_patient_report(page,user_id)
 
-                user_id = page_amount -1 - i 
+                user_id = page_amount  - i 
                 refrence_image_path= get_refrence_image(page,user_id)
                 not_conv_labels = get_tooth_descriptions(page)
                 task= []
@@ -93,9 +100,6 @@ def main():
                 id = 0
                 for paths in images_paths:
                     parts = get_info(paths)
-                    
-                       
-                        
                     label,label_categorie = map_label(parts[2],label_Data)
                     if label == None:
                         continue
