@@ -25,9 +25,9 @@ def parse_id_range(total: int):
     raw_indices = []
     match args.ids:
         case []:                        
-            raw_indices = list(range(total))
+            raw_indices = list(range(total+1))
         case [s] if s.endswith("+"):    
-            raw_indices = list(range(int(s[:-1]), total))    
+            raw_indices = list(range(int(s[:-1]), total +1))    
         case [s] if s.endswith("-"):    
             raw_indices = list(0, range(int(s[:-1]))) 
         case [a, b]:                    
