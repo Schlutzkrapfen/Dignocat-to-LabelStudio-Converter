@@ -37,7 +37,7 @@ def parse_id_range(total: int):
         case [s]:                       
             raw_indices = [int(s)]
 
-    def flip(i): return total  - i
+    def flip(i): return total  - i -1 
     return [flip(i) for i in raw_indices]
 
 
