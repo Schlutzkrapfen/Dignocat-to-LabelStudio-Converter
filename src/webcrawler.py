@@ -59,7 +59,7 @@ def get_thooth_id(page, thoot_id):
         numeric_tokens = [t for t in tokens if t.isdigit()]
         if not numeric_tokens:
             continue
-        id = int(div.inner_text().split()[-1])
+        id = int(numeric_tokens[-1])
         if id == thoot_id:
             print(id)
             section_id = section.evaluate("el => el.id")
