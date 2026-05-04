@@ -55,6 +55,10 @@ def get_thooth_id(page, thoot_id):
         div = section.locator('div.ConditionTitle-module_container_vpIP9')
         if div.count() == 0:
             continue
+        tokens = div.inner_text().split()
+        numeric_tokens = [t for t in tokens if t.isdigit()]
+        if not numeric_tokens:
+            continue
         id = int(div.inner_text().split()[-1])
         if id == thoot_id:
             print(id)
