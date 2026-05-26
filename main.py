@@ -73,21 +73,28 @@ def main():
             already_skipped = []
 
             for i in parse_id_range(page_amount):
-                user_id = i  
-                if user_id < 0:
-                    continue
-                print(f"USERID = {user_id}")
-                go_to_patient_report(page,user_id)
+               
+                #because the image gets saved first there will always be one duplicate
+                duplictas = ["","",""]
+                duplictas_i = 0
+                while len(duplictas) > 1:
+                    user_id = i +duplictas_i 
+                    if user_id < 0:
+                        break
+                    print(f"USERID = {user_id}")
+                    go_to_patient_report(page,user_id)
 
-                user_id = page_amount  - i -1  
-                deactivated_showButtons(page)
-                refrence_image_path= get_refrence_image(page,user_id)
-                duplictas = find_duplicates_of(refrence_image_path,output_dir )
-                if len(duplictas)  > 1:
+                    user_id = page_amount  - i -1  
+                    deactivated_showButtons(page)
+                    
+                    duplictas_i += 1
+                    refrence_image_path= get_refrence_image(page,user_id,skip_if_exist=False)
+                    duplictas = find_duplicates_of(refrence_image_path,output_dir )
                     print(f"Duplicated ID: {i} with {duplictas}")
                     already_skipped.append(i)
-
+                if user_id < 0:
                     continue
+
                 not_conv_labels = get_tooth_descriptions(page)
                 task= []
 
