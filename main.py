@@ -77,21 +77,22 @@ def main():
                 duplictas = ["","",""]
                 duplictas_i = 0
                 while len(duplictas) > 0:
-                    user_id = i +duplictas_i 
-                    if user_id < 0:
+                    user = i +duplictas_i 
+                   
+                    if user < 0:
                         break
-                    print(f"USERID = {user_id}")
-                    go_to_patient_report(page,user_id)
+                    print(f"USERID = {user}")
+                    go_to_patient_report(page,user)
 
                     user_id = page_amount  - i -1  
                     deactivated_showButtons(page)
                     duplictas_i += 1
-                    if user_id in already_skipped:
+                    if user in already_skipped:
                         continue
                     refrence_image_path= get_refrence_image(page,user_id,skip_if_exist=False)
                     duplictas = find_duplicates_of(refrence_image_path,output_dir )
                     print(f"Duplicated ID: {i} with {duplictas}")
-                    already_skipped.append(user_id)
+                    already_skipped.append(user)
                 if user_id < 0:
                     print("couldn't find a other duplicate")
                     continue
