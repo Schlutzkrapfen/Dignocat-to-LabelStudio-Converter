@@ -51,7 +51,8 @@ def parse_id_range(total: int):
 
 
 def main():
-    os.makedirs("output", exist_ok=True)
+    output_dir = "output"
+    os.makedirs(output_dir, exist_ok=True)
     label_Data = load_label_mapping()
 
     #Starts the browser
@@ -68,6 +69,8 @@ def main():
             outer_task = []
             page_amount = get_patient_amount(page)
             print(f"You have {page_amount} patience")
+            
+            already_skipped = []
 
             for i in parse_id_range(page_amount):
                 user_id = i  
@@ -79,9 +82,11 @@ def main():
                 user_id = page_amount  - i -1  
                 deactivated_showButtons(page)
                 refrence_image_path= get_refrence_image(page,user_id)
-                duplictas = find_duplicates_of
-                if duplictas != None:
-                    print(f"skiped= {i}")
+                duplictas = find_duplicates_of(refrence_image_path,output_dir )
+                if len(duplictas)  > 1:
+                    print(f"Duplicated ID: {i} with {duplictas}")
+                    already_skipped.append(i)
+
                     continue
                 not_conv_labels = get_tooth_descriptions(page)
                 task= []
