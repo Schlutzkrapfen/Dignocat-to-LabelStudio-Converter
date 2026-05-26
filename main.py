@@ -83,7 +83,9 @@ def main():
                     if user in already_skipped:
                         print (f"User {user} already testet")
                         continue
-                    if user < page_amount -user:
+                    if page_amount -user < 0:
+                        print("didn't find any doubles")
+                        user_id = page_amount  - i -1  
                         break
                     print(f"USERID = {user}")
                     go_to_patient_report(page,user)
