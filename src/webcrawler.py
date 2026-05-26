@@ -154,7 +154,7 @@ def go_to_patient_report(page,user_id):
         
         # Not enough rows yet — scroll down to load more
         rows[-1].scroll_into_view_if_needed()
-        page.wait_for_timeout(1500)
+        page.wait_for_timeout(2000)
 
     rows[user_id].click()
     print("Clicked first patient row")
