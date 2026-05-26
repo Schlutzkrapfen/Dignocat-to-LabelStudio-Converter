@@ -86,13 +86,15 @@ def main():
 
                     user_id = page_amount  - i -1  
                     deactivated_showButtons(page)
-                    
+                    if user_id in already_skipped:
+                        continue
                     duplictas_i += 1
                     refrence_image_path= get_refrence_image(page,user_id,skip_if_exist=False)
                     duplictas = find_duplicates_of(refrence_image_path,output_dir )
                     print(f"Duplicated ID: {i} with {duplictas}")
-                    already_skipped.append(i)
+                    already_skipped.append(user_id)
                 if user_id < 0:
+                    print("couldn't find a other duplicate")
                     continue
 
                 not_conv_labels = get_tooth_descriptions(page)
