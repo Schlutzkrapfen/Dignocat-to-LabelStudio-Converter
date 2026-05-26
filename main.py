@@ -74,10 +74,9 @@ def main():
 
             for i in parse_id_range(page_amount):
                
-                #because the image gets saved first there will always be one duplicate
                 duplictas = ["","",""]
                 duplictas_i = 0
-                while len(duplictas) > 1:
+                while len(duplictas) > 0:
                     user_id = i +duplictas_i 
                     if user_id < 0:
                         break
