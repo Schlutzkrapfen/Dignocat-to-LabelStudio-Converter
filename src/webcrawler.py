@@ -176,11 +176,11 @@ def remove_overlay(page):
     if (el) el.remove();
 """)
 
-def get_refrence_image(page, user_id):
+def get_refrence_image(page, user_id,skip_if_exist:bool=True):
     """gets a empty Image for refrence"""
     picture_path = f"output/{user_id}.png"
     
-    if not os.path.exists(picture_path):
+    if not os.path.exists(picture_path) or not skip_if_exist:
         deactivated_showButtons(page)
         canvas = page.query_selector("canvas")
         canvas.screenshot(path=picture_path)
