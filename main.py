@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 from webcrawler import login, go_to_patient_report, get_user_data,get_refrence_image,get_theeh_picture,get_patient_amount,get_tooth_descriptions,get_thooth_id,deactivated_showButtons
 from json_maker import get_difference,get_json_cordinates,get_info,dump_json,outer_json,inner_json
 from label_converter import map_label,load_label_mapping 
+from controll import find_duplicates_of
 
 
 def parse_id_range(total: int):
@@ -78,6 +79,10 @@ def main():
                 user_id = page_amount  - i -1  
                 deactivated_showButtons(page)
                 refrence_image_path= get_refrence_image(page,user_id)
+                duplictas = find_duplicates_of
+                if duplictas != None:
+                    print(f"skiped= {i}")
+                    continue
                 not_conv_labels = get_tooth_descriptions(page)
                 task= []
 
