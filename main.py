@@ -83,7 +83,7 @@ def main():
                     if user in already_skipped:
                         print (f"User {user} already testet")
                         continue
-                    if user < 0:
+                    if user < page_amount -user:
                         break
                     print(f"USERID = {user}")
                     go_to_patient_report(page,user)
