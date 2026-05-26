@@ -79,6 +79,8 @@ def main():
                 while len(duplictas) > 0:
                     user = i +duplictas_i 
                    
+                    if user in already_skipped:
+                        continue
                     if user < 0:
                         break
                     print(f"USERID = {user}")
@@ -87,8 +89,6 @@ def main():
                     user_id = page_amount  - i -1  
                     deactivated_showButtons(page)
                     duplictas_i += 1
-                    if user in already_skipped:
-                        continue
                     refrence_image_path= get_refrence_image(page,user_id,skip_if_exist=False)
                     duplictas = find_duplicates_of(refrence_image_path,output_dir )
                     print(f"Duplicated ID: {i} with {duplictas}")
