@@ -56,6 +56,7 @@ def get_thooth_id(page, thoot_id):
         if div.count() == 0:
             continue
         tokens = div.inner_text().split()
+        #check for just numbers
         numeric_tokens = [t for t in tokens if t.isdigit()]
         if not numeric_tokens:
             continue
