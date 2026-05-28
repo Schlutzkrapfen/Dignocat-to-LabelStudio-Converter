@@ -20,8 +20,6 @@ def get_difference(refrence_path,image_path):
     output_dir = os.path.join(base_dir, "../output")
     save_path = os.path.join(output_dir,"diff.png")
 
-    
-
     diff.save(save_path)
     return(save_path)
 
