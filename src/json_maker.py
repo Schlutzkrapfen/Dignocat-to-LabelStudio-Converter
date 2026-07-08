@@ -53,7 +53,7 @@ def get_coordinates(difference_path):
         return top_left[1], top_left[0], bottom_right[1], bottom_right[0]
 
 
-def get_info(filename):
+def get_info(filename: str):
     filename = os.path.basename(filename)  # removes "output/"
     name, ext = os.path.splitext(filename)
     parts = name.split("_")
@@ -64,16 +64,16 @@ def get_info(filename):
     # confidence = parts[3]   # "96%"
 
 
-def get_image_size(imagePath):
+def get_image_size(imagePath: str):
     img = Image.open(imagePath)
     return img.size
 
 
-def to_percent(value, dimension):
+def to_percent(value: float, dimension: float) -> float:
     return (value / dimension) * 100
 
 
-def outer_json(user_id, id, inner_json):
+def outer_json(user_id: int, id: str, inner_json: list[str]):
     """Makes the outer Json file that is just needed onec per Person"""
     task = []
     predictions = {"id": id, "result": inner_json, "model_version": "Diagnocat"}
@@ -102,7 +102,16 @@ def to_confidence(value):
         return 0.0
 
 
-def inner_json(label, x, y, w, h, sub_index, prozent, label_catorgie):
+def inner_json(
+    label: str,
+    x: float,
+    y: float,
+    w: float,
+    h: float,
+    sub_index,
+    prozent,
+    label_catorgie,
+):
     """Makes the inner Json everything that is used every Annotation"""
     task = []
     values = {
