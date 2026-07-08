@@ -127,19 +127,33 @@ async def get_patient_amount(page: Page):
 
     # Keep scrolling until no new rows appear
     previous_count = 0
+    max_stable_checks = 12  # how many consecutive "no growth" checks before giving up
+    poll_interval = 500  # ms between checks
+    stable_checks = 0
+
     while True:
         rows = await page.query_selector_all(row_selector)
         current_count = len(rows)
 
-        if current_count == previous_count:
-            break  # No new rows loaded, we're done
+        if current_count > previous_count:
+            # still growing — reset patience, keep going
+            previous_count = current_count
+            stable_checks = 0
+            await rows[-1].scroll_into_view_if_needed()
+        else:
+            # no growth this check — don't give up immediately,
+            # could just be a slow network round-trip
 
-        previous_count = current_count
+            stable_checks += 1
+            if stable_checks >= max_stable_checks:
+                break
+            # nudge scroll again in case loader needs re-triggering
+            if rows:
+                await rows[-1].scroll_into_view_if_needed()
 
-        # Scroll the last row into view to trigger loading
-        await rows[-1].scroll_into_view_if_needed()
+        await page.wait_for_timeout(poll_interval)
 
-    return current_count
+    return previous_count
 
 
 async def go_to_patient_report(page: Page, user_id: int):
