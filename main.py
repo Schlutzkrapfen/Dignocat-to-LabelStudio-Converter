@@ -5,12 +5,7 @@ import sys
 
 from playwright.sync_api import sync_playwright
 
-USER_DATA_DIR = "user_data"
-Error_prozentage = 50
-screenshot_quality_mulitplayer: float = 4
-# Allow imports from the src/ folder
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
-
 from controll import find_duplicates_of
 from json_maker import (
     dump_json,
@@ -32,6 +27,11 @@ from webcrawler import (
     go_to_patient_report,
     login,
 )
+
+USER_DATA_DIR = "user_data"
+Error_prozentage = 50
+screenshot_quality_mulitplayer: float = 4
+# Allow imports from the src/ folder
 
 
 def parse_id_range(total: int):
@@ -129,7 +129,7 @@ def main():
                     )
                     if label == None:
                         continue
-                    thooth_id = get_thooth_id(page, non_conv_label["id"])
+                    thooth_id = get_thooth_id(page, int(non_conv_label["id"]))
                     if thooth_id == "0000":
                         continue
 
@@ -153,7 +153,7 @@ def main():
                     label, label_categorie = map_label(parts[2], label_Data)
                     if label is None:
                         continue
-                    user_id = parts[0]
+                    user_id = int(parts[0])
                     id = str(int(parts[1]) + thooth_leng)
                     difference_path = get_difference(refrence_image_path, paths)
                     x, y, w, h = get_json_cordinates(difference_path)

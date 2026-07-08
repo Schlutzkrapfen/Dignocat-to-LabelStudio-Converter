@@ -1,10 +1,12 @@
 import os
 
+from playwright.sync_api import Page
 
-def login(page):
+
+def login(page: Page):
     """Handles the manual login and ensures the session is saved."""
     print("Checking login status...")
-    page.goto("https://app.diagnocat.eu/sign-in")
+    _website = page.goto("https://app.diagnocat.eu/sign-in")
 
     # If we are already logged in, the site might auto-redirect to /patients
     if "sign-in" not in page.url:
@@ -18,17 +20,17 @@ def login(page):
         print("Login successful!")
 
 
-def get_tooth_descriptions(page):
+def get_tooth_descriptions(page: Page) -> list[dict[str, str]]:
     """returns what all teeth have for a name"""
     divs = page.locator("div.ConditionTitle-module_container_vpIP9").all()
-    tooth_types = []
+    tooth_types: list[dict[str, str]] = []
     for div in divs:
         parts = div.inner_text().split()
         tooth_types.append({"type": parts[0], "id": parts[1]})
     return tooth_types
 
 
-def get_theeh_picture(page, teeth_id, user_id):
+def get_theeh_picture(page: Page, teeth_id: str, user_id: str) -> str:
     picture_path = f"output/teeth-screenshoots/{user_id}-{teeth_id}.png"
 
     if os.path.exists(picture_path):
@@ -41,12 +43,12 @@ def get_theeh_picture(page, teeth_id, user_id):
     page.wait_for_timeout(300)  # Small pause to let hover effects render
 
     canvas = page.locator("canvas").first
-    canvas.screenshot(path=picture_path)
+    _screenshot = canvas.screenshot(path=picture_path)
 
     return picture_path
 
 
-def get_thooth_id(page, thoot_id):
+def get_thooth_id(page: Page, thoot_id: int):
     thoot_id = int(thoot_id)
     sections = page.locator("section.WidgetCard-module_container_1PPfu").all()
     for section in sections:
@@ -67,14 +69,14 @@ def get_thooth_id(page, thoot_id):
     return "0000"
 
 
-def get_user_data(page, user_id):
+def get_user_data(page: Page, user_id) -> list[str]:
     """Gets a single User Data"""
     # Gets the Buttons
     # Get all condition buttons
     buttons = page.query_selector_all("button.ConditionButton-module_container_Vda6L")
     canvas = page.query_selector("canvas")
 
-    saved_screenshoots = []
+    saved_screenshoots: list[str] = []
     for i, button in enumerate(buttons):
         button.hover()
         section_id = button.evaluate("el => el.closest('section').id")
@@ -82,6 +84,10 @@ def get_user_data(page, user_id):
 
         name = button.query_selector("span:first-child")
         percentage = button.query_selector("span.p3")
+        if name is None or percentage is None or canvas is None:
+            print("something went wrong while Fetching, lets try again.")
+            return get_user_data(page, user_id)
+
         picture_path = f"output/screenshots/{user_id}_{i}_{name.inner_text()}_{percentage.inner_text()}_{last_4}.png"
         if os.path.exists(picture_path):
             print(f"Skipping {picture_path}, already exists")
@@ -90,7 +96,7 @@ def get_user_data(page, user_id):
         page.wait_for_timeout(300)  # Small pause to let hover effects render
         print(f"Saved {picture_path}")
         saved_screenshoots.append(picture_path)
-        canvas.screenshot(path=picture_path)
+        _screenshot = canvas.screenshot(path=picture_path)
 
     return saved_screenshoots
 
@@ -111,7 +117,7 @@ def deactivated_showButtons(page):
             button.click()
 
 
-def get_patient_amount(page):
+def get_patient_amount(page: Page):
     """Gets the Patient amount from Diagnocat page"""
     row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
 
@@ -130,12 +136,11 @@ def get_patient_amount(page):
 
         # Scroll the last row into view to trigger loading
         rows[-1].scroll_into_view_if_needed()
-        page.wait_for_timeout(1500)  # Wait for new rows to load
 
     return current_count
 
 
-def go_to_patient_report(page, user_id):
+def go_to_patient_report(page: Page, user_id: int):
     """Goes to the right page"""
     print("Opening data page...")
     page.goto(
@@ -157,7 +162,6 @@ def go_to_patient_report(page, user_id):
 
         # Not enough rows yet — scroll down to load more
         rows[-1].scroll_into_view_if_needed()
-        page.wait_for_timeout(2000)
 
     rows[user_id].click()
     print("Clicked first patient row")
@@ -178,14 +182,14 @@ def go_to_patient_report(page, user_id):
     print(f"Now on: {page.url}")
 
 
-def remove_overlay(page):
+def remove_overlay(page: Page):
     page.evaluate("""
     const el = document.querySelector('#hs-web-interactives-top-anchor');
     if (el) el.remove();
 """)
 
 
-def get_refrence_image(page, user_id, skip_if_exist: bool = True):
+def get_refrence_image(page: Page, user_id, skip_if_exist: bool = True):
     """gets a empty Image for refrence"""
     picture_path = f"output/{user_id}.png"
 
