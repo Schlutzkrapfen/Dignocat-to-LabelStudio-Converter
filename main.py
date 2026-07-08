@@ -152,37 +152,44 @@ async def main():
                         label, x, y, w, h, str(i), "100%", label_categorie
                     )
                 if refrence_image_path is None:
+                    print("Refrence Image is none")
                     continue
-                thooth_leng = len(refrence_image_path)
                 images_paths = await get_user_data(page, user_id)
-                id = 0
-                for paths in images_paths:
-                    parts = get_info(paths)
-                    label, label_categorie = map_label(parts[2], label_Data)
-                    if label is None:
-                        continue
-                    user_id = int(parts[0])
-                    id = str(int(parts[1]) + thooth_leng)
-                    difference_path = get_difference(refrence_image_path, paths)
-                    x, y, w, h = get_json_cordinates(difference_path)
-                    if w == 0 and h == 0:
-                        logging.warning(
-                            f"Something went wrong with id= {id},user_id={user_id},label={label}/{parts[2]},thoot_id = {parts[4]}\n removed the broken Picture. "
-                        )
-                        os.remove(paths)
-                        paths = get_theeh_picture(page, parts[4], id)
-                        difference_path = get_difference(refrence_image_path, paths)
-                        x, y, w, h = get_json_cordinates(difference_path)
-                        if w == 0 and h == 0:
-                            logging.error(
-                                "Failed to get the  hole thoot Picture as replacement"
-                            )
-                            continue
-                    task += inner_json(label, x, y, w, h, id, parts[3], label_categorie)
-                outer_task += outer_json(user_id, str(id), task)
+                print(images_paths)
+                outer_task += make_json(
+                    images_paths, label_Data, refrence_image_path, task, user_id, page
+                )
+
             dump_json(outer_task)
         finally:
             pass
+
+
+def make_json(images_paths, label_Data, refrence_image_path, task, user_id, page):
+    id = 0
+    thooth_leng = len(refrence_image_path)
+    for paths in images_paths:
+        parts = get_info(paths)
+        label, label_categorie = map_label(parts[2], label_Data)
+        if label is None:
+            continue
+        user_id = int(parts[0])
+        id = str(int(parts[1]) + thooth_leng)
+        difference_path = get_difference(refrence_image_path, paths)
+        x, y, w, h = get_json_cordinates(difference_path)
+        if w == 0 and h == 0:
+            logging.warning(
+                f"Something went wrong with id= {id},user_id={user_id},label={label}/{parts[2]},thoot_id = {parts[4]}\n removed the broken Picture. "
+            )
+            os.remove(paths)
+            paths = get_theeh_picture(page, parts[4], id)
+            difference_path = get_difference(refrence_image_path, paths)
+            x, y, w, h = get_json_cordinates(difference_path)
+            if w == 0 and h == 0:
+                logging.error("Failed to get the  hole thoot Picture as replacement")
+                continue
+        task += inner_json(label, x, y, w, h, id, parts[3], label_categorie)
+    return outer_json(user_id, str(id), task)
 
 
 if __name__ == "__main__":
