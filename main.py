@@ -155,7 +155,6 @@ async def main():
                     print("Refrence Image is none")
                     continue
                 images_paths = await get_user_data(page, user_id)
-                print(images_paths)
                 outer_task += make_json(
                     images_paths, label_Data, refrence_image_path, task, user_id, page
                 )
