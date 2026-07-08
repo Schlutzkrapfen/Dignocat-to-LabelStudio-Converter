@@ -1,9 +1,10 @@
 import argparse
+import asyncio
 import logging
 import os
 import sys
 
-from playwright.sync_api import sync_playwright
+from playwright.async_api import Page, async_playwright
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 from controll import find_duplicates_of
@@ -49,7 +50,7 @@ def parse_id_range(total: int):
             if int(s[:-1]) >= total:
                 logging.error("The start number was to big")
         case [s] if s.endswith("-"):
-            raw_indices = list(0, range(int(s[:-1])))
+            raw_indices = list(range(0, int(s[:-1])))
         case [a, b]:
             if int(b) + 1 > total:
                 b = total - 1
@@ -67,27 +68,29 @@ def parse_id_range(total: int):
     return [flip(i) for i in raw_indices]
 
 
-def main():
+async def main():
     output_dir = "output"
     os.makedirs(output_dir, exist_ok=True)
     label_Data = load_label_mapping()
 
     # Starts the browser
-    with sync_playwright() as p:
-        context = p.chromium.launch_persistent_context(
+    async with async_playwright() as p:
+        context = await p.chromium.launch_persistent_context(
             USER_DATA_DIR,
             headless=False,
             # How good the quality of the Screenshots is
             device_scale_factor=screenshot_quality_mulitplayer,
         )
-        page = context.new_page()
+
+        page: Page = await context.new_page()
         try:
-            login(page)
+            await login(page)
             outer_task = []
-            page_amount = get_patient_amount(page)
+            page_amount = await get_patient_amount(page)
             print(f"You have {page_amount} patience")
 
             already_skipped: list[int] = []
+            refrence_image_path = ""
 
             for i in parse_id_range(page_amount):
                 duplictas: list[str] = ["", "", ""]
@@ -106,13 +109,16 @@ def main():
                         user_id = page_amount - i - 1
                         break
                     print(f"USERID = {user}")
-                    go_to_patient_report(page, user)
+                    await go_to_patient_report(page, user)
 
                     user_id = page_amount - i - 1
-                    deactivated_showButtons(page)
-                    refrence_image_path = get_refrence_image(
+                    await deactivated_showButtons(page)
+                    refrence_image_path = await get_refrence_image(
                         page, user_id, skip_if_exist=False
                     )
+                    if refrence_image_path is None:
+                        print("TO FAST")
+                        continue
                     duplictas = find_duplicates_of(refrence_image_path, output_dir)
                     print(f"Duplicated ID: {i} with {duplictas}")
                     already_skipped.append(user)
@@ -120,20 +126,20 @@ def main():
                     print("couldn't find a other duplicate")
                     continue
 
-                not_conv_labels = get_tooth_descriptions(page)
+                not_conv_labels = await get_tooth_descriptions(page)
                 task = []
 
                 for i, non_conv_label in enumerate(not_conv_labels):
                     label, label_categorie = map_label(
                         non_conv_label["type"], label_Data
                     )
-                    if label == None:
+                    if label is None:
                         continue
-                    thooth_id = get_thooth_id(page, int(non_conv_label["id"]))
+                    thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
                     if thooth_id == "0000":
                         continue
 
-                    paths = get_theeh_picture(page, thooth_id, user_id)
+                    paths = await get_theeh_picture(page, thooth_id, str(user_id))
                     print(thooth_id)
                     print(f"Saved {paths}")
                     difference_path = get_difference(refrence_image_path, paths)
@@ -145,8 +151,10 @@ def main():
                     task += inner_json(
                         label, x, y, w, h, str(i), "100%", label_categorie
                     )
+                if refrence_image_path is None:
+                    continue
                 thooth_leng = len(refrence_image_path)
-                images_paths = get_user_data(page, user_id)
+                images_paths = await get_user_data(page, user_id)
                 id = 0
                 for paths in images_paths:
                     parts = get_info(paths)
@@ -171,11 +179,11 @@ def main():
                             )
                             continue
                     task += inner_json(label, x, y, w, h, id, parts[3], label_categorie)
-                outer_task += outer_json(user_id, id, task)
+                outer_task += outer_json(user_id, str(id), task)
             dump_json(outer_task)
         finally:
             pass
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
