@@ -16,7 +16,7 @@ def load_label_mapping():
     return mapping
 
 
-def map_label(diagnocat_label, labels):
+def map_label(diagnocat_label: str, labels):
     entry = labels.get(diagnocat_label, None)
     if entry is None:
         return None, None

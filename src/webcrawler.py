@@ -1,12 +1,12 @@
 import os
 
-from playwright.sync_api import Page
+from playwright.async_api import Page
 
 
-def login(page: Page):
+async def login(page: Page):
     """Handles the manual login and ensures the session is saved."""
     print("Checking login status...")
-    _website = page.goto("https://app.diagnocat.eu/sign-in")
+    _website = await page.goto("https://app.diagnocat.eu/sign-in")
 
     # If we are already logged in, the site might auto-redirect to /patients
     if "sign-in" not in page.url:
@@ -14,23 +14,23 @@ def login(page: Page):
     else:
         print("Please log in manually in the browser window...")
         # Wait for the URL to change to the patients page
-        page.wait_for_url("**/patients**", timeout=0)
+        await page.wait_for_url("**/patients**", timeout=0)
         # Crucial: Wait a moment for cookies to sync to the 'user_data' folder
-        page.wait_for_timeout(2000)
         print("Login successful!")
 
 
-def get_tooth_descriptions(page: Page) -> list[dict[str, str]]:
+async def get_tooth_descriptions(page: Page) -> list[dict[str, str]]:
     """returns what all teeth have for a name"""
-    divs = page.locator("div.ConditionTitle-module_container_vpIP9").all()
+    divs = await page.locator("div.ConditionTitle-module_container_vpIP9").all()
     tooth_types: list[dict[str, str]] = []
     for div in divs:
-        parts = div.inner_text().split()
+        part = await div.inner_text()
+        parts = part.split()
         tooth_types.append({"type": parts[0], "id": parts[1]})
     return tooth_types
 
 
-def get_theeh_picture(page: Page, teeth_id: str, user_id: str) -> str:
+async def get_theeh_picture(page: Page, teeth_id: str, user_id: str) -> str:
     picture_path = f"output/teeth-screenshoots/{user_id}-{teeth_id}.png"
 
     if os.path.exists(picture_path):
@@ -38,24 +38,23 @@ def get_theeh_picture(page: Page, teeth_id: str, user_id: str) -> str:
 
     section = page.locator(f'section[id$="{teeth_id}"]')
     div = section.locator("div.ConditionTitle-module_container_vpIP9")
-    div.hover()
-
-    page.wait_for_timeout(300)  # Small pause to let hover effects render
+    await div.hover()
 
     canvas = page.locator("canvas").first
-    _screenshot = canvas.screenshot(path=picture_path)
+    _screenshot = await canvas.screenshot(path=picture_path)
 
     return picture_path
 
 
-def get_thooth_id(page: Page, thoot_id: int):
+async def get_thooth_id(page: Page, thoot_id: int):
     thoot_id = int(thoot_id)
-    sections = page.locator("section.WidgetCard-module_container_1PPfu").all()
+    sections = await page.locator("section.WidgetCard-module_container_1PPfu").all()
     for section in sections:
         div = section.locator("div.ConditionTitle-module_container_vpIP9")
-        if div.count() == 0:
+        if await div.count() == 0:
             continue
-        tokens = div.inner_text().split()
+        token = await div.inner_text()
+        tokens = token.split()
         # check for just numbers
         numeric_tokens = [t for t in tokens if t.isdigit()]
         if not numeric_tokens:
@@ -63,70 +62,73 @@ def get_thooth_id(page: Page, thoot_id: int):
         id = int(numeric_tokens[-1])
         if id == thoot_id:
             print(id)
-            section_id = section.evaluate("el => el.id")
+            section_id = await section.evaluate("el => el.id")
             return section_id[-4:]
 
     return "0000"
 
 
-def get_user_data(page: Page, user_id) -> list[str]:
+async def get_user_data(page: Page, user_id) -> list[str]:
     """Gets a single User Data"""
     # Gets the Buttons
     # Get all condition buttons
-    buttons = page.query_selector_all("button.ConditionButton-module_container_Vda6L")
-    canvas = page.query_selector("canvas")
+    buttons = await page.query_selector_all(
+        "button.ConditionButton-module_container_Vda6L"
+    )
+    canvas = await page.query_selector("canvas")
 
     saved_screenshoots: list[str] = []
     for i, button in enumerate(buttons):
-        button.hover()
-        section_id = button.evaluate("el => el.closest('section').id")
+        await button.hover()
+        section_id = await button.evaluate("el => el.closest('section').id")
         last_4 = section_id[-4:]
 
-        name = button.query_selector("span:first-child")
-        percentage = button.query_selector("span.p3")
+        name = await button.query_selector("span:first-child")
+        percentage = await button.query_selector("span.p3")
         if name is None or percentage is None or canvas is None:
             print("something went wrong while Fetching, lets try again.")
-            return get_user_data(page, user_id)
+            return await get_user_data(page, user_id)
 
         picture_path = f"output/screenshots/{user_id}_{i}_{name.inner_text()}_{percentage.inner_text()}_{last_4}.png"
         if os.path.exists(picture_path):
             print(f"Skipping {picture_path}, already exists")
             saved_screenshoots.append(picture_path)
             continue
-        page.wait_for_timeout(300)  # Small pause to let hover effects render
         print(f"Saved {picture_path}")
         saved_screenshoots.append(picture_path)
-        _screenshot = canvas.screenshot(path=picture_path)
+        _screenshot = await canvas.screenshot(path=picture_path)
 
     return saved_screenshoots
 
 
-def deactivated_showButtons(page):
-    page.wait_for_timeout(3000)
-    buttons = page.query_selector_all("button.MaskFilterButton-module_container_EFNpE")
+async def deactivated_showButtons(page: Page):
+    buttons = await page.query_selector_all(
+        "button.MaskFilterButton-module_container_EFNpE"
+    )
     for button in buttons:
-        is_disabled = page.evaluate("btn => btn.hasAttribute('disabled')", button)
+        is_disabled = await page.evaluate("btn => btn.hasAttribute('disabled')", button)
 
         if is_disabled:
             continue
 
-        classes = page.evaluate("btn => Array.from(btn.classList)", button)
+        classes = await page.evaluate("btn => Array.from(btn.classList)", button)
+
         is_active = len(classes) > 2
 
         if is_active:
-            button.click()
+            await button.click()
 
 
-def get_patient_amount(page: Page):
+async def get_patient_amount(page: Page):
     """Gets the Patient amount from Diagnocat page"""
     row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
 
-    page.wait_for_selector(row_selector, timeout=10000)
+    _row = await page.wait_for_selector(row_selector)
 
     # Keep scrolling until no new rows appear
     previous_count = 0
     while True:
-        rows = page.query_selector_all(row_selector)
+        rows = await page.query_selector_all(row_selector)
         current_count = len(rows)
 
         if current_count == previous_count:
@@ -135,68 +137,75 @@ def get_patient_amount(page: Page):
         previous_count = current_count
 
         # Scroll the last row into view to trigger loading
-        rows[-1].scroll_into_view_if_needed()
+        await rows[-1].scroll_into_view_if_needed()
 
     return current_count
 
 
-def go_to_patient_report(page: Page, user_id: int):
+async def go_to_patient_report(page: Page, user_id: int):
     """Goes to the right page"""
     print("Opening data page...")
-    page.goto(
+    _website = await page.goto(
         "https://app.diagnocat.eu/patients",
         wait_until="domcontentloaded",
         timeout=10000,
     )
-    page.wait_for_selector("body", timeout=15000)
+    _body = await page.wait_for_selector("body", timeout=15000)
 
     row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
-    page.wait_for_selector(row_selector, timeout=10000)
+    _row = await page.wait_for_selector(row_selector, timeout=10000)
 
     # Scroll until we have enough rows loaded to reach user_id
     while True:
-        rows = page.query_selector_all(row_selector)
+        rows = await page.query_selector_all(row_selector)
 
         if len(rows) > user_id:
             break  # We have enough rows, stop scrolling
 
         # Not enough rows yet — scroll down to load more
-        rows[-1].scroll_into_view_if_needed()
+        await rows[-1].scroll_into_view_if_needed()
 
-    rows[user_id].click()
+    await rows[user_id].click()
     print("Clicked first patient row")
 
     print(f"Now on: {page.url}")
 
     # Wait for the next page
     try:
-        page.wait_for_selector("div.ReportCard-module_container_ONmLU", timeout=10000)
-        page.query_selector("div.ReportCard-module_container_ONmLU").click()
+        _div = await page.wait_for_selector("div.ReportCard-module_container_ONmLU")
+
+        button = await page.query_selector("div.ReportCard-module_container_ONmLU")
+        if button is None:
+            raise Exception("Picture Isn't here")
+        await button.click()
     except Exception as e:
         print(f"the picture wasn't there: {e} ")
         # TODO: find a more efficent way to go true the loop if it failed
-        go_to_patient_report(page, user_id + 1)
+        await go_to_patient_report(page, user_id + 1)
         return
 
-    remove_overlay(page)
+    await remove_overlay(page)
     print(f"Now on: {page.url}")
 
 
-def remove_overlay(page: Page):
-    page.evaluate("""
+async def remove_overlay(page: Page):
+    await page.evaluate("""
     const el = document.querySelector('#hs-web-interactives-top-anchor');
     if (el) el.remove();
 """)
 
 
-def get_refrence_image(page: Page, user_id, skip_if_exist: bool = True):
+async def get_refrence_image(page: Page, user_id, skip_if_exist: bool = True):
     """gets a empty Image for refrence"""
     picture_path = f"output/{user_id}.png"
 
     if not os.path.exists(picture_path) or not skip_if_exist:
-        deactivated_showButtons(page)
-        canvas = page.query_selector("canvas")
-        canvas.screenshot(path=picture_path)
+        await deactivated_showButtons(page)
+        canvas = await page.query_selector("canvas")
+        if canvas is None:
+            print("ERROR")
+            return
+        _screenshot = await canvas.screenshot(path=picture_path)
         print(f"Saved {picture_path}")
     else:
         print(f"Screenshot already exists: {picture_path}")

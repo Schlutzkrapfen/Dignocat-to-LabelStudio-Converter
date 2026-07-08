@@ -13,7 +13,7 @@ def get_difference(refrence_path, image_path):
     img2 = Image.open(image_path).convert("RGB")
 
     if img1.size != img2.size:
-        img2 = img2.resize(img1.size, Image.LANCZOS)
+        img2 = img2.resize(img1.size, Image.Resampling.LANCZOS)
     diff = ImageChops.difference(img1, img2)
     base_dir = os.path.dirname(os.path.abspath(__file__))
     output_dir = os.path.join(base_dir, "../output")
