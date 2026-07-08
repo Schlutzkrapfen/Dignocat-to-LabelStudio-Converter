@@ -89,7 +89,7 @@ async def get_user_data(page: Page, user_id) -> list[str]:
             print("something went wrong while Fetching, lets try again.")
             return await get_user_data(page, user_id)
 
-        picture_path = f"output/screenshots/{user_id}_{i}_{name.inner_text()}_{percentage.inner_text()}_{last_4}.png"
+        picture_path = f"output/screenshots/{user_id}_{i}_{await name.inner_text()}_{await percentage.inner_text()}_{last_4}.png"
         if os.path.exists(picture_path):
             print(f"Skipping {picture_path}, already exists")
             saved_screenshoots.append(picture_path)

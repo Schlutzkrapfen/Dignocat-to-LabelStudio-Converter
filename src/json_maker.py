@@ -55,7 +55,7 @@ def get_coordinates(difference_path):
 
 def get_info(filename: str):
     filename = os.path.basename(filename)  # removes "output/"
-    name, ext = os.path.splitext(filename)
+    name, _ext = os.path.splitext(filename)
     parts = name.split("_")
     return parts
     # user_id    = parts[0]   # "0"
@@ -89,14 +89,14 @@ def outer_json(user_id: int, id: str, inner_json: list[str]):
     return task
 
 
-def to_confidence(value):
+def to_confidence(value: str):
     """Converets a Prozent value to a Float value (ex. 50% ->0.5)"""
     if "%" not in value:
         print(f"Warning: '{value}' is not a percentage!")
         return 0.0
-    cleaned = value.strip("%").strip()
+    cleaned: str = value.strip("%").strip()
     try:
-        return int(cleaned) / 100
+        return float(cleaned) / 100
     except ValueError:
         print(f"Warning: '{value}' could not be converted!")
         return 0.0
