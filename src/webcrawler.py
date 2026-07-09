@@ -127,8 +127,8 @@ async def get_patient_amount(page: Page):
 
     # Keep scrolling until no new rows appear
     previous_count = 0
-    max_stable_checks = 100  # how many consecutive "no growth" checks before giving up
-    poll_interval = 100  # ms between checks
+    max_stable_checks = 200  # how many consecutive "no growth" checks before giving up
+    poll_interval = 50  # ms between checks
     stable_checks = 0
 
     while True:
