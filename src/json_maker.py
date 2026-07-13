@@ -129,7 +129,7 @@ def inner_json(
             "type": "rectanglelabels",
             "id": "ann" + str(sub_index),
             "value": values,
-            "score": str(to_confidence(prozent)),
+            "score": to_confidence(prozent),
         }
     )
     return task
