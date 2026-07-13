@@ -33,6 +33,7 @@ from webcrawler import (
     get_user_data,
     go_to_patient_report,
     login,
+    find_page
 )
 
 USER_DATA_DIR = "user_data"
@@ -101,51 +102,18 @@ async def main():
             page_amount = await get_patient_amount(page)
             print(f"You have {page_amount} patience")
 
-            already_skipped: list[int] = []
             refrence_image_path = ""
             task:list[TaskItem] = []
 
             for i in parse_id_range(page_amount):
-                duplictas: list[str] = ["", "", ""]
-                duplictas_i = 0
-                user_id: int = 0
 
-                while len(duplictas) > 0:
-                    user = i + duplictas_i
-                    duplictas_i += 1
-
-                    if user in already_skipped:
-                        print(f"User {user} already testet")
-                        continue
-                    if page_amount - user < 0:
-                        print("didn't find any doubles")
-                        user_id = page_amount - i - 1
-                        break
-                    print(f"USERID = {user}")
-                    await go_to_patient_report(page, user)
-
-                    user_id = page_amount - i - 1
-                    await deactivated_showButtons(page)
-                    refrence_image_path = await get_refrence_image(
-                        page, user_id, skip_if_exist=False
-                    )
-                    if refrence_image_path is None:
-                        print("TO FAST")
-                        continue
-                    duplictas = find_duplicates_of(refrence_image_path, output_dir)
-                    print(f"Duplicated ID: {i} with {duplictas}")
-                    already_skipped.append(user)
-                if user_id < 0:
-                    print("couldn't find a other duplicate")
-                    continue
-
+                user_id = await find_page(page,i,page_amount,output_dir)
                 not_conv_labels = await get_tooth_descriptions(page)
                 task_item: TaskItem = {
                     "id": "0",
                     "data": {},
                     "predictions": [],
                 }
-
                 for i, non_conv_label in enumerate(not_conv_labels):
                     label, label_categorie = map_label(
                         non_conv_label["type"], label_Data
@@ -177,7 +145,7 @@ async def main():
                 outer_task = await make_json(
                     images_paths, label_Data, refrence_image_path, task_item, user_id, page
                 )
-                task.append(id = outer_task["id"],)
+                task.append()
 
             dump_json(outer_task)
         finally:
