@@ -1,4 +1,5 @@
 import os
+from typing import cast
 
 from playwright.async_api import Page
 
@@ -46,7 +47,7 @@ async def get_theeh_picture(page: Page, teeth_id: str, user_id: str) -> str:
     return picture_path
 
 
-async def get_thooth_id(page: Page, thoot_id: int):
+async def get_thooth_id(page: Page, thoot_id: int)->str:
     thoot_id = int(thoot_id)
     sections = await page.locator("section.WidgetCard-module_container_1PPfu").all()
     for section in sections:
@@ -62,7 +63,7 @@ async def get_thooth_id(page: Page, thoot_id: int):
         id = int(numeric_tokens[-1])
         if id == thoot_id:
             print(id)
-            section_id = await section.evaluate("el => el.id")
+            section_id:str = cast(str, await section.evaluate("el => el.id"))
             return section_id[-4:]
 
     return "0000"
@@ -80,7 +81,7 @@ async def get_user_data(page: Page, user_id) -> list[str]:
     saved_screenshoots: list[str] = []
     for i, button in enumerate(buttons):
         await button.hover()
-        section_id = await button.evaluate("el => el.closest('section').id")
+        section_id:str = cast(str,await button.evaluate("el => el.closest('section').id"))
         last_4 = section_id[-4:]
 
         name = await button.query_selector("span:first-child")
