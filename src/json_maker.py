@@ -3,6 +3,8 @@ import os
 
 import numpy as np
 from PIL import Image, ImageChops
+from task_item import InnerAnnotation, OuterAnnotation, Prediction, TaskItem
+import task_item
 
 # Save the diff — black = same, white/colored = different
 
@@ -73,23 +75,21 @@ def to_percent(value: float, dimension: float) -> float:
     return (value / dimension) * 100
 
 
-def outer_json(user_id: int, id: str, inner_json: list[str]):
+def outer_json(user_id: int, id: str, inner_json: InnerAnnotation)->OuterAnnotation:
     """Makes the outer Json file that is just needed onec per Person"""
-    task = []
-    predictions = {"id": id, "result": inner_json, "model_version": "Diagnocat"}
-    task.append(
-        {
-            "id": user_id,
+    predictions:Prediction = {"id": id, "result": inner_json, "model_version": "Diagnocat"}
+    task:OuterAnnotation = {
+            "id": str(user_id),
             "data": {
                 "image": f"/data/local-files/?d=/Dignocat-to-LabelStudio-Converter/output/{user_id}.png"
             },
             "predictions": [predictions],
         }
-    )
+
     return task
 
 
-def to_confidence(value: str):
+def to_confidence(value: str)->float:
     """Converets a Prozent value to a Float value (ex. 50% ->0.5)"""
     if "%" not in value:
         print(f"Warning: '{value}' is not a percentage!")
@@ -108,12 +108,12 @@ def inner_json(
     y: float,
     w: float,
     h: float,
-    sub_index,
-    prozent,
-    label_catorgie,
-):
+    sub_index:str,
+    prozent:str,
+    label_catorgie:str,
+)->InnerAnnotation:
     """Makes the inner Json everything that is used every Annotation"""
-    task = []
+    task:InnerAnnotation
     values = {
         "rotation": 0,
         "rectanglelabels": [label],
@@ -122,14 +122,14 @@ def inner_json(
         "width": w,
         "height": h,
     }
-    task.append(
+    task =  (
         {
-            "from_name": label_catorgie,
+            "from_name": str(label_catorgie),
             "to_name": "image",
             "type": "rectanglelabels",
-            "id": "ann" + sub_index,
-            "value": values,
-            "score": to_confidence(prozent),
+            "id": "ann" + str(sub_index),
+            "value": str(values),
+            "score": str(to_confidence(prozent)),
         }
     )
     return task
@@ -139,4 +139,4 @@ def dump_json(task):
     """SAVE JSON"""
     with open("output.json", "w") as f:
         json.dump(task, f, indent=2)
-    print(f"saved json to output.json")
+    print("saved json to output.json")

@@ -1,10 +1,15 @@
 import argparse
 import asyncio
+from asyncio.tasks import Task
 import logging
 import os
 import sys
+from typing import cast
 
+from PIL.Image import ImagePointTransform
 from playwright.async_api import Page, async_playwright
+
+import task_item
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 from controll import find_duplicates_of
@@ -16,6 +21,7 @@ from json_maker import (
     inner_json,
     outer_json,
 )
+from task_item import TaskItem
 from label_converter import load_label_mapping, map_label
 from webcrawler import (
     deactivated_showButtons,
@@ -36,12 +42,13 @@ screenshot_quality_mulitplayer: float = 4
 
 
 def parse_id_range(total: int):
-    parser = argparse.ArgumentParser()
-    parser.add_argument("ids", nargs="*")
-    args = parser.parse_args()
+    parser:argparse.ArgumentParser = argparse.ArgumentParser()
+    _action:argparse.Action = parser.add_argument("ids", nargs="*")
+    args:argparse.Namespace = parser.parse_args()
 
     raw_indices = []
-    match args.ids:
+    raw_ids: list[str] = cast(list[str], args.ids)
+    match raw_ids:
         case []:
             raw_indices = list(range(total))
 
@@ -61,6 +68,11 @@ def parse_id_range(total: int):
             raw_indices = [int(s)]
             if int(s) >= total:
                 logging.error("The number was to big")
+        case[_]:
+            logging.error("Value wasn't detecter or not a right value")
+
+        case _:
+            logging.error("Value wasn't detecter or not a right value")
 
     def flip(i: int):
         return total - i - 1
@@ -91,6 +103,7 @@ async def main():
 
             already_skipped: list[int] = []
             refrence_image_path = ""
+            task:list[TaskItem] = []
 
             for i in parse_id_range(page_amount):
                 duplictas: list[str] = ["", "", ""]
@@ -127,7 +140,11 @@ async def main():
                     continue
 
                 not_conv_labels = await get_tooth_descriptions(page)
-                task = []
+                task_item: TaskItem = {
+                    "id": "0",
+                    "data": {},
+                    "predictions": [],
+                }
 
                 for i, non_conv_label in enumerate(not_conv_labels):
                     label, label_categorie = map_label(
@@ -148,23 +165,26 @@ async def main():
                         logging.error(
                             "Something went wrong with getting a thooth picture"
                         )
-                    task += inner_json(
+                    if label_categorie is None:
+                        raise ValueError("label Category doesen't exist")
+                    task_item["inner_annotation"].append(  inner_json(
                         label, x, y, w, h, str(i), "100%", label_categorie
-                    )
+                    ))
                 if refrence_image_path is None:
                     print("Refrence Image is none")
                     continue
                 images_paths = await get_user_data(page, user_id)
-                outer_task += await make_json(
-                    images_paths, label_Data, refrence_image_path, task, user_id, page
+                outer_task = await make_json(
+                    images_paths, label_Data, refrence_image_path, task_item, user_id, page
                 )
+                task.append(id = outer_task["id"],)
 
             dump_json(outer_task)
         finally:
             pass
 
 
-async def make_json(images_paths, label_Data, refrence_image_path, task, user_id, page):
+async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]], refrence_image_path:str, task :TaskItem , user_id, page:Page):
     id = 0
     thooth_leng = len(refrence_image_path)
     for paths in images_paths:
@@ -187,7 +207,10 @@ async def make_json(images_paths, label_Data, refrence_image_path, task, user_id
             if w == 0 and h == 0:
                 logging.error("Failed to get the  hole thoot Picture as replacement")
                 continue
-        task += inner_json(label, x, y, w, h, id, parts[3], label_categorie)
+
+        if label_categorie is None:
+            raise ValueError("label Category doesen't exist")
+            .append( inner_json(label, x, y, w, h, id, parts[3], label_categorie))
     return outer_json(user_id, str(id), task)
 
 
