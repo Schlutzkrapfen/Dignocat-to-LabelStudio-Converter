@@ -7,7 +7,7 @@ class InnerAnnotation(TypedDict):
         type:str
         id: str
         value:  dict[str, int | list[str] | float]
-        score: str
+        score: float
 
 class Prediction(TypedDict):
     id: str
