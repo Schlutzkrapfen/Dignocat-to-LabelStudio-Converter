@@ -1,19 +1,19 @@
 from typing import TypedDict
 
 
-class Prediction(TypedDict):
-    id: str
-    result: list[dict[str, str]]
-    model_version: str
 class InnerAnnotation(TypedDict):
         from_name:str
         to_name:str
         type:str
         id: str
-        value: str
+        value:  dict[str, int | list[str] | float]
         score: str
 
-class TaskItem(TypedDict):
+class Prediction(TypedDict):
     id: str
+    result: list[InnerAnnotation]
+    model_version: str
+class TaskItem(TypedDict):
+    id: int
     data: dict[str, str]
     predictions: list[Prediction]
