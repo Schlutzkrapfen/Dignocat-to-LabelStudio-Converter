@@ -102,7 +102,7 @@ async def find_page(page: Page,i:int,page_amount:int,output_dir:str)->int:
     return user_id
 
 
-async def get_user_data(page: Page, user_id) -> list[str]:
+async def get_user_data(page: Page, user_id:int) -> list[str]:
     """Gets a single User Data"""
     # Gets the Buttons
     # Get all condition buttons
@@ -155,6 +155,7 @@ async def deactivated_showButtons(page: Page):
 
 async def get_patient_amount(page: Page):
     """Gets the Patient amount from Diagnocat page"""
+    """TODO:Change this to read the page amount from the filter"""
     row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
 
     _row = await page.wait_for_selector(row_selector)
@@ -243,7 +244,7 @@ async def remove_overlay(page: Page):
 """)
 
 
-async def get_refrence_image(page: Page, user_id, skip_if_exist: bool = True):
+async def get_refrence_image(page: Page, user_id:int, skip_if_exist: bool = True):
     """gets a empty Image for refrence"""
     picture_path = f"output/{user_id}.png"
 

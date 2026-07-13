@@ -3,13 +3,14 @@ import os
 
 import numpy as np
 from PIL import Image, ImageChops
-from task_item import InnerAnnotation, OuterAnnotation, Prediction, TaskItem
-import task_item
+from task_item import InnerAnnotation,  Prediction, TaskItem
+
+from typing import cast
 
 # Save the diff — black = same, white/colored = different
 
 
-def get_difference(refrence_path, image_path):
+def get_difference(refrence_path:str, image_path:str):
     """Gets the Picutres that ware taken, on the null index is the refrence Image returns the savepath"""
     img1 = Image.open(refrence_path).convert("RGB")
     img2 = Image.open(image_path).convert("RGB")
@@ -25,7 +26,7 @@ def get_difference(refrence_path, image_path):
     return save_path
 
 
-def get_json_cordinates(difference_image):
+def get_json_cordinates(difference_image:str):
     """Converts the coordiantes to usfull Label Studio Values"""
     img_width, img_height = get_image_size(difference_image)
     x_pixels, y_pixels, x2pixel, y2pixel = get_coordinates(difference_image)
@@ -38,9 +39,8 @@ def get_json_cordinates(difference_image):
     return x_pct, y_pct, w_pct, h_pct
 
 
-def get_coordinates(difference_path):
+def get_coordinates(difference_path:str):
     """gets the coordinates for the Pixels"""
-    img = Image.open(difference_path)
     img = Image.open(difference_path).convert("L")  # grayscale
     arr = np.array(img)
     non_black = arr > 10
@@ -49,8 +49,8 @@ def get_coordinates(difference_path):
     if len(coords) == 0:
         return 0, 0, 0, 0
     else:
-        top_left = coords.min(axis=0)  # smallest row, smallest col
-        bottom_right = coords.max(axis=0)  # largest row, largest col
+        top_left = cast(list[float] ,coords.min(axis=0))  # smallest row, smallest col
+        bottom_right = cast(list[float],coords.max(axis=0))  # largest row, largest col
 
         return top_left[1], top_left[0], bottom_right[1], bottom_right[0]
 
@@ -75,11 +75,11 @@ def to_percent(value: float, dimension: float) -> float:
     return (value / dimension) * 100
 
 
-def outer_json(user_id: int, id: str, inner_json: InnerAnnotation)->OuterAnnotation:
+def outer_json(user_id: int, id: str, inner_json: list[InnerAnnotation])->TaskItem:
     """Makes the outer Json file that is just needed onec per Person"""
     predictions:Prediction = {"id": id, "result": inner_json, "model_version": "Diagnocat"}
-    task:OuterAnnotation = {
-            "id": str(user_id),
+    task:TaskItem = {
+            "id": user_id,
             "data": {
                 "image": f"/data/local-files/?d=/Dignocat-to-LabelStudio-Converter/output/{user_id}.png"
             },
@@ -128,14 +128,14 @@ def inner_json(
             "to_name": "image",
             "type": "rectanglelabels",
             "id": "ann" + str(sub_index),
-            "value": str(values),
+            "value": values,
             "score": str(to_confidence(prozent)),
         }
     )
     return task
 
 
-def dump_json(task):
+def dump_json(task:list[TaskItem]):
     """SAVE JSON"""
     with open("output.json", "w") as f:
         json.dump(task, f, indent=2)
