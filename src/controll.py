@@ -2,6 +2,7 @@ import hashlib
 import os
 
 
+
 def find_duplicates_of(image_path: str, images_path: str) -> list[str]:
     """Returns a list of files in images_path that are duplicates of image_path."""
     target_hash = _hash_file(image_path)

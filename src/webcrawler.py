@@ -2,6 +2,7 @@ import os
 from typing import cast
 
 from playwright.async_api import Page
+from controll import find_duplicates_of
 
 
 async def login(page: Page):
@@ -67,6 +68,38 @@ async def get_thooth_id(page: Page, thoot_id: int)->str:
             return section_id[-4:]
 
     return "0000"
+
+
+async def find_page(page: Page,i:int,page_amount:int,output_dir:str)->int:
+    duplictas: list[str] = ["", "", ""]
+    already_skipped: list[int] = []
+    duplictas_i = 0
+    user_id = 0
+    while len(duplictas) > 0:
+        user = i + duplictas_i
+        duplictas_i += 1
+
+        if user in already_skipped:
+            print(f"User {user} already testet")
+            continue
+        if page_amount - user < 0:
+            raise ValueError("didn't find any doubles")
+        print(f"USERID = {user}")
+        await go_to_patient_report(page, user)
+        user_id:int = page_amount - i - 1
+        await deactivated_showButtons(page)
+        refrence_image_path = await get_refrence_image(
+            page, user_id, skip_if_exist=False
+        )
+        if refrence_image_path is None:
+
+            raise ValueError("There is no Refrance Image")
+        duplictas = find_duplicates_of(refrence_image_path, output_dir)
+        print(f"Duplicated ID: {i} with {duplictas}")
+        already_skipped.append(user)
+        if user_id < 0:
+            raise ValueError("couldn't find a other duplicate")
+    return user_id
 
 
 async def get_user_data(page: Page, user_id) -> list[str]:
