@@ -142,6 +142,7 @@ async def get_user_data(page: Page, user_id:int) -> list[str]:
 
 
 async def take_screenshot(page:Page,canvas:ElementHandle|Locator,path:str ):
+    await page.wait_for_load_state("networkidle")
     await page.evaluate("""
           () => new Promise(resolve => {
             requestAnimationFrame(() => requestAnimationFrame(resolve));
