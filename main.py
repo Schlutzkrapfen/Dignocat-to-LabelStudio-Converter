@@ -121,7 +121,7 @@ async def main():
                     if refrence_image_path is None:
                         raise ValueError("Refrence Image is missing")
                     difference_path = get_difference(refrence_image_path, paths)
-                    x, y, w, h = get_json_cordinates(difference_path)
+                    x, y, w, h = await get_json_cordinates(difference_path)
                     if w > Error_prozentage:
                         logging.error(
                             "Something went wrong with getting a thooth picture"
@@ -145,7 +145,7 @@ async def main():
             pass
 
 
-async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]], refrence_image_path:str, task :list[InnerAnnotation] , user_id, page:Page):
+async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]], refrence_image_path:str, task :list[InnerAnnotation] , user_id:int, page:Page):
     id = 0
     user_id = 0
     thooth_leng = len(refrence_image_path)
@@ -157,7 +157,7 @@ async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]
         user_id = int(parts[0])
         id = str(int(parts[1]) + thooth_leng)
         difference_path = get_difference(refrence_image_path, paths)
-        x, y, w, h = get_json_cordinates(difference_path)
+        x, y, w, h = await get_json_cordinates(difference_path)
         if w == 0 and h == 0:
             logging.warning(
                 f"Something went wrong with id= {id},user_id={user_id},label={label}/{parts[2]},thoot_id = {parts[4]}\n removed the broken Picture. "
@@ -165,7 +165,7 @@ async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]
             os.remove(paths)
             paths = await get_theeh_picture(page, parts[4], id)
             difference_path = get_difference(refrence_image_path, paths)
-            x, y, w, h = get_json_cordinates(difference_path)
+            x, y, w, h = await get_json_cordinates(difference_path)
             if w == 0 and h == 0:
                 logging.error("Failed to get the  hole thoot Picture as replacement")
                 continue
