@@ -1,7 +1,7 @@
 import os
 from typing import cast
 
-from playwright.async_api import Page
+from playwright.async_api import ElementHandle, Locator, Page
 from controll import find_duplicates_of
 
 
@@ -43,6 +43,7 @@ async def get_theeh_picture(page: Page, teeth_id: str, user_id: str) -> str:
     await div.hover()
 
     canvas = page.locator("canvas").first
+    await take_screenshot(page,canvas,picture_path)
     await page.evaluate("""
       () => new Promise(resolve => {
         requestAnimationFrame(() => requestAnimationFrame(resolve));
@@ -135,14 +136,18 @@ async def get_user_data(page: Page, user_id:int) -> list[str]:
             continue
         print(f"Saved {picture_path}")
         saved_screenshoots.append(picture_path)
-        await page.evaluate("""
+        await take_screenshot(page,canvas,picture_path)
+
+    return saved_screenshoots
+
+
+async def take_screenshot(page:Page,canvas:ElementHandle|Locator,path:str ):
+    await page.evaluate("""
           () => new Promise(resolve => {
             requestAnimationFrame(() => requestAnimationFrame(resolve));
           })
         """)
-        _screenshot = await canvas.screenshot(path=picture_path)
-
-    return saved_screenshoots
+    _screenshot = await canvas.screenshot(path=path)
 
 
 async def deactivated_showButtons(page: Page):
@@ -264,12 +269,7 @@ async def get_refrence_image(page: Page, user_id:int, skip_if_exist: bool = True
         if canvas is None:
             print("ERROR")
             return
-        await page.evaluate("""
-              () => new Promise(resolve => {
-                requestAnimationFrame(() => requestAnimationFrame(resolve));
-              })
-            """)
-        _screenshot = await canvas.screenshot(path=picture_path)
+        await take_screenshot(page,canvas,picture_path)
         print(f"Saved {picture_path}")
     else:
         print(f"Screenshot already exists: {picture_path}")
