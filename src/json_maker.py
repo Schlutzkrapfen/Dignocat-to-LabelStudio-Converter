@@ -12,11 +12,13 @@ from typing import cast
 
 def get_difference(refrence_path:str, image_path:str):
     """Gets the Picutres that ware taken, on the null index is the refrence Image returns the savepath"""
+    print(refrence_path)
+    print(image_path)
     img1 = Image.open(refrence_path).convert("RGB")
     img2 = Image.open(image_path).convert("RGB")
 
-    if img1.size != img2.size:
-        img2 = img2.resize(img1.size, Image.Resampling.LANCZOS)
+   # if img1.size != img2.size:
+   #     img2 = img2.resize(img1.size, Image.Resampling.LANCZOS)
     diff = ImageChops.difference(img1, img2)
     base_dir = os.path.dirname(os.path.abspath(__file__))
     output_dir = os.path.join(base_dir, "../output")
@@ -26,7 +28,7 @@ def get_difference(refrence_path:str, image_path:str):
     return save_path
 
 
-def get_json_cordinates(difference_image:str):
+async def get_json_cordinates(difference_image:str):
     """Converts the coordiantes to usfull Label Studio Values"""
     img_width, img_height = get_image_size(difference_image)
     x_pixels, y_pixels, x2pixel, y2pixel = get_coordinates(difference_image)

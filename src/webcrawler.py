@@ -140,12 +140,12 @@ async def deactivated_showButtons(page: Page):
         "button.MaskFilterButton-module_container_EFNpE"
     )
     for button in buttons:
-        is_disabled = await page.evaluate("btn => btn.hasAttribute('disabled')", button)
+        is_disabled =cast(bool, await page.evaluate("btn => btn.hasAttribute('disabled')", button))
 
         if is_disabled:
             continue
 
-        classes = await page.evaluate("btn => Array.from(btn.classList)", button)
+        classes =cast(list[str], await page.evaluate("btn => Array.from(btn.classList)", button))
 
         is_active = len(classes) > 2
 
