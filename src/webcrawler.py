@@ -6,7 +6,7 @@ from controll import find_duplicates_of
 
 
 async def login(page: Page):
-    """Handles the manual login and ensures the session is saved."""
+    """Checks for Login status, Handles the manual login and ensures the session is saved."""
     print("Checking login status...")
     _website = await page.goto("https://app.diagnocat.eu/sign-in")
 
@@ -22,7 +22,15 @@ async def login(page: Page):
 
 
 async def get_tooth_descriptions(page: Page) -> list[dict[str, str]]:
-    """returns what all teeth have for a name"""
+    """Extracts tooth names and identifiers from the page.
+
+        Args:
+            page: The Playwright Page instance to scrape.
+
+        Returns:
+            A list of dictionaries, where each dictionary contains the "type"
+            and "id" of a tooth.
+        """
     divs = await page.locator("div.ConditionTitle-module_container_vpIP9").all()
     tooth_types: list[dict[str, str]] = []
     for div in divs:
@@ -241,9 +249,9 @@ async def go_to_patient_report(page: Page, user_id: int):
 
         button = await page.query_selector("div.ReportCard-module_container_ONmLU")
         if button is None:
-            raise Exception("Picture Isn't here")
+            raise ValueError("Picture Isn't here")
         await button.click()
-    except Exception as e:
+    except ValueError as e:
         print(f"the picture wasn't there: {e} ")
         # TODO: find a more efficent way to go true the loop if it failed
         await go_to_patient_report(page, user_id + 1)

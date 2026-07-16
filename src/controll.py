@@ -4,7 +4,15 @@ import os
 
 
 def find_duplicates_of(image_path: str, images_path: str) -> list[str]:
-    """Returns a list of files in images_path that are duplicates of image_path."""
+    """Finds duplicate images in a directory by comparing file hashes.
+
+        Args:
+            image_path: Path to the target image file.
+            images_path: Path to the directory of images to search.
+
+        Returns:
+            A list of file paths that are duplicates of the target image.
+        """
     target_hash = _hash_file(image_path)
     duplicates: list[str] = []
 
@@ -20,7 +28,15 @@ def find_duplicates_of(image_path: str, images_path: str) -> list[str]:
 
 
 def _hash_file(filepath: str, chunk_size: int = 8192):
-    """Returns an MD5 hash of the file's contents."""
+    """Calculates the MD5 hash of a file by reading it in chunks.
+
+        Args:
+            filepath: Path to the file to hash.
+            chunk_size: Buffer size in bytes for reading the file. Defaults to 8192.
+
+        Returns:
+            The MD5 hash hex string of the file's contents.
+        """
     hasher = hashlib.md5()
     with open(filepath, "rb") as f:
         while chunk := f.read(chunk_size):

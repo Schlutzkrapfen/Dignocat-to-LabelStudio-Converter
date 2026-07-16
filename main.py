@@ -7,8 +7,8 @@ from typing import cast
 
 from playwright.async_api import Page, async_playwright
 
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+
 from json_maker import (
     dump_json,
     get_difference,
@@ -17,9 +17,10 @@ from json_maker import (
     inner_json,
     outer_json,
 )
-from task_item import InnerAnnotation, TaskItem
 from label_converter import load_label_mapping, map_label
+from task_item import InnerAnnotation, TaskItem
 from webcrawler import (
+    find_page,
     get_patient_amount,
     get_refrence_image,
     get_theeh_picture,
@@ -27,15 +28,27 @@ from webcrawler import (
     get_tooth_descriptions,
     get_user_data,
     login,
-    find_page
 )
+logger = logging.getLogger(__name__)
 
 USER_DATA_DIR = "user_data"
 Error_prozentage = 50
 screenshot_quality_mulitplayer: float = 4
 
 
-def parse_id_range(total: int):
+def parse_id_range(total: int) -> list[int]:
+    """Parse "ids" CLI args into a flipped list of indices.
+
+        Accepts: no args (all indices), "N+" (N..end), "N-" (0..N),
+        "A B" (A..B, clamped), or "N" (single index). Invalid input logs
+        an error instead of raising.
+
+        Args:
+            total: Size of the collection; bounds ranges and used for flipping (total - i - 1).
+
+        Returns:
+            list[int]: Indices, flipped relative to `total`, in generation order.
+        """
     parser:argparse.ArgumentParser = argparse.ArgumentParser()
     _action:argparse.Action = parser.add_argument("ids", nargs="*")
     args:argparse.Namespace = parser.parse_args()
@@ -49,24 +62,19 @@ def parse_id_range(total: int):
         case [s] if s.endswith("+"):
             raw_indices = list(range(int(s[:-1]), total))
             if int(s[:-1]) >= total:
-                logging.error("The start number was to big")
+                logger.error("The start number was to big")
         case [s] if s.endswith("-"):
-            raw_indices = list(range(0, int(s[:-1])))
+            raw_indices = list(range(int(s[:-1])))
         case [a, b]:
             if int(b) + 1 > total:
                 b = total - 1
             raw_indices = list(range(int(a), int(b) + 1))
             if int(a) >= total:
-                logging.error("The start number was to big")
+                logger.error("The start number was to big")
         case [s]:
             raw_indices = [int(s)]
             if int(s) >= total:
-                logging.error("The number was to big")
-        case[_]:
-            logging.error("Value wasn't detecter or not a right value")
-
-        case _:
-            logging.error("Value wasn't detecter or not a right value")
+                logger.error("The number was to big")
 
     def flip(i: int):
         return total - i - 1
@@ -75,6 +83,7 @@ def parse_id_range(total: int):
 
 
 async def main():
+    """Main Function"""
     output_dir = "output"
     os.makedirs(output_dir, exist_ok=True)
     label_Data = load_label_mapping()
@@ -123,7 +132,7 @@ async def main():
                     difference_path = get_difference(refrence_image_path, paths)
                     x, y, w, h = await get_json_cordinates(difference_path)
                     if w > Error_prozentage:
-                        logging.error(
+                        logger.error(
                             "Something went wrong with getting a thooth picture"
                         )
                     if label_categorie is None:
@@ -145,7 +154,23 @@ async def main():
             pass
 
 
-async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]], refrence_image_path:str, task :list[InnerAnnotation] , user_id:int, page:Page):
+async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]], refrence_image_path:str, task :list[InnerAnnotation] , user_id:int, page:Page)->TaskItem:
+    """Diff each image against a reference image and append the resulting annotations to `task`.
+
+        Args:
+            images_paths: Paths to the tooth images to process.
+            label_Data: Lookup table used to resolve a label key to a (label, category) pair.
+            refrence_image_path: Path to the reference image each entry is diffed against.
+            task: List of annotations to append to (mutated in place).
+            user_id: Currently unused.
+            page: Playwright page used to re-fetch a replacement image if a diff fails.
+
+        Returns:
+            TaskItem: `task` wrapped with the user_id/id of the last processed image.
+
+        Raises:
+            ValueError: If a resolved label has no category.
+        """
     id = 0
     user_id = 0
     thooth_leng = len(refrence_image_path)
@@ -159,7 +184,7 @@ async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]
         difference_path = get_difference(refrence_image_path, paths)
         x, y, w, h = await get_json_cordinates(difference_path)
         if w == 0 and h == 0:
-            logging.warning(
+            logger.warning(
                 f"Something went wrong with id= {id},user_id={user_id},label={label}/{parts[2]},thoot_id = {parts[4]}\n removed the broken Picture. "
             )
             os.remove(paths)
@@ -167,7 +192,7 @@ async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]
             difference_path = get_difference(refrence_image_path, paths)
             x, y, w, h = await get_json_cordinates(difference_path)
             if w == 0 and h == 0:
-                logging.error("Failed to get the  hole thoot Picture as replacement")
+                logger.error("Failed to get the  hole thoot Picture as replacement")
                 continue
 
         if label_categorie is None:
