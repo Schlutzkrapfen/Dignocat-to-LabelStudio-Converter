@@ -10,7 +10,7 @@ from typing import cast
 # Save the diff — black = same, white/colored = different
 
 
-def get_difference(refrence_path:str, image_path:str):
+async def get_difference(refrence_path:str, image_path:str):
     """Gets the Picutres that ware taken, on the null index is the refrence Image returns the savepath"""
     print(refrence_path)
     print(image_path)

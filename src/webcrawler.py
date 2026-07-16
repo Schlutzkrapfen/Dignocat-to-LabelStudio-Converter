@@ -1,3 +1,4 @@
+from logging import NullHandler
 import os
 from typing import cast
 
@@ -57,8 +58,6 @@ async def get_theeh_picture(page: Page, teeth_id: str, user_id: str) -> str:
         requestAnimationFrame(() => requestAnimationFrame(resolve));
       })
     """)
-    _screenshot = await canvas.screenshot(path=picture_path)
-
     return picture_path
 
 
@@ -177,42 +176,67 @@ async def deactivated_showButtons(page: Page):
             await button.click()
 
 
-async def get_patient_amount(page: Page):
-    """Gets the Patient amount from Diagnocat page"""
-    """TODO:Change this to read the page amount from the filter"""
-    row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
+async def get_patient_amount(page: Page)->int:
+    """Gets the total patient count from Diagnocat.
 
-    _row = await page.wait_for_selector(row_selector)
+        Tries to read the count directly from the active filter badge first.
+        If that element isn't found, falls back to scrolling the patient
+        table until no new rows load, then returns the row count.
 
-    # Keep scrolling until no new rows appear
-    previous_count = 0
-    max_stable_checks = 200  # how many consecutive "no growth" checks before giving up
-    poll_interval = 50  # ms between checks
-    stable_checks = 0
+        Args:
+            page: The Playwright Page object for the Diagnocat patients view.
 
-    while True:
-        rows = await page.query_selector_all(row_selector)
-        current_count = len(rows)
-
-        if current_count > previous_count:
-            # still growing — reset patience, keep going
-            previous_count = current_count
-            stable_checks = 0
-            await rows[-1].scroll_into_view_if_needed()
+        Returns:
+            The total number of patients.
+        """
+    try:
+        amount_el = await page.wait_for_selector(
+            "span.Filters-module_amount_zjpHX.Filters-module_amountActive_ysGOs"
+        )
+        if amount_el:
+            amount_text = (await amount_el.inner_text()).strip()
+            amount = int(amount_text)  # 697
+            print(f"Active filter amount: {amount}")
+            return(amount)
         else:
-            # no growth this check — don't give up immediately,
-            # could just be a slow network round-trip
+            amount = None
+            raise LookupError("No type found")
+    except LookupError:
+        print("tried to find amount out with scrooling " )
 
-            stable_checks += 1
-            if stable_checks >= max_stable_checks:
-                break
-            # nudge scroll again in case loader needs re-triggering
-            if rows:
+        row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
+
+        _row = await page.wait_for_selector(row_selector)
+
+        # Keep scrolling until no new rows appear
+        previous_count = 0
+        max_stable_checks = 200  # how many consecutive "no growth" checks before giving up
+        poll_interval = 50  # ms between checks
+        stable_checks = 0
+
+        while True:
+            rows = await page.query_selector_all(row_selector)
+            current_count = len(rows)
+
+            if current_count > previous_count:
+                # still growing — reset patience, keep going
+                previous_count = current_count
+                stable_checks = 0
                 await rows[-1].scroll_into_view_if_needed()
+            else:
+                # no growth this check — don't give up immediately,
+                # could just be a slow network round-trip
 
-        await page.wait_for_timeout(poll_interval)
+                stable_checks += 1
+                if stable_checks >= max_stable_checks:
+                    break
+                # nudge scroll again in case loader needs re-triggering
+                if rows:
+                    await rows[-1].scroll_into_view_if_needed()
 
-    return previous_count
+            await page.wait_for_timeout(poll_interval)
+
+        return previous_count
 
 
 async def go_to_patient_report(page: Page, user_id: int):
@@ -274,10 +298,9 @@ async def get_refrence_image(page: Page, user_id:int, skip_if_exist: bool = True
 
     if not os.path.exists(picture_path) or not skip_if_exist:
         await deactivated_showButtons(page)
-        canvas = await page.query_selector("canvas")
+        canvas = await page.wait_for_selector("canvas")
         if canvas is None:
-            print("ERROR")
-            return
+            raise ValueError("Got no Canvas")
         await take_screenshot(page,canvas,picture_path)
         print(f"Saved {picture_path}")
     else:

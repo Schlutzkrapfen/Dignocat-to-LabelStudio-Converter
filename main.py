@@ -129,7 +129,7 @@ async def main():
                     print(f"Saved {paths}")
                     if refrence_image_path is None:
                         raise ValueError("Refrence Image is missing")
-                    difference_path = get_difference(refrence_image_path, paths)
+                    difference_path = await get_difference(refrence_image_path, paths)
                     x, y, w, h = await get_json_cordinates(difference_path)
                     if w > Error_prozentage:
                         logger.error(
@@ -181,7 +181,7 @@ async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]
             continue
         user_id = int(parts[0])
         id = str(int(parts[1]) + thooth_leng)
-        difference_path = get_difference(refrence_image_path, paths)
+        difference_path = await get_difference(refrence_image_path, paths)
         x, y, w, h = await get_json_cordinates(difference_path)
         if w == 0 and h == 0:
             logger.warning(
@@ -189,7 +189,7 @@ async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]
             )
             os.remove(paths)
             paths = await get_theeh_picture(page, parts[4], id)
-            difference_path = get_difference(refrence_image_path, paths)
+            difference_path =await  get_difference(refrence_image_path, paths)
             x, y, w, h = await get_json_cordinates(difference_path)
             if w == 0 and h == 0:
                 logger.error("Failed to get the  hole thoot Picture as replacement")
