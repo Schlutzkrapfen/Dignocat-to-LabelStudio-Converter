@@ -190,7 +190,10 @@ async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]
             os.remove(paths)
             paths = await get_theeh_picture(page, parts[4], id)
             difference_path =await  get_difference(refrence_image_path, paths)
-            x, y, w, h = await get_json_cordinates(difference_path)
+            try:
+                x, y, w, h = await get_json_cordinates(difference_path)
+            except ValueError:
+                continue
             if w == 0 and h == 0:
                 logger.error("Failed to get the  hole thoot Picture as replacement")
                 continue
