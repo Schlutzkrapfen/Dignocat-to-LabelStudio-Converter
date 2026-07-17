@@ -29,7 +29,7 @@ async def get_difference(refrence_path:str, image_path:str):
 
 Error_prozentage = 50
 
-async def get_json_cordinates(difference_image:str):
+async def get_json_cordinates(difference_image:str)->tuple[float,float,float,float]:
     """Converts the coordiantes to usfull Label Studio Values"""
     img_width, img_height = get_image_size(difference_image)
     x_pixels, y_pixels, x2pixel, y2pixel = get_coordinates(difference_image)

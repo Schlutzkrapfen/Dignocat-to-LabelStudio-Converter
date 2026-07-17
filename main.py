@@ -182,7 +182,10 @@ async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]
         user_id = int(parts[0])
         id = str(int(parts[1]) + thooth_leng)
         difference_path = await get_difference(refrence_image_path, paths)
-        x, y, w, h = await get_json_cordinates(difference_path)
+        try:
+            x, y, w, h = await get_json_cordinates(difference_path)
+        except ValueError:
+            continue
         if w == 0 and h == 0:
             logger.warning(
                 f"Something went wrong with id= {id},user_id={user_id},label={label}/{parts[2]},thoot_id = {parts[4]}\n removed the broken Picture. "
