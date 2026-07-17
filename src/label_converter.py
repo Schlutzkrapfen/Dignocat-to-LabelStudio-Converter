@@ -17,6 +17,7 @@ def load_label_mapping()-> dict["str",dict["str","str"]]:
                 "code": row["code"],
                 "label_category": row["label_category"].strip(),
             }
+
     return mapping
 
 

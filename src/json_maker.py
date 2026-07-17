@@ -27,6 +27,7 @@ async def get_difference(refrence_path:str, image_path:str):
     diff.save(save_path)
     return save_path
 
+Error_prozentage = 50
 
 async def get_json_cordinates(difference_image:str):
     """Converts the coordiantes to usfull Label Studio Values"""
@@ -38,6 +39,10 @@ async def get_json_cordinates(difference_image:str):
     y_pct = to_percent(y_pixels, img_height)
     w_pct = to_percent(width_pixels, img_width)
     h_pct = to_percent(height_pixels, img_height)
+    if w_pct > Error_prozentage:
+        raise ValueError(
+            "Something went wrong with getting a Thooth label is over 50 %"
+        )
     return x_pct, y_pct, w_pct, h_pct
 
 

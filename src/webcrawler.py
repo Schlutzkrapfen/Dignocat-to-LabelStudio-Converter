@@ -197,11 +197,13 @@ async def get_patient_amount(page: Page)->int:
             amount_text = (await amount_el.inner_text()).strip()
             amount = int(amount_text)  # 697
             print(f"Active filter amount: {amount}")
+            if amount == 0:
+                raise ValueError(amount)
             return(amount)
         else:
             amount = None
             raise LookupError("No type found")
-    except LookupError:
+    except LookupError or ValueError:
         print("tried to find amount out with scrooling " )
 
         row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
