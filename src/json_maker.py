@@ -10,7 +10,7 @@ from typing import cast
 # Save the diff — black = same, white/colored = different
 
 
-async def get_difference(refrence_path:str, image_path:str):
+async def get_difference(refrence_path:str, image_path:str)-> str:
     """Gets the Picutres that ware taken, on the null index is the refrence Image returns the savepath"""
     print(refrence_path)
     print(image_path)
@@ -62,28 +62,61 @@ def get_coordinates(difference_path:str)-> tuple[float,float,float,float]:
         return top_left[1], top_left[0], bottom_right[1], bottom_right[0]
 
 
-def get_info(filename: str):
+def get_info(filename: str)-> list[str]:
+    """Gets the info out of the filename.
+
+        Args:
+            filename: Path to the image, expected format:
+                      "Path/to/PatientId_PictureId_What-it-is_Prozent_SubId.png"
+
+        Returns:
+            list[str]: A list containing the split parts:
+                       [PatientId, PictureId, What-it-is, Prozent, SubId]
+        """
+
     filename = os.path.basename(filename)  # removes "output/"
     name, _ext = os.path.splitext(filename)
     parts = name.split("_")
     return parts
-    # user_id    = parts[0]   # "0"
-    # sub_index  = parts[1]   # "0"
-    # label      = parts[2]   # "Füllung"
-    # confidence = parts[3]   # "96%"
 
 
-def get_image_size(imagePath: str):
+def get_image_size(imagePath: str)->tuple[int,int]:
+    """Gets the image size of a path.
+
+        Args:
+            imagePath: Path to the image.
+
+        Returns:
+            tuple[int, int]: Image size in (width, height) format.
+        """
     img = Image.open(imagePath)
     return img.size
 
 
 def to_percent(value: float, dimension: float) -> float:
+    """Normalizes a coordinate or size value to a percentage of an image dimension.
+
+        Args:
+            value: The coordinate or size in pixels (e.g., bounding box width or X coordinate).
+            dimension: The corresponding image dimension in pixels (width or height).
+
+        Returns:
+            float: The value expressed as a percentage of the dimension (between 0.0 and 100.0).
+        """
     return (value / dimension) * 100
 
 
 def outer_json(user_id: int, id: str, inner_json: list[InnerAnnotation])->TaskItem:
-    """Makes the outer Json file that is just needed onec per Person"""
+    """Makes the outer JSON file that is needed once per person/X-ray.
+
+        Args:
+            user_id: ID for the User/X-ray.
+            id: The ID for the prediction in str format.
+            inner_json: All the predictions without ID and Model_version name.
+
+        Returns:
+            TaskItem: An item formatted for Label Studio.
+        """
     predictions:Prediction = {"id": id, "result": inner_json, "model_version": "Diagnocat"}
     task:TaskItem = {
             "id": user_id,
@@ -97,7 +130,15 @@ def outer_json(user_id: int, id: str, inner_json: list[InnerAnnotation])->TaskIt
 
 
 def to_confidence(value: str)->float:
-    """Converets a Prozent value to a Float value (ex. 50% ->0.5)"""
+    """Converts a percentage string to a float value (e.g., "50%" -> 0.5).
+
+        Args:
+            value: The percentage string to convert (e.g., "96%").
+
+        Returns:
+            float: A value between 0.0 and 1.0, or 0.0 if the conversion fails.
+    """
+
     if "%" not in value:
         print(f"Warning: '{value}' is not a percentage!")
         return 0.0
@@ -119,7 +160,22 @@ def inner_json(
     prozent:str,
     label_catorgie:str,
 )->InnerAnnotation:
-    """Makes the inner Json everything that is used every Annotation"""
+    """Creates an individual annotation object for a labeled bounding box.
+
+        Args:
+            label: The specific label text (e.g., "Füllung").
+            x: The horizontal starting coordinate of the bounding box.
+            y: The vertical starting coordinate of the bounding box.
+            w: The width of the bounding box.
+            h: The height of the bounding box.
+            sub_index: A unique identifier index used to generate the annotation ID.
+            prozent: The confidence score of the prediction as a percentage string (e.g., "96%").
+            label_catorgie: The Category identifier
+
+        Returns:
+            InnerAnnotation: A dictionary representing a single formatted annotation
+                ready for Label Studio.
+        """
     task:InnerAnnotation
     values = {
         "rotation": 0,

@@ -1,9 +1,8 @@
 from csv import Error
-from logging import NullHandler
 import os
 from typing import cast
 
-from playwright.async_api import ElementHandle, Locator, Page
+from playwright.async_api import ElementHandle,  Page
 from controll import find_duplicates_of
 
 
