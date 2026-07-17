@@ -1,3 +1,4 @@
+from csv import Error
 from logging import NullHandler
 import os
 from typing import cast
@@ -51,7 +52,9 @@ async def get_theeh_picture(page: Page, teeth_id: str, user_id: str) -> str:
     div = section.locator("div.ConditionTitle-module_container_vpIP9")
     await div.hover()
 
-    canvas = page.locator("canvas").first
+    canvas = await page.wait_for_selector("canvas")
+    if canvas is None:
+        raise ValueError("Got no Canvas")
     await take_screenshot(page,canvas,picture_path)
     await page.evaluate("""
       () => new Promise(resolve => {
@@ -148,7 +151,7 @@ async def get_user_data(page: Page, user_id:int) -> list[str]:
     return saved_screenshoots
 
 
-async def take_screenshot(page:Page,canvas:ElementHandle|Locator,path:str ):
+async def take_screenshot(page:Page,canvas:ElementHandle,path:str ):
     await page.wait_for_timeout(500)
     await page.evaluate("""
           () => new Promise(resolve => {
@@ -159,6 +162,7 @@ async def take_screenshot(page:Page,canvas:ElementHandle|Locator,path:str ):
 
 
 async def deactivated_showButtons(page: Page):
+
     buttons = await page.query_selector_all(
         "button.MaskFilterButton-module_container_EFNpE"
     )
@@ -203,7 +207,7 @@ async def get_patient_amount(page: Page)->int:
         else:
             amount = None
             raise LookupError("No type found")
-    except LookupError or ValueError:
+    except Error:
         print("tried to find amount out with scrooling " )
 
         row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
