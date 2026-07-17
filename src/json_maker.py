@@ -46,7 +46,7 @@ async def get_json_cordinates(difference_image:str):
     return x_pct, y_pct, w_pct, h_pct
 
 
-def get_coordinates(difference_path:str):
+def get_coordinates(difference_path:str)-> tuple[float,float,float,float]:
     """gets the coordinates for the Pixels"""
     img = Image.open(difference_path).convert("L")  # grayscale
     arr = np.array(img)
