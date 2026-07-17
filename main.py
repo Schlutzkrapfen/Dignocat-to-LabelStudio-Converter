@@ -117,8 +117,9 @@ async def main():
                     )
                     if label is None:
                         continue
-                    thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
-                    if thooth_id == "0000":
+                    try:
+                        thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
+                    except ValueError:
                         continue
 
                     refrence_image_path = await get_refrence_image(page, user_id )

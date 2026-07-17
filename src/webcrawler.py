@@ -65,6 +65,20 @@ async def get_theeh_picture(page: Page, teeth_id: str, user_id: str) -> str:
 
 
 async def get_thooth_id(page: Page, thoot_id: int)->str:
+    """Finds the trailing 4 characters of a section's ID matching the given tooth ID.
+
+        This function searches through dental widget cards on the page, extracts
+        the numeric identifier from their condition titles, and matches it against
+        the requested tooth_id.
+
+        Args:
+            page: The Playwright Page instance.
+            thoot_id: The numerical ID of the tooth to locate.
+
+        Returns:
+            The last 4 characters of the matching section's HTML id attribute,
+            or raises a Valuerror if no match is found.
+        """
     thoot_id = int(thoot_id)
     sections = await page.locator("section.WidgetCard-module_container_1PPfu").all()
     for section in sections:
@@ -83,7 +97,7 @@ async def get_thooth_id(page: Page, thoot_id: int)->str:
             section_id:str = cast(str, await section.evaluate("el => el.id"))
             return section_id[-4:]
 
-    return "0000"
+    raise ValueError
 
 
 async def find_page(page: Page,i:int,page_amount:int,output_dir:str)->int:
@@ -103,7 +117,7 @@ async def find_page(page: Page,i:int,page_amount:int,output_dir:str)->int:
         print(f"USERID = {user}")
         await go_to_patient_report(page, user)
         user_id:int = page_amount - i - 1
-        await deactivated_showButtons(page)
+        await deactivated_show_buttons(page)
         refrence_image_path = await get_refrence_image(
             page, user_id, skip_if_exist=False
         )
@@ -161,22 +175,31 @@ async def take_screenshot(page:Page,canvas:ElementHandle,path:str ):
     _screenshot = await canvas.screenshot(path=path)
 
 
-async def deactivated_showButtons(page: Page):
+async def deactivated_show_buttons(page: Page) -> None:
+    """Waits for and clicks active, enabled filter buttons on the page.
 
-    buttons = await page.query_selector_all(
-        "button.MaskFilterButton-module_container_EFNpE"
-    )
-    for button in buttons:
-        is_disabled =cast(bool, await page.evaluate("btn => btn.hasAttribute('disabled')", button))
+    Args:
+        page: The Playwright Page instance.
+    """
+    selector = "button.MaskFilterButton-module_container_EFNpE"
 
-        if is_disabled:
+    await page.wait_for_selector(selector, state="visible")
+
+    buttons = page.locator(selector)
+    count = await buttons.count()
+
+    for i in range(count):
+        button = buttons.nth(i)
+
+        if not await button.is_enabled():
             continue
 
-        classes =cast(list[str], await page.evaluate("btn => Array.from(btn.classList)", button))
+        classes = cast(
+            list[str],
+            await button.evaluate("btn => Array.from(btn.classList)"),
+        )
 
-        is_active = len(classes) > 2
-
-        if is_active:
+        if len(classes) > 2:
             await button.click()
 
 
@@ -303,7 +326,7 @@ async def get_refrence_image(page: Page, user_id:int, skip_if_exist: bool = True
     picture_path = f"output/{user_id}.png"
 
     if not os.path.exists(picture_path) or not skip_if_exist:
-        await deactivated_showButtons(page)
+        await deactivated_show_buttons(page)
         canvas = await page.wait_for_selector("canvas")
         if canvas is None:
             raise ValueError("Got no Canvas")
