@@ -32,7 +32,6 @@ from webcrawler import (
 logger = logging.getLogger(__name__)
 
 USER_DATA_DIR = "user_data"
-Error_prozentage = 50
 screenshot_quality_mulitplayer: float = 4
 
 
@@ -130,11 +129,12 @@ async def main():
                     if refrence_image_path is None:
                         raise ValueError("Refrence Image is missing")
                     difference_path = await get_difference(refrence_image_path, paths)
-                    x, y, w, h = await get_json_cordinates(difference_path)
-                    if w > Error_prozentage:
-                        logger.error(
-                            "Something went wrong with getting a thooth picture"
-                        )
+                    try:
+                        x, y, w, h = await get_json_cordinates(difference_path)
+                    except ValueError:
+                        print("label wasn't found")
+                        continue
+
                     if label_categorie is None:
                         raise ValueError("label Category doesen't exist")
 
