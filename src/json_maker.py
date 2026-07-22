@@ -7,7 +7,7 @@ from task_item import InnerAnnotation,  Prediction, TaskItem
 
 from typing import cast
 
-# Save the diff — black = same, white/colored = different
+Error_prozentage = 50
 
 
 async def get_difference(refrence_path:str, image_path:str)-> str:
@@ -27,10 +27,20 @@ async def get_difference(refrence_path:str, image_path:str)-> str:
     diff.save(save_path)
     return save_path
 
-Error_prozentage = 50
 
 async def get_json_cordinates(difference_image:str)->tuple[float,float,float,float]:
-    """Converts the coordiantes to usfull Label Studio Values"""
+    """Converts pixel bounding box coordinates into Label Studio percentage values.
+
+        Args:
+            difference_image: Path to the image file to analyze.
+
+        Returns:
+            tuple[float, float, float, float]: Normalized coordinates as percentages:
+                (x_percentage, y_percentage, width_percentage, height_percentage).
+
+        Raises:
+            ValueError: If the calculated width exceeds `Error_prozentage`.
+        """
     img_width, img_height = get_image_size(difference_image)
     x_pixels, y_pixels, x2pixel, y2pixel = get_coordinates(difference_image)
     width_pixels = -x_pixels + x2pixel
@@ -44,6 +54,7 @@ async def get_json_cordinates(difference_image:str)->tuple[float,float,float,flo
             "Something went wrong with getting a Thooth label is over 50 %"
         )
     return x_pct, y_pct, w_pct, h_pct
+
 
 
 def get_coordinates(difference_path:str)-> tuple[float,float,float,float]:
@@ -199,7 +210,9 @@ def inner_json(
 
 
 def dump_json(task:list[TaskItem]):
-    """SAVE JSON"""
+    """SAVE JSON
+    Args:
+        task: What to Save"""
     with open("output.json", "w") as f:
         json.dump(task, f, indent=2)
     print("saved json to output.json")
