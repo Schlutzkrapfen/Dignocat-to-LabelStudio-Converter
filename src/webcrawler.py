@@ -2,7 +2,7 @@ from csv import Error
 import os
 from typing import cast
 
-from playwright.async_api import ElementHandle,  Page
+from playwright.async_api import ElementHandle, Expect,  Page
 from controll import find_duplicates_of
 
 
@@ -278,7 +278,11 @@ async def go_to_patient_report(page: Page, user_id: int):
     _body = await page.wait_for_selector("body", timeout=15000)
 
     row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
-    _row = await page.wait_for_selector(row_selector, timeout=10000)
+    try:
+        _row = await page.wait_for_selector(row_selector, timeout=15000)
+    except TimeoutError:
+        await go_to_patient_report(page,user_id)
+        return
 
     # Scroll until we have enough rows loaded to reach user_id
     while True:
