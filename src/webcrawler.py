@@ -281,7 +281,9 @@ async def go_to_patient_report(page: Page, user_id: int):
     try:
         _row = await page.wait_for_selector(row_selector, timeout=15000)
     except TimeoutError:
+        print("Couldn't find the Scroll container, we try again")
         await go_to_patient_report(page,user_id)
+
         return
 
     # Scroll until we have enough rows loaded to reach user_id
