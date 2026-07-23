@@ -317,11 +317,15 @@ async def get_patient_amount(page: Page)->int:
 async def go_to_patient_report(page: Page, user_id: int,max_retries:int=20):
     """Goes to the right page"""
     print("Opening data page...")
-    _website = await page.goto(
+    try:
+        _website = await page.goto(
         "https://app.diagnocat.eu/patients",
         wait_until="domcontentloaded",
         timeout=10000,
-    )
+        )
+    except PlaywrightTimeoutError:
+        await go_to_patient_report(page,user_id,max_retries -1)
+        return
     _body = await page.wait_for_selector("body", timeout=15000)
 
     row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
