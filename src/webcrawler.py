@@ -171,7 +171,11 @@ async def take_screenshot(page:Page,canvas:ElementHandle,path:str ):
             requestAnimationFrame(() => requestAnimationFrame(resolve));
           })
         """)
-    _screenshot = await canvas.screenshot(path=path)
+    try:
+        _screenshot = await canvas.screenshot(path=path)
+    except TimeoutError:
+        print("Couldnt't get screenshoot try again")
+        await take_screenshot(page,canvas,path)
 
 
 async def deactivated_show_buttons(page: Page) -> None:
