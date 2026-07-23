@@ -1,8 +1,9 @@
 from csv import Error
 import os
 from typing import cast
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
-from playwright.async_api import ElementHandle, Expect,  Page
+from playwright.async_api import ElementHandle,   Page
 from controll import find_duplicates_of
 
 
@@ -212,7 +213,7 @@ async def take_screenshot(page:Page,canvas:ElementHandle,path:str,max_retries: i
         """)
     try:
         _screenshot = await canvas.screenshot(path=path)
-    except TimeoutError:
+    except PlaywrightTimeoutError:
         if max_retries <= 0:
                     print("Couldn't get screenshot, no retries left")
                     raise
@@ -326,7 +327,7 @@ async def go_to_patient_report(page: Page, user_id: int,max_retries:int=20):
     row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
     try:
         _row = await page.wait_for_selector(row_selector, timeout=15000)
-    except TimeoutError:
+    except PlaywrightTimeoutError:
         if max_retries <= 0:
             print("Couldn't find the container")
             raise
