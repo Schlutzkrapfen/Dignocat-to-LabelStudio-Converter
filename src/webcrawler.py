@@ -351,22 +351,23 @@ async def go_to_patient_report(page: Page, user_id: int,max_retries:int=20):
 
 
     # Scroll until we have enough rows loaded to reach user_id
-    while True:
-        rows = await page.query_selector_all(row_selector)
 
-        if len(rows) > user_id:
-            break  # We have enough rows, stop scrolling
-
-        # Not enough rows yet — scroll down to load more
-        await rows[-1].scroll_into_view_if_needed()
-
-    await rows[user_id].click()
-    print("Clicked first patient row")
-
-    print(f"Now on: {page.url}")
 
     # Wait for the next page
     try:
+        while True:
+               rows = await page.query_selector_all(row_selector)
+
+               if len(rows) > user_id:
+                   break  # We have enough rows, stop scrolling
+
+               # Not enough rows yet — scroll down to load more
+               await rows[-1].scroll_into_view_if_needed()
+
+        await rows[user_id].click()
+        print("Clicked first patient row")
+
+        print(f"Now on: {page.url}")
         _div = await page.wait_for_selector("div.ReportCard-module_container_ONmLU")
 
         button = await page.query_selector("div.ReportCard-module_container_ONmLU")
