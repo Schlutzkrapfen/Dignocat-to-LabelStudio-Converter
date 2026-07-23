@@ -151,8 +151,23 @@ async def find_page(page: Page,i:int,page_amount:int,output_dir:str)->int:
     return user_id
 
 
-async def get_user_data(page: Page, user_id:int) -> list[str]:
-    """Gets a single User Data"""
+async def get_user_screenshoots(page: Page, user_id:int) -> list[str]:
+    """
+       Screenshot each condition button's canvas view for a user.
+
+       For every condition button on the page: hovers it, reads its name,
+       percentage, and enclosing section id, then screenshots the shared
+       <canvas> to `output/screenshots/{user_id}_{i}_{name}_{percentage}_{section_suffix}.png`.
+       Skips screenshots that already exist on disk.
+
+       Args:
+           page: Active Playwright Page, already on the target view.
+           user_id: Used to namespace output filenames.
+
+       Returns:
+           List of screenshot file paths, one per condition button.
+
+       """
     # Gets the Buttons
     # Get all condition buttons
     buttons = await page.query_selector_all(
@@ -170,7 +185,7 @@ async def get_user_data(page: Page, user_id:int) -> list[str]:
         percentage = await button.query_selector("span.p3")
         if name is None or percentage is None or canvas is None:
             print("something went wrong while Fetching, lets try again.")
-            return await get_user_data(page, user_id)
+            return await get_user_screenshoots(page, user_id)
 
         picture_path = f"output/screenshots/{user_id}_{i}_{await name.inner_text()}_{await percentage.inner_text()}_{last_4}.png"
         if os.path.exists(picture_path):
