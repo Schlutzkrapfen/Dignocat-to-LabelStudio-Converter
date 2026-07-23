@@ -42,6 +42,30 @@ async def get_tooth_descriptions(page: Page) -> list[dict[str, str]]:
 
 
 async def get_theeh_picture(page: Page, teeth_id: str, user_id: str) -> str:
+    """Retrieves or generates a screenshot of a specific tooth's canvas.
+
+        Checks if a screenshot for the given tooth and user already exists on
+        disk. If so, returns the cached file path immediately. Otherwise,
+        locates the corresponding section on the page, hovers over its title
+        to trigger the canvas rendering, waits for the canvas element to
+        appear, and captures a screenshot of it.
+
+        Args:
+            page: The Playwright Page instance to search and interact with.
+            teeth_id: The identifier of the tooth, used to locate the
+                corresponding section on the page and to build the output
+                filename.
+            user_id: The identifier of the user, used to build the output
+                filename.
+
+        Returns:
+            The file path to the tooth's screenshot, either freshly captured
+            or previously cached.
+
+        Raises:
+            ValueError: If no canvas element is found on the page after
+                hovering over the tooth's title.
+        """
     picture_path = f"output/teeth-screenshoots/{user_id}-{teeth_id}.png"
 
     if os.path.exists(picture_path):
@@ -55,11 +79,6 @@ async def get_theeh_picture(page: Page, teeth_id: str, user_id: str) -> str:
     if canvas is None:
         raise ValueError("Got no Canvas")
     await take_screenshot(page,canvas,picture_path)
-    await page.evaluate("""
-      () => new Promise(resolve => {
-        requestAnimationFrame(() => requestAnimationFrame(resolve));
-      })
-    """)
     return picture_path
 
 
@@ -309,7 +328,7 @@ async def go_to_patient_report(page: Page, user_id: int,max_retries:int=20):
         _row = await page.wait_for_selector(row_selector, timeout=15000)
     except TimeoutError:
         if max_retries <= 0:
-            print("Something broke completly")
+            print("Couldn't find the container")
             raise
         print("Couldn't find the Scroll container, we try again")
         await go_to_patient_report(page,user_id,max_retries-1)
