@@ -164,7 +164,27 @@ async def get_user_data(page: Page, user_id:int) -> list[str]:
     return saved_screenshoots
 
 
-async def take_screenshot(page:Page,canvas:ElementHandle,path:str ):
+async def take_screenshot(page:Page,canvas:ElementHandle,path:str,max_retries: int = 10 ):
+    """Captures a screenshot of a canvas element and saves it to disk.
+
+        Waits briefly for the page to settle and for two animation frames to
+        pass (ensuring any pending rendering/paint operations have completed)
+        before capturing the screenshot of the given canvas element. If the
+        screenshot times out, the function retries up to `max_retries` times
+        before giving up.
+
+        Args:
+            page: The Playwright Page instance used to wait for rendering
+                to complete.
+            canvas: The ElementHandle representing the canvas element to
+                capture.
+            path: The file path where the screenshot will be saved.
+            max_retries: Maximum number of retry attempts if the screenshot
+                times out. Defaults to 10.
+        Raises:
+            TimeoutError: If the screenshot still fails after exhausting all
+                retry attempts.
+        """
     await page.wait_for_timeout(500)
     await page.evaluate("""
           () => new Promise(resolve => {
@@ -174,8 +194,11 @@ async def take_screenshot(page:Page,canvas:ElementHandle,path:str ):
     try:
         _screenshot = await canvas.screenshot(path=path)
     except TimeoutError:
-        print("Couldnt't get screenshoot try again")
-        await take_screenshot(page,canvas,path)
+        if max_retries <= 0:
+                    print("Couldn't get screenshot, no retries left")
+                    raise
+        print("Couldn't get screenshot, trying again")
+        await take_screenshot(page, canvas, path, max_retries - 1)
 
 
 async def deactivated_show_buttons(page: Page) -> None:
@@ -271,7 +294,7 @@ async def get_patient_amount(page: Page)->int:
         return previous_count
 
 
-async def go_to_patient_report(page: Page, user_id: int):
+async def go_to_patient_report(page: Page, user_id: int,max_retries:int=20):
     """Goes to the right page"""
     print("Opening data page...")
     _website = await page.goto(
@@ -285,8 +308,11 @@ async def go_to_patient_report(page: Page, user_id: int):
     try:
         _row = await page.wait_for_selector(row_selector, timeout=15000)
     except TimeoutError:
+        if max_retries <= 0:
+            print("Something broke completly")
+            raise
         print("Couldn't find the Scroll container, we try again")
-        await go_to_patient_report(page,user_id)
+        await go_to_patient_report(page,user_id,max_retries-1)
 
         return
 
