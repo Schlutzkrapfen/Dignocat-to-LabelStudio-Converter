@@ -323,22 +323,17 @@ async def go_to_patient_report(page: Page, user_id: int,max_retries:int=20):
         wait_until="domcontentloaded",
         timeout=10000,
         )
-    except PlaywrightTimeoutError:
-        await go_to_patient_report(page,user_id,max_retries -1)
-        return
-    _body = await page.wait_for_selector("body", timeout=15000)
+        row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
 
-    row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
-    try:
+        _body = await page.wait_for_selector("body", timeout=15000)
         _row = await page.wait_for_selector(row_selector, timeout=15000)
     except PlaywrightTimeoutError:
         if max_retries <= 0:
-            print("Couldn't find the container")
             raise
-        print("Couldn't find the Scroll container, we try again")
-        await go_to_patient_report(page,user_id,max_retries-1)
-
+        await go_to_patient_report(page,user_id,max_retries -1)
         return
+
+
 
     # Scroll until we have enough rows loaded to reach user_id
     while True:
@@ -367,6 +362,11 @@ async def go_to_patient_report(page: Page, user_id: int,max_retries:int=20):
         print(f"the picture wasn't there: {e} ")
         # TODO: find a more efficent way to go true the loop if it failed
         await go_to_patient_report(page, user_id + 1)
+        return
+    except PlaywrightTimeoutError:
+        if max_retries <= 0:
+            raise
+        await go_to_patient_report(page,user_id,max_retries -1)
         return
 
     await remove_overlay(page)
