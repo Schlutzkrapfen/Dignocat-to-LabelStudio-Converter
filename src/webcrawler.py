@@ -1,7 +1,7 @@
 from csv import Error
 import os
 from typing import cast
-from playwright.async_api import TimeoutError as PlaywrightTimeoutError
+from playwright.async_api import Error as PlaywrightError, TimeoutError as PlaywrightTimeoutError
 
 from playwright.async_api import ElementHandle,   Page
 from controll import find_duplicates_of
@@ -120,6 +120,25 @@ async def get_thooth_id(page: Page, thoot_id: int)->str:
 
 
 async def find_page(page: Page,i:int,page_amount:int,output_dir:str)->int:
+    """Finds a page/user whose reference image has duplicates.
+
+        Starting from index `i`, checks successive users by generating a
+        reference image and searching `output_dir` for duplicates, until no
+        duplicates remain or the search space is exhausted.
+
+        Args:
+            page: Playwright `Page` used to navigate the patient report UI.
+            i: Starting index for the search.
+            page_amount: Total number of available pages/users.
+            output_dir: Directory to search for duplicate images.
+
+        Returns:
+            The resulting `user_id` (`page_amount - i - 1`).
+
+        Raises:
+            ValueError: If no users remain to check, no reference image is
+                found, or `user_id` goes negative before resolving duplicates.
+        """
     duplictas: list[str] = ["", "", ""]
     already_skipped: list[int] = []
     duplictas_i = 0
@@ -228,11 +247,11 @@ async def take_screenshot(page:Page,canvas:ElementHandle,path:str,max_retries: i
         """)
     try:
         _screenshot = await canvas.screenshot(path=path)
-    except PlaywrightTimeoutError:
+    except (PlaywrightTimeoutError, PlaywrightError) as e:
         if max_retries <= 0:
-                    print("Couldn't get screenshot, no retries left")
+                    print(f"Couldn't get screenshot, no retries left:{e}")
                     raise
-        print("Couldn't get screenshot, trying again")
+        print(f"Couldn't get screenshot, trying again {e}")
         await take_screenshot(page, canvas, path, max_retries - 1)
 
 
