@@ -193,7 +193,7 @@ async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]
             )
             os.remove(paths)
             paths = await get_theeh_picture(page, parts[4], id)
-            difference_path =await  get_difference(refrence_image_path, paths)
+            difference_path = await  get_difference(refrence_image_path, paths)
             try:
                 x, y, w, h = await get_json_cordinates(difference_path)
             except ValueError:

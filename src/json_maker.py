@@ -11,11 +11,42 @@ Error_prozentage = 50
 
 
 async def get_difference(refrence_path:str, image_path:str)-> str:
-    """Gets the Picutres that ware taken, on the null index is the refrence Image returns the savepath"""
-    print(refrence_path)
-    print(image_path)
-    img1 = Image.open(refrence_path).convert("RGB")
-    img2 = Image.open(image_path).convert("RGB")
+    """
+        Compute the pixel-wise difference between a reference image and a
+        comparison image, and save the result as a PNG file.
+
+        Opens both images, converts them to RGB, and computes the absolute
+        per-pixel difference between them using `ImageChops.difference`. The
+        resulting difference image is saved to a fixed output directory
+        (`../output/diff.png`, relative to this file's location) and the
+        saved file path is returned.
+
+        Args:
+            refrence_path (str): Path to the reference (baseline) image.
+            image_path (str): Path to the image to compare against the
+                reference image.
+
+        Returns:
+            str: Absolute path to the saved difference image (`diff.png`).
+
+        Raises:
+            FileNotFoundError: If either `refrence_path` or `image_path`
+                does not point to an existing file.
+            OSError: If either file cannot be opened/identified as an image
+                by Pillow.
+
+        Warning:
+            - The two images must have the same dimensions. Size mismatches
+              are NOT currently handled.
+              """
+
+    try:
+        img1 = Image.open(refrence_path).convert("RGB")
+        img2 = Image.open(image_path).convert("RGB")
+    except FileNotFoundError:
+        raise FileNotFoundError("either `refrence_path` or `image_path` does not point to an existing file.")
+    except OSError:
+        raise OSError("either `refrence_path` or `image_path` cannot be opened/identified as an image by Pillow.")
 
    # if img1.size != img2.size:
    #     img2 = img2.resize(img1.size, Image.Resampling.LANCZOS)
@@ -58,7 +89,21 @@ async def get_json_cordinates(difference_image:str)->tuple[float,float,float,flo
 
 
 def get_coordinates(difference_path:str)-> tuple[float,float,float,float]:
-    """gets the coordinates for the Pixels"""
+    """
+       Compute the bounding box of the non-black region in a difference image.
+
+       Loads the image, converts it to grayscale, and finds the pixels
+       brighter than a fixed threshold (i.e. pixels that differ from
+       black). Returns the bounding box enclosing those pixels.
+
+       Args:
+           difference_path (str): Path to the difference image to analyze.
+
+       Returns:
+           tuple[float, float, float, float]: Bounding box as
+               (x_min, y_min, x_max, y_max). Returns (0, 0, 0, 0) if no
+               difference is found.
+       """
     img = Image.open(difference_path).convert("L")  # grayscale
     arr = np.array(img)
     non_black = arr > 10
