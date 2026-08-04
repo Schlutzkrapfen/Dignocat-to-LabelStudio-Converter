@@ -14,3 +14,5 @@ output/*
 user_data/
 *.~lock.*#
 output.json
+src/__pycache__/*
+venv/*
