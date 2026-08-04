@@ -8,7 +8,18 @@ from controll import find_duplicates_of
 
 
 async def login(page: Page):
-    """Checks for Login status, Handles the manual login and ensures the session is saved."""
+    """
+       Ensure the browser session is logged in to Diagnocat.
+
+       Navigates to the sign-in page. If the session is already
+       authenticated (auto-redirect away from sign-in), skips the manual
+       step. Otherwise, waits for manual login and for the browser to
+       redirect to the patients page.
+
+       Args:
+           page (Page): Playwright page object used to navigate and check
+               login status.
+       """
     print("Checking login status...")
     _website = await page.goto("https://app.diagnocat.eu/sign-in")
 
