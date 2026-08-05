@@ -166,7 +166,10 @@ async def find_page(page: Page,i:int,page_amount:int,output_dir:str)->int:
         print(f"USERID = {user}")
         await go_to_patient_report(page, user)
         user_id:int = page_amount - i - 1
-        await deactivated_show_buttons(page)
+        try:
+            await deactivated_show_buttons(page)
+        except PlaywrightTimeoutError:
+            continue
         refrence_image_path = await get_refrence_image(
             page, user_id, skip_if_exist=False
         )
@@ -274,7 +277,10 @@ async def deactivated_show_buttons(page: Page) -> None:
     """
     selector = "button.MaskFilterButton-module_container_EFNpE"
 
-    await page.wait_for_selector(selector, state="visible")
+    try:
+        await page.wait_for_selector(selector, state="visible")
+    except PlaywrightTimeoutError:
+        raise PlaywrightTimeoutError("waitforselector didn't work")
 
     buttons = page.locator(selector)
     count = await buttons.count()
