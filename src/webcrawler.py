@@ -171,7 +171,7 @@ async def find_page(page: Page,i:int,page_amount:int,output_dir:str)->int:
         except PlaywrightTimeoutError:
             continue
         refrence_image_path = await get_refrence_image(
-            page, user_id, skip_if_exist=False
+            page, user_id, skip_if_exist=True
         )
         if refrence_image_path is None:
 
@@ -432,7 +432,7 @@ async def remove_overlay(page: Page):
 """)
 
 
-async def get_refrence_image(page: Page, user_id:int, skip_if_exist: bool = False):
+async def get_refrence_image(page: Page, user_id:int, skip_if_exist: bool = True):
     """gets a empty Image for refrence"""
     picture_path = f"output/{user_id}.png"
 
