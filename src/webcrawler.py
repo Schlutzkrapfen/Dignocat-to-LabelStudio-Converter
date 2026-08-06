@@ -171,7 +171,7 @@ async def find_page(page: Page,i:int,page_amount:int,output_dir:str)->int:
         except PlaywrightTimeoutError:
             continue
         refrence_image_path = await get_refrence_image(
-            page, user_id, skip_if_exist=True
+            page, user_id, skip_if_exist=False
         )
         if refrence_image_path is None:
 
