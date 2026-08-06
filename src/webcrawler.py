@@ -432,7 +432,7 @@ async def remove_overlay(page: Page):
 """)
 
 
-async def get_refrence_image(page: Page, user_id:int, skip_if_exist: bool = True):
+async def get_refrence_image(page: Page, user_id:int, skip_if_exist: bool = False):
     """gets a empty Image for refrence"""
     picture_path = f"output/{user_id}.png"
 
