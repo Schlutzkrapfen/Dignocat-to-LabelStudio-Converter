@@ -142,15 +142,15 @@ async def main():
                     inner_task.append( inner_json(
                         label, x, y, w, h, str(i), "100%", label_categorie
                     ))
-                if refrence_image_path == "":
-                    print("Refrence Image is none")
-                    continue
-                images_paths = await get_user_screenshoots(page, user_id)
-                task.append( await make_json(
-                    images_paths, label_Data, refrence_image_path, inner_task, user_id, page
-                ))
+                    if refrence_image_path == "":
+                        print("Refrence Image is none")
+                        continue
+                    images_paths = await get_user_screenshoots(page, user_id)
+                    task.append( await make_json(
+                        images_paths, label_Data, refrence_image_path, inner_task, user_id, page
+                    ))
 
-            dump_json(task)
+                    dump_json(task)
         finally:
             pass
 
