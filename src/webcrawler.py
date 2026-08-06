@@ -378,7 +378,7 @@ async def go_to_patient_report(page: Page, user_id: int,max_retries:int=20):
 
         _body = await page.wait_for_selector("body", timeout=15000)
         _row = await page.wait_for_selector(row_selector, timeout=15000)
-    except PlaywrightTimeoutError:
+    except (PlaywrightTimeoutError, PlaywrightError):
         if max_retries <= 0:
             raise
         await go_to_patient_report(page,user_id,max_retries -1)
