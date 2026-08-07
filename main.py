@@ -125,17 +125,22 @@ async def main():
                         continue
                     try:
                         thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
+
+
+                        refrence_image_path = await get_refrence_image(page, user_id )
+                        paths = await get_theeh_picture(page, thooth_id, str(user_id))
                     except ValueError:
                         continue
-
-                    refrence_image_path = await get_refrence_image(page, user_id )
-
-                    paths = await get_theeh_picture(page, thooth_id, str(user_id))
                     print(thooth_id)
                     print(f"Saved {paths}")
                     if refrence_image_path is None:
-                        raise ValueError("Refrence Image is missing")
-                    difference_path = await get_difference(refrence_image_path, paths)
+                        print("Refrence Image is missing")
+                        continue
+                    try:
+                        difference_path = await get_difference(refrence_image_path, paths)
+                    except (FileNotFoundError,OSError)as e:
+                        print(e)
+                        continue
                     try:
                         x, y, w, h = await get_json_cordinates(difference_path)
                     except ValueError:
@@ -143,7 +148,8 @@ async def main():
                         continue
 
                     if label_categorie is None:
-                        raise ValueError("label Category doesen't exist")
+                        print("Refrence Image is missing")
+                        continue
 
                     inner_task.append( inner_json(
                         label, x, y, w, h, str(i), "100%", label_categorie
@@ -151,8 +157,8 @@ async def main():
                     if refrence_image_path == "":
                         print("Refrence Image is none")
                         continue
-                images_paths = await get_user_screenshoots(page, user_id)
-                task.append( await make_json(
+                    images_paths = await get_user_screenshoots(page, user_id)
+                    task.append( await make_json(
                     images_paths, label_Data, refrence_image_path, inner_task, user_id, page
                 ))
 
