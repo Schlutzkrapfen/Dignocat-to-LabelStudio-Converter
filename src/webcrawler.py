@@ -165,15 +165,13 @@ async def find_page(page: Page,i:int,page_amount:int,output_dir:str)->int:
             raise ValueError("didn't find any doubles")
         print(f"USERID = {user}")
 
-
-
         user_id:int = page_amount - i - 1
 
         try:
             await go_to_patient_report(page, user)
         except OSError as e:
             print(e)
-            continue
+            raise OSError(e)
         try:
             await deactivated_show_buttons(page)
         except PlaywrightTimeoutError:
