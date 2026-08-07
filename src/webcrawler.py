@@ -164,8 +164,16 @@ async def find_page(page: Page,i:int,page_amount:int,output_dir:str)->int:
         if page_amount - user < 0:
             raise ValueError("didn't find any doubles")
         print(f"USERID = {user}")
-        await go_to_patient_report(page, user)
+
+
+
         user_id:int = page_amount - i - 1
+
+        try:
+            await go_to_patient_report(page, user)
+        except OSError as e:
+            print(e)
+            continue
         try:
             await deactivated_show_buttons(page)
         except PlaywrightTimeoutError:
@@ -380,7 +388,7 @@ async def go_to_patient_report(page: Page, user_id: int,max_retries:int=20):
         _row = await page.wait_for_selector(row_selector, timeout=15000)
     except (PlaywrightTimeoutError, PlaywrightError):
         if max_retries <= 0:
-            raise
+            raise OSError("Window is closed or can't be seen")
         await go_to_patient_report(page,user_id,max_retries -1)
         return
 
