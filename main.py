@@ -161,10 +161,11 @@ async def main():
                 task.append( await make_json(
                 images_paths, label_Data, refrence_image_path, inner_task, user_id, page
             ))
+                dump_json(task)
 
         finally:
-            dump_json(task)
 
+            pass
 
 
 async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]], refrence_image_path:str, task :list[InnerAnnotation] , user_id:int, page:Page)->TaskItem:
