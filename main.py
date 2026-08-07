@@ -97,17 +97,23 @@ async def main():
         )
 
         page: Page = await context.new_page()
+        task:list[TaskItem] = []
         try:
             await login(page)
             page_amount = await get_patient_amount(page)
             print(f"You have {page_amount} patience")
 
-            task:list[TaskItem] = []
             refrence_image_path = ""
 
             for i in parse_id_range(page_amount):
 
-                user_id = await find_page(page,i,page_amount,output_dir)
+
+                try:
+                    user_id = await find_page(page,i,page_amount,output_dir)
+                except (ValueError,OSError)as e:
+                    print(f"complete failure:{e}")
+                    raise OSError
+
                 not_conv_labels = await get_tooth_descriptions(page)
 
                 inner_task:list[InnerAnnotation] = []
@@ -150,9 +156,9 @@ async def main():
                     images_paths, label_Data, refrence_image_path, inner_task, user_id, page
                 ))
 
-            dump_json(task)
         finally:
-            pass
+            dump_json(task)
+
 
 
 async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]], refrence_image_path:str, task :list[InnerAnnotation] , user_id:int, page:Page)->TaskItem:
