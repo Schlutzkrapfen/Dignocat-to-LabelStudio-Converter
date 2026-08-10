@@ -17,6 +17,7 @@ from json_maker import (
     inner_json,
     outer_json,
 )
+from improve_diagnocat import is_furthers_out
 from label_converter import load_label_mapping, map_label
 from task_item import InnerAnnotation, TaskItem
 from webcrawler import (
@@ -117,21 +118,23 @@ async def main():
                 not_conv_labels = await get_tooth_descriptions(page)
 
                 inner_task:list[InnerAnnotation] = []
+                id_addition:int = 0
                 for i, non_conv_label in enumerate(not_conv_labels):
-                    label, label_categorie = map_label(
+                    labels:list[str]
+                    label_categories:list[str]
+                    try:
+                        labels, label_categories = map_label(
                         non_conv_label["type"], label_Data
                     )
-                    if label is None:
+                    except ValueError:
                         continue
                     try:
                         thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
 
-
                         refrence_image_path = await get_refrence_image(page, user_id )
-                        paths = await get_theeh_picture(page, thooth_id, str(user_id))
+                        paths = await get_theeh_picture(page, thooth_id, user_id)
                     except ValueError:
                         continue
-                    print(thooth_id)
                     print(f"Saved {paths}")
                     if refrence_image_path is None:
                         print("Refrence Image is missing")
@@ -147,13 +150,15 @@ async def main():
                         print("label wasn't found")
                         continue
 
-                    if label_categorie is None:
+                    if label_categories is None:
                         print("Refrence Image is missing")
                         continue
 
-                    inner_task.append( inner_json(
-                        label, x, y, w, h, str(i), "100%", label_categorie
-                    ))
+                    for k, _ in enumerate(labels):
+                        inner_task.append( inner_json(
+                            labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k]
+                        ))
+                        id_addition +=1
                     if refrence_image_path == "":
                         print("Refrence Image is none")
                         continue
@@ -168,7 +173,7 @@ async def main():
 
 
 
-async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]], refrence_image_path:str, task :list[InnerAnnotation] , user_id:int, page:Page)->TaskItem:
+async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str, str]]], refrence_image_path:str, task :list[InnerAnnotation] , user_id:int, page:Page)->TaskItem:
     """Diff each image against a reference image and append the resulting annotations to `task`.
 
         Args:
@@ -190,11 +195,12 @@ async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]
     thooth_leng = len(refrence_image_path)
     for paths in images_paths:
         parts = get_info(paths)
-        label, label_categorie = map_label(parts[2], label_Data)
-        if label is None:
+        try:
+            label, label_categorie = map_label(parts[2], label_Data)
+        except ValueError:
             continue
         user_id = int(parts[0])
-        id = str(int(parts[1]) + thooth_leng)
+        id = int(parts[1]) + thooth_leng
         difference_path = await get_difference(refrence_image_path, paths)
         try:
             x, y, w, h = await get_json_cordinates(difference_path)
@@ -217,7 +223,10 @@ async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]
 
         if label_categorie is None:
             raise ValueError("label Category doesen't exist")
-        task.append(inner_json(label, x, y, w, h, id, parts[3], label_categorie))
+        for i,_ in enumerate(label):
+
+            task.append(inner_json(label[i], x, y, w, h, int(id)+i, parts[3], label_categorie[i]))
+        id += len(label)-1
     return outer_json(user_id, str(id), task)
 
 

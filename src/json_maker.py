@@ -212,7 +212,7 @@ def inner_json(
     y: float,
     w: float,
     h: float,
-    sub_index:str,
+    sub_index:int,
     prozent:str,
     label_catorgie:str,
 )->InnerAnnotation:
