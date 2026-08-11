@@ -96,13 +96,6 @@ def combine_anotations(dict_combinations:dict[str, list[InnerAnnotation]])->list
 
 
 
-
-
-
-
-
-
-
 def is_furthers_out(theet_id:str)->bool:
     return theet_id[2] == "8"
 
