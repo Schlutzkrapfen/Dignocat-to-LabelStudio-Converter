@@ -6,7 +6,7 @@ def combine_labels():
 def is_furthers_out(theet_id:str)->bool:
     return theet_id[2] == "8"
 
-def test_if_combine(options)->bool:
+def test_if_needs_combine(options)->bool:
     for option in options:
            parts = option.split(",")
            for part in parts:

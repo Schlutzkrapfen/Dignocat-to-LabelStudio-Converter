@@ -1,13 +1,25 @@
 import json
 import os
+import logging
 
 import numpy as np
 from PIL import Image, ImageChops
 from task_item import InnerAnnotation,  Prediction, TaskItem
+from playwright.async_api import Page
 
+from improve_diagnocat import  test_if_inward, test_if_outward
 from typing import cast
+from webcrawler import (
+    get_refrence_image,
+    get_theeh_picture,
+    get_thooth_id,
+    get_tooth_descriptions,
+    get_user_screenshoots,
+)
+from label_converter import  map_label
+logger = logging.getLogger(__name__)
 
-Error_prozentage = 50
+ERROR_PROZENTAGE = 50
 
 
 async def get_difference(refrence_path:str, image_path:str)-> str:
@@ -80,7 +92,7 @@ async def get_json_cordinates(difference_image:str)->tuple[float,float,float,flo
     y_pct = to_percent(y_pixels, img_height)
     w_pct = to_percent(width_pixels, img_width)
     h_pct = to_percent(height_pixels, img_height)
-    if w_pct > Error_prozentage:
+    if w_pct > ERROR_PROZENTAGE:
         raise ValueError(
             "Something went wrong with getting a Thooth label is over 50 %"
         )
@@ -261,3 +273,137 @@ def dump_json(task:list[TaskItem]):
     with open("output.json", "w") as f:
         json.dump(task, f, indent=2)
     print("saved json to output.json")
+async def get_task(page,label_Data,user_id,refrence_image_path)->tuple[TaskItem, str]:
+
+        not_conv_labels = await get_tooth_descriptions(page)
+
+        inner_task:list[InnerAnnotation] = []
+        id_addition:int = 0
+        for i, non_conv_label in enumerate(not_conv_labels):
+            labels:list[str]
+            label_categories:list[str]
+            try:
+                labels, label_categories,options = map_label(
+                non_conv_label["type"], label_Data
+            )
+            except ValueError:
+                continue
+            try:
+                thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
+
+                refrence_image_path = await get_refrence_image(page, user_id )
+                paths = await get_theeh_picture(page, thooth_id, user_id)
+            except ValueError:
+                continue
+
+
+
+            print(f"Saved {paths}")
+            if refrence_image_path is None:
+                print("Refrence Image is missing")
+                continue
+            try:
+
+                difference_path = await get_difference(refrence_image_path, paths)
+            except (FileNotFoundError,OSError)as e:
+                print(e)
+                continue
+            if test_if_inward(options,thooth_id):
+                print("not usfull")
+                continue
+            if test_if_outward(options,thooth_id):
+                print("not usfull")
+                continue
+            try:
+                x, y, w, h = await get_json_cordinates(difference_path)
+            except ValueError:
+                print("label wasn't found")
+                continue
+           # if test_if_combine(options):
+           #     continue
+
+
+
+            for k, _ in enumerate(labels):
+                inner_task.append( inner_json(
+                    labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k]
+                ))
+                id_addition +=1
+            if refrence_image_path == "":
+                print("Refrence Image is none")
+                continue
+        images_paths = await get_user_screenshoots(page, user_id)
+
+        return( await make_json(
+                        images_paths, label_Data, refrence_image_path, inner_task, user_id, page
+                ),refrence_image_path)
+
+
+
+async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str, str]]], refrence_image_path:str, task :list[InnerAnnotation] , user_id:int, page:Page)->TaskItem:
+        """Diff each image against a reference image and append the resulting annotations to `task`.
+        def add_option():
+            :
+
+
+            Args:
+                images_paths: Paths to the tooth images to process.
+                label_Data: Lookup table used to resolve a label key to a (label, category) pair.
+                refrence_image_path: Path to the reference image each entry is diffed against.
+                task: List of annotations to append to (mutated in place).
+                user_id: Currently unused.
+                page: Playwright page used to re-fetch a replacement image if a diff fails.
+
+            Returns:
+                TaskItem: `task` wrapped with the user_id/id of the last processed image.
+
+            Raises:
+                ValueError: If a resolved label has no category.
+            """
+        id = 0
+        user_id = 0
+        thooth_leng = len(refrence_image_path)
+        for paths in images_paths:
+            parts = get_info(paths)
+            try:
+                label, label_categorie,options = map_label(parts[2], label_Data)
+            except ValueError:
+                continue
+            if test_if_inward(options,parts[4]):
+                print("not usfull")
+                continue
+            if test_if_outward(options,parts[4]):
+                print("not usfull")
+                continue
+
+
+            user_id = int(parts[0])
+            id = int(parts[1]) + thooth_leng
+            try:
+                difference_path = await get_difference(refrence_image_path, paths)
+                x, y, w, h = await get_json_cordinates(difference_path)
+            except (ValueError,FileNotFoundError,OSError) as e :
+                print(f"Error: {e}")
+                continue
+            if w == 0 and h == 0:
+                logger.warning(
+                    f"Something went wrong with id= {id},user_id={user_id},label={label}/{parts[2]},thoot_id = {parts[4]}\n removed the broken Picture. "
+                )
+                os.remove(paths)
+                paths = await get_theeh_picture(page, parts[4], id)
+                difference_path = await  get_difference(refrence_image_path, paths)
+                try:
+                    x, y, w, h = await get_json_cordinates(difference_path)
+                except ValueError:
+                    continue
+                if w == 0 and h == 0:
+                    logger.error("Failed to get the  hole thoot Picture as replacement")
+                    continue
+
+            if label_categorie is None:
+                raise ValueError("label Category doesen't exist")
+            for i,_ in enumerate(label):
+
+                task.append(inner_json(label[i], x, y, w, h, int(id)+i, parts[3], label_categorie[i]))
+            id += len(label)-1
+        return outer_json(user_id, str(id), task)
