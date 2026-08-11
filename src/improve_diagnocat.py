@@ -27,3 +27,6 @@ def test_if_outward(options,thooth_id)->bool:
                 if part == "outward" and not is_furthers_out(theet_id=thooth_id):
                     return True
         return False
+
+def check_if_label_not_saved(options,thooth_id)->bool:
+    return test_if_inward(options,thooth_id) or test_if_outward(options,thooth_id)
