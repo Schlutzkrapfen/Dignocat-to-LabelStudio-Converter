@@ -127,7 +127,7 @@ def get_info(filename: str)-> list[str]:
 
         Returns:
             list[str]: A list containing the split parts:
-                       [PatientId, PictureId, What-it-is, Prozent, SubId]
+                       [PatientId, PictureId, What-it-is, Prozent, SubId/TheetId]
         """
 
     filename = os.path.basename(filename)  # removes "output/"

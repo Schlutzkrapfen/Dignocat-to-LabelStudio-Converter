@@ -36,7 +36,7 @@ def load_label_mapping()-> dict[str,list[dict[str,str]]]:
 
 def map_label(
     diagnocat_label: str, labels: dict[str, list[dict[str, str]]]
-) -> tuple[list[str], list[str]] :
+) -> tuple[list[str], list[str], list[str]] :
     """
         Look up the code and category for a Diagnocat label.
 
@@ -54,6 +54,7 @@ def map_label(
           raise ValueError
     codes:list[str] = []
     label_categorie:list[str] = []
+    options:list[str] = []
 
     for entry in entries:
         if entry["label_category"] is empty:
@@ -61,5 +62,6 @@ def map_label(
 
         codes.append(entry["code"])
         label_categorie.append(entry["label_category"])
+        options.append(entry["option"])
 
-    return codes,label_categorie
+    return codes,label_categorie,options

@@ -5,3 +5,25 @@ def combine_labels():
 
 def is_furthers_out(theet_id:str)->bool:
     return theet_id[2] == "8"
+
+def test_if_combine(options)->bool:
+    for option in options:
+           parts = option.split(",")
+           for part in parts:
+               if part == "combine":
+                   return True
+    return False
+def test_if_inward(options,thooth_id)->bool:
+    for option in options:
+        parts = option.split(",")
+        for part in parts:
+            if part == "inward"and is_furthers_out(theet_id=thooth_id):
+                return True
+    return False
+def test_if_outward(options,thooth_id)->bool:
+        for option in options:
+            parts = option.split(",")
+            for part in parts:
+                if part == "outward" and not is_furthers_out(theet_id=thooth_id):
+                    return True
+        return False

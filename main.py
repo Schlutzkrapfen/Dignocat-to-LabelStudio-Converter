@@ -1,10 +1,12 @@
 import argparse
+from ast import Tuple
 import asyncio
 import logging
 import os
 import sys
 from typing import cast
 
+from numpy.ma.core import log
 from playwright.async_api import Page, async_playwright
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
@@ -17,7 +19,7 @@ from json_maker import (
     inner_json,
     outer_json,
 )
-from improve_diagnocat import is_furthers_out
+from improve_diagnocat import  test_if_inward, test_if_outward
 from label_converter import load_label_mapping, map_label
 from task_item import InnerAnnotation, TaskItem
 from webcrawler import (
@@ -34,6 +36,8 @@ logger = logging.getLogger(__name__)
 
 USER_DATA_DIR = "user_data"
 screenshot_quality_mulitplayer: float = 4
+refrence_image_path = ""
+
 
 
 def parse_id_range(total: int) -> list[int]:
@@ -103,8 +107,8 @@ async def main():
             await login(page)
             page_amount = await get_patient_amount(page)
             print(f"You have {page_amount} patience")
-
             refrence_image_path = ""
+
 
             for i in parse_id_range(page_amount):
 
@@ -114,67 +118,87 @@ async def main():
                 except (ValueError,OSError)as e:
                     print(f"complete failure:{e}")
                     raise OSError
+                single_task,refrence_image_path  = await get_task(page,label_Data,user_id,refrence_image_path)
+                task.append(single_task)
+            dump_json(task)
 
-                not_conv_labels = await get_tooth_descriptions(page)
-
-                inner_task:list[InnerAnnotation] = []
-                id_addition:int = 0
-                for i, non_conv_label in enumerate(not_conv_labels):
-                    labels:list[str]
-                    label_categories:list[str]
-                    try:
-                        labels, label_categories = map_label(
-                        non_conv_label["type"], label_Data
-                    )
-                    except ValueError:
-                        continue
-                    try:
-                        thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
-
-                        refrence_image_path = await get_refrence_image(page, user_id )
-                        paths = await get_theeh_picture(page, thooth_id, user_id)
-                    except ValueError:
-                        continue
-                    print(f"Saved {paths}")
-                    if refrence_image_path is None:
-                        print("Refrence Image is missing")
-                        continue
-                    try:
-                        difference_path = await get_difference(refrence_image_path, paths)
-                    except (FileNotFoundError,OSError)as e:
-                        print(e)
-                        continue
-                    try:
-                        x, y, w, h = await get_json_cordinates(difference_path)
-                    except ValueError:
-                        print("label wasn't found")
-                        continue
-
-                    if label_categories is None:
-                        print("Refrence Image is missing")
-                        continue
-
-                    for k, _ in enumerate(labels):
-                        inner_task.append( inner_json(
-                            labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k]
-                        ))
-                        id_addition +=1
-                    if refrence_image_path == "":
-                        print("Refrence Image is none")
-                        continue
-                images_paths = await get_user_screenshoots(page, user_id)
-                task.append( await make_json(
-                images_paths, label_Data, refrence_image_path, inner_task, user_id, page
-            ))
-                dump_json(task)
 
         finally:
             print("Finished")
 
 
+async def get_task(page,label_Data,user_id,refrence_image_path)->tuple[TaskItem, str]:
+
+    not_conv_labels = await get_tooth_descriptions(page)
+
+    inner_task:list[InnerAnnotation] = []
+    id_addition:int = 0
+    for i, non_conv_label in enumerate(not_conv_labels):
+        labels:list[str]
+        label_categories:list[str]
+        try:
+            labels, label_categories,options = map_label(
+            non_conv_label["type"], label_Data
+        )
+        except ValueError:
+            continue
+        try:
+            thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
+
+            refrence_image_path = await get_refrence_image(page, user_id )
+            paths = await get_theeh_picture(page, thooth_id, user_id)
+        except ValueError:
+            continue
+
+
+
+        print(f"Saved {paths}")
+        if refrence_image_path is None:
+            print("Refrence Image is missing")
+            continue
+        try:
+
+            difference_path = await get_difference(refrence_image_path, paths)
+        except (FileNotFoundError,OSError)as e:
+            print(e)
+            continue
+        if test_if_inward(options,thooth_id):
+            print("not usfull")
+            continue
+        if test_if_outward(options,thooth_id):
+            print("not usfull")
+            continue
+        try:
+            x, y, w, h = await get_json_cordinates(difference_path)
+        except ValueError:
+            print("label wasn't found")
+            continue
+       # if test_if_combine(options):
+       #     continue
+
+
+
+        for k, _ in enumerate(labels):
+            inner_task.append( inner_json(
+                labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k]
+            ))
+            id_addition +=1
+        if refrence_image_path == "":
+            print("Refrence Image is none")
+            continue
+    images_paths = await get_user_screenshoots(page, user_id)
+
+    return( await make_json(
+                    images_paths, label_Data, refrence_image_path, inner_task, user_id, page
+            ),refrence_image_path)
+
+
 
 async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str, str]]], refrence_image_path:str, task :list[InnerAnnotation] , user_id:int, page:Page)->TaskItem:
     """Diff each image against a reference image and append the resulting annotations to `task`.
+    def add_option():
+        :
+
 
         Args:
             images_paths: Paths to the tooth images to process.
@@ -196,15 +220,24 @@ async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str,
     for paths in images_paths:
         parts = get_info(paths)
         try:
-            label, label_categorie = map_label(parts[2], label_Data)
+            label, label_categorie,options = map_label(parts[2], label_Data)
         except ValueError:
             continue
+        if test_if_inward(options,parts[4]):
+            print("not usfull")
+            continue
+        if test_if_outward(options,parts[4]):
+            print("not usfull")
+            continue
+
+
         user_id = int(parts[0])
         id = int(parts[1]) + thooth_leng
-        difference_path = await get_difference(refrence_image_path, paths)
         try:
+            difference_path = await get_difference(refrence_image_path, paths)
             x, y, w, h = await get_json_cordinates(difference_path)
-        except ValueError:
+        except (ValueError,FileNotFoundError,OSError) as e :
+            print(f"Error: {e}")
             continue
         if w == 0 and h == 0:
             logger.warning(
@@ -228,6 +261,7 @@ async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str,
             task.append(inner_json(label[i], x, y, w, h, int(id)+i, parts[3], label_categorie[i]))
         id += len(label)-1
     return outer_json(user_id, str(id), task)
+
 
 
 if __name__ == "__main__":
