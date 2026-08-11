@@ -1,14 +1,15 @@
 import json
 import os
 import logging
+from sys import path
 
 import numpy as np
 from PIL import Image, ImageChops
-from task_item import InnerAnnotation,  Prediction, TaskItem
+from task_item import InnerAnnotation,  Prediction, TaskItem, Value
 from playwright.async_api import Page
 
 from helper_functions import get_info, to_percent,get_image_size,to_confidence
-from add_options import  check_if_label_not_saved
+from add_options import  check_if_label_not_saved, combine_labels, test_if_needs_combine
 from typing import cast
 from webcrawler import (
     get_refrence_image,
@@ -134,6 +135,7 @@ def get_coordinates(difference_path:str)-> tuple[float,float,float,float]:
 
 
 def outer_json(user_id: int, id: str, inner_json: list[InnerAnnotation])->TaskItem:
+
     """Makes the outer JSON file that is needed once per person/X-ray.
 
         Args:
@@ -142,7 +144,7 @@ def outer_json(user_id: int, id: str, inner_json: list[InnerAnnotation])->TaskIt
             inner_json: All the predictions without ID and Model_version name.
 
         Returns:
-            TaskItem: An item formatted for Label Studio.
+            TaskItem: An item formatted for Label Studio.+Option settings
         """
     predictions:Prediction = {"id": id, "result": inner_json, "model_version": "Diagnocat"}
     task:TaskItem = {
@@ -165,6 +167,7 @@ def inner_json(
     sub_index:int,
     prozent:str,
     label_catorgie:str,
+    option:list[str],thoot_id:str
 )->InnerAnnotation:
     """Creates an individual annotation object for a labeled bounding box.
 
@@ -177,13 +180,15 @@ def inner_json(
             sub_index: A unique identifier index used to generate the annotation ID.
             prozent: The confidence score of the prediction as a percentage string (e.g., "96%").
             label_catorgie: The Category identifier
+            option: Option which need to saved can be added
+            thoot_id: needed for options
 
         Returns:
             InnerAnnotation: A dictionary representing a single formatted annotation
                 ready for Label Studio.
         """
     task:InnerAnnotation
-    values = {
+    values:Value = {
         "rotation": 0,
         "rectanglelabels": [label],
         "x": x,
@@ -199,6 +204,8 @@ def inner_json(
             "id": "ann" + str(sub_index),
             "value": values,
             "score": to_confidence(prozent),
+            "combine":test_if_needs_combine(option),
+            "thoot_id": thoot_id
         }
     )
     return task
@@ -212,7 +219,7 @@ def dump_json(task:list[TaskItem]):
         json.dump(task, f, indent=2)
     print("saved json to output.json")
 
-async def get_task(page,label_Data,user_id,refrence_image_path)->tuple[TaskItem, str]:
+async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:int,refrence_image_path:str)->tuple[TaskItem, str]:
 
         not_conv_labels = await get_tooth_descriptions(page)
 
@@ -255,14 +262,13 @@ async def get_task(page,label_Data,user_id,refrence_image_path)->tuple[TaskItem,
             except ValueError:
                 print("label wasn't found")
                 continue
-           # if test_if_combine(options):
-           #     continue
+
 
 
 
             for k, _ in enumerate(labels):
                 inner_task.append( inner_json(
-                    labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k]
+                    labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k],options,thooth_id
                 ))
                 id_addition +=1
             if refrence_image_path == "":
@@ -276,7 +282,7 @@ async def get_task(page,label_Data,user_id,refrence_image_path)->tuple[TaskItem,
 
 
 
-async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str, str]]], refrence_image_path:str, task :list[InnerAnnotation] , user_id:int, page:Page)->TaskItem:
+async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str, str]]], refrence_image_path:str, task :list[InnerAnnotation] , user_id:int, page:Page,)->TaskItem:
         """Diff each image against a reference image and append the resulting annotations to `task`.
         def add_option():
             :
@@ -298,6 +304,7 @@ async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str,
             """
         id = 0
         user_id = 0
+        options = []
         thooth_leng = len(refrence_image_path)
         for paths in images_paths:
             parts = get_info(paths)
@@ -336,7 +343,6 @@ async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str,
             if label_categorie is None:
                 raise ValueError("label Category doesen't exist")
             for i,_ in enumerate(label):
-
-                task.append(inner_json(label[i], x, y, w, h, int(id)+i, parts[3], label_categorie[i]))
+                task.append(inner_json(label[i], x, y, w, h, int(id)+i, parts[3], label_categorie[i],options,parts[4]))
             id += len(label)-1
         return outer_json(user_id, str(id), task)
