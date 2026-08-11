@@ -7,7 +7,8 @@ from PIL import Image, ImageChops
 from task_item import InnerAnnotation,  Prediction, TaskItem
 from playwright.async_api import Page
 
-from improve_diagnocat import  test_if_inward, test_if_outward
+from helper_functions import get_info, to_percent,get_image_size,to_confidence
+from improve_diagnocat import  check_if_label_not_saved
 from typing import cast
 from webcrawler import (
     get_refrence_image,
@@ -130,48 +131,6 @@ def get_coordinates(difference_path:str)-> tuple[float,float,float,float]:
         return top_left[1], top_left[0], bottom_right[1], bottom_right[0]
 
 
-def get_info(filename: str)-> list[str]:
-    """Gets the info out of the filename.
-
-        Args:
-            filename: Path to the image, expected format:
-                      "Path/to/PatientId_PictureId_What-it-is_Prozent_SubId.png"
-
-        Returns:
-            list[str]: A list containing the split parts:
-                       [PatientId, PictureId, What-it-is, Prozent, SubId/TheetId]
-        """
-
-    filename = os.path.basename(filename)  # removes "output/"
-    name, _ext = os.path.splitext(filename)
-    parts = name.split("_")
-    return parts
-
-
-def get_image_size(imagePath: str)->tuple[int,int]:
-    """Gets the image size of a path.
-
-        Args:
-            imagePath: Path to the image.
-
-        Returns:
-            tuple[int, int]: Image size in (width, height) format.
-        """
-    img = Image.open(imagePath)
-    return img.size
-
-
-def to_percent(value: float, dimension: float) -> float:
-    """Normalizes a coordinate or size value to a percentage of an image dimension.
-
-        Args:
-            value: The coordinate or size in pixels (e.g., bounding box width or X coordinate).
-            dimension: The corresponding image dimension in pixels (width or height).
-
-        Returns:
-            float: The value expressed as a percentage of the dimension (between 0.0 and 100.0).
-        """
-    return (value / dimension) * 100
 
 
 def outer_json(user_id: int, id: str, inner_json: list[InnerAnnotation])->TaskItem:
@@ -195,27 +154,6 @@ def outer_json(user_id: int, id: str, inner_json: list[InnerAnnotation])->TaskIt
         }
 
     return task
-
-
-def to_confidence(value: str)->float:
-    """Converts a percentage string to a float value (e.g., "50%" -> 0.5).
-
-        Args:
-            value: The percentage string to convert (e.g., "96%").
-
-        Returns:
-            float: A value between 0.0 and 1.0, or 0.0 if the conversion fails.
-    """
-
-    if "%" not in value:
-        print(f"Warning: '{value}' is not a percentage!")
-        return 0.0
-    cleaned: str = value.strip("%").strip()
-    try:
-        return float(cleaned) / 100
-    except ValueError:
-        print(f"Warning: '{value}' could not be converted!")
-        return 0.0
 
 
 def inner_json(
@@ -273,6 +211,7 @@ def dump_json(task:list[TaskItem]):
     with open("output.json", "w") as f:
         json.dump(task, f, indent=2)
     print("saved json to output.json")
+
 async def get_task(page,label_Data,user_id,refrence_image_path)->tuple[TaskItem, str]:
 
         not_conv_labels = await get_tooth_descriptions(page)
@@ -308,10 +247,7 @@ async def get_task(page,label_Data,user_id,refrence_image_path)->tuple[TaskItem,
             except (FileNotFoundError,OSError)as e:
                 print(e)
                 continue
-            if test_if_inward(options,thooth_id):
-                print("not usfull")
-                continue
-            if test_if_outward(options,thooth_id):
+            if check_if_label_not_saved(options,thooth_id):
                 print("not usfull")
                 continue
             try:
@@ -369,10 +305,7 @@ async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str,
                 label, label_categorie,options = map_label(parts[2], label_Data)
             except ValueError:
                 continue
-            if test_if_inward(options,parts[4]):
-                print("not usfull")
-                continue
-            if test_if_outward(options,parts[4]):
+            if check_if_label_not_saved(options,parts[4]):
                 print("not usfull")
                 continue
 
