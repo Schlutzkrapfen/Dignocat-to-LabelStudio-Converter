@@ -8,7 +8,7 @@ from task_item import InnerAnnotation,  Prediction, TaskItem
 from playwright.async_api import Page
 
 from helper_functions import get_info, to_percent,get_image_size,to_confidence
-from improve_diagnocat import  check_if_label_not_saved
+from add_options import  check_if_label_not_saved
 from typing import cast
 from webcrawler import (
     get_refrence_image,
