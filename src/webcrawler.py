@@ -53,7 +53,7 @@ async def get_tooth_descriptions(page: Page) -> list[dict[str, str]]:
     return tooth_types
 
 
-async def get_theeh_picture(page: Page, teeth_id: str, user_id: str) -> str:
+async def get_theeh_picture(page: Page, teeth_id: str, user_id: int) -> str:
     """Retrieves or generates a screenshot of a specific tooth's canvas.
 
         Checks if a screenshot for the given tooth and user already exists on
@@ -190,50 +190,53 @@ async def find_page(page: Page,i:int,page_amount:int,output_dir:str)->int:
     return user_id
 
 
-async def get_user_screenshoots(page: Page, user_id:int) -> list[str]:
+async def get_user_screenshoots(page: Page, user_id: int) -> list[str]:
     """
        Screenshot each condition button's canvas view for a user.
-
        For every condition button on the page: hovers it, reads its name,
        percentage, and enclosing section id, then screenshots the shared
        <canvas> to `output/screenshots/{user_id}_{i}_{name}_{percentage}_{section_suffix}.png`.
        Skips screenshots that already exist on disk.
-
        Args:
            page: Active Playwright Page, already on the target view.
            user_id: Used to namespace output filenames.
-
        Returns:
            List of screenshot file paths, one per condition button.
-
        """
     # Gets the Buttons
-    # Get all condition buttons
-    buttons = await page.query_selector_all(
-        "button.ConditionButton-module_container_Vda6L"
-    )
+    buttons = page.locator("button.ConditionButton-module_container_Vda6L")
+    count = await buttons.count()
     canvas = await page.query_selector("canvas")
 
+    if count == 0 or canvas is None:
+        print("something went wrong while Fetching, lets try again.")
+        return await get_user_screenshoots(page, user_id)
+
     saved_screenshoots: list[str] = []
-    for i, button in enumerate(buttons):
+    for i in range(count):
+        button = buttons.nth(i)
         await button.hover()
-        section_id:str = cast(str,await button.evaluate("el => el.closest('section').id"))
+
+        section_id: str = cast(str, await button.evaluate("el => el.closest('section').id"))
         last_4 = section_id[-4:]
 
-        name = await button.query_selector("span:first-child")
-        percentage = await button.query_selector("span.p3")
-        if name is None or percentage is None or canvas is None:
+        name = button.locator("span:first-child")
+        percentage = button.locator("span.p3")
+
+        if await name.count() == 0 or await percentage.count() == 0:
             print("something went wrong while Fetching, lets try again.")
             return await get_user_screenshoots(page, user_id)
 
         picture_path = f"output/screenshots/{user_id}_{i}_{await name.inner_text()}_{await percentage.inner_text()}_{last_4}.png"
+
         if os.path.exists(picture_path):
             print(f"Skipping {picture_path}, already exists")
             saved_screenshoots.append(picture_path)
             continue
+
         print(f"Saved {picture_path}")
         saved_screenshoots.append(picture_path)
-        await take_screenshot(page,canvas,picture_path)
+        await take_screenshot(page, canvas, picture_path)
 
     return saved_screenshoots
 
