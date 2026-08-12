@@ -40,32 +40,30 @@ def check_task_options(tasks:list[TaskItem])->list[TaskItem]:
 
     return remove_labels(task)
 def get_new_rectangle(item:InnerAnnotation,x,y,width,height):
-    if item["value"]["x"] < x or x == 0:
-        x =item["value"]["x"]
-    if item["value"]["y"] < y or y == 0:
-        y = item["value"]["y"]
-    if item["value"]["width"]+ item["value"]["x"] > width +x:
-        if item["value"]["x"] > x:
-            width = item["value"]["x"]+item["value"]["width"] -x
-        else:
-            width = x+item["value"]["width"]-item["value"]["x"]
-    else:
-        if item["value"]["x"] > x:
-            width = item["value"]["x"]+width -x
-        else:
-            width = x+width-item["value"]["x"]
-    if item["value"]["height"]+ item["value"]["y"] > width +y:
-        if item["value"]["y"] > y:
-            height = item["value"]["y"]+item["value"]["height"] -y
-        else:
-            height = y+item["value"]["height"]-item["value"]["y"]
-    else:
-        if item["value"]["y"] > y:
-            height = item["value"]["y"]+height -y
-        else:
-            height = x+width-item["value"]["y"]
+    item_x = item["value"]["x"]
+    item_y = item["value"]["y"]
+    item_width = item["value"]["width"]
+    item_height = item["value"]["height"]
 
-    return x,y,width,height
+    # Right/bottom edges of the current bounding box (before this item)
+    right = x + width
+    bottom = y + height
+
+    # Right/bottom edges of the new item
+    item_right = item_x + item_width
+    item_bottom = item_y + item_height
+
+    # New bounding box: min of the left/top edges, max of the right/bottom edges
+    new_x = item_x if x == 0 else min(x, item_x)
+    new_y = item_y if y == 0 else min(y, item_y)
+    new_right = max(right, item_right) if width != 0 else item_right
+    new_bottom = max(bottom, item_bottom) if height != 0 else item_bottom
+
+    new_width = new_right - new_x
+    new_height = new_bottom - new_y
+
+    return new_x, new_y, new_width, new_height
+
 def create_cluster(annoataions: list[InnerAnnotation])->list[list[InnerAnnotation]]:
 
     clusters: list[list[InnerAnnotation]] = []
