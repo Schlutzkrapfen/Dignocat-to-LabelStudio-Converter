@@ -9,7 +9,7 @@ from playwright.async_api import Page, async_playwright
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
-from add_options import combine_labels
+from add_options import check_task_options
 from json_maker import (
     dump_json,
     get_task
@@ -109,7 +109,7 @@ async def main():
                     raise OSError
                 single_task,refrence_image_path  = await get_task(page,label_Data,user_id,refrence_image_path)
                 task.append(single_task)
-            task = combine_labels(task)
+            task = check_task_options(task)
             dump_json(task)
 
 

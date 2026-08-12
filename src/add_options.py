@@ -2,6 +2,18 @@
 
 from task_item import InnerAnnotation, TaskItem, Value
 
+def remove_labels(tasks:list[TaskItem])-> list[TaskItem]:
+    items:list[TaskItem] = []
+    for task in tasks:
+        result = task["predictions"][0]["result"]
+        cur_anotation:list[InnerAnnotation] = []
+        for anotation in result:
+            if check_if_label_removed(anotation["options"],anotation["thoot_id"]):
+                continue
+            cur_anotation.append(anotation)
+        items.append(task)
+    return (items)
+
 
 def combine_labels(tasks:list[TaskItem])-> list[TaskItem]:
     """combines same labels that are near each other into one """
@@ -11,7 +23,7 @@ def combine_labels(tasks:list[TaskItem])-> list[TaskItem]:
         cur_anotation:list[InnerAnnotation] = []
         combine_annotaion: dict[str,list[ InnerAnnotation]] = {}
         for anotation in result:
-            if anotation["combine"]:
+            if test_if_needs_combine(anotation["options"]):
 
                 key = anotation["value"]["rectanglelabels"]
 
@@ -29,6 +41,8 @@ def combine_labels(tasks:list[TaskItem])-> list[TaskItem]:
 
 
     return items
+def check_task_options(tasks:list[TaskItem]):
+    return combine_labels(tasks)
 def get_new_rectangle(item:InnerAnnotation,x,y,width,height):
     if item["value"]["x"] < x or x == 0:
         x =item["value"]["x"]
@@ -67,8 +81,6 @@ def combine_anotations(dict_combinations:dict[str, list[InnerAnnotation]])->list
             height:float = 0
             for item in annotaions:
                 x,y,width,height = get_new_rectangle(item,x,y,width,height)
-
-
                 values = Value(
                     {
                                 "rotation": 0,
@@ -87,7 +99,7 @@ def combine_anotations(dict_combinations:dict[str, list[InnerAnnotation]])->list
                     "value": values,
                     "score": item["score"],
 
-                    "combine":item["combine"],
+                    "options":item["options"],
                     "thoot_id": item["thoot_id"]
                 })
                 new_annotations.append(annotation)
@@ -97,7 +109,11 @@ def combine_anotations(dict_combinations:dict[str, list[InnerAnnotation]])->list
 
 
 def is_furthers_out(theet_id:str)->bool:
-    return theet_id[2] == "8"
+    second_letter = theet_id[2]
+    return second_letter == "8"
+
+
+
 
 def test_if_needs_combine(options:list[str])->bool:
     for option in options:
@@ -121,5 +137,5 @@ def test_if_outward(options:list[str],thooth_id:str)->bool:
                     return True
         return False
 
-def check_if_label_not_saved(options:list[str],thooth_id:str)->bool:
+def check_if_label_removed(options:list[str],thooth_id:str)->bool:
     return test_if_inward(options,thooth_id) or test_if_outward(options,thooth_id)

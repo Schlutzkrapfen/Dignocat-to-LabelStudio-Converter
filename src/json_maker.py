@@ -8,8 +8,8 @@ from PIL import Image, ImageChops
 from task_item import InnerAnnotation,  Prediction, TaskItem, Value
 from playwright.async_api import Page
 
-from helper_functions import get_info, to_percent,get_image_size,to_confidence
-from add_options import  check_if_label_not_saved, combine_labels, test_if_needs_combine
+from helper_functions import get_info, strip_keys, to_percent,get_image_size,to_confidence
+from add_options import    test_if_needs_combine
 from typing import cast
 from webcrawler import (
     get_refrence_image,
@@ -204,19 +204,26 @@ def inner_json(
             "id": "ann" + str(sub_index),
             "value": values,
             "score": to_confidence(prozent),
-            "combine":test_if_needs_combine(option),
+            "options":option,
             "thoot_id": thoot_id
         }
     )
     return task
 
 
-def dump_json(task:list[TaskItem]):
-    """SAVE JSON
+def dump_json(task: list[TaskItem]):
+    """Save the task list to a JSON file, excluding internal-only fields.
+
+    Removes the "combine" and "thoot_id" keys (used only internally)
+    before writing the output, since TypedDict has no built-in way to
+    exclude fields at serialization time.
+
     Args:
-        task: What to Save"""
+        task: The list of TaskItem objects to save.
+    """
+    cleaned = strip_keys(task, {"combine", "thoot_id"})
     with open("output.json", "w") as f:
-        json.dump(task, f, indent=2)
+        json.dump(cleaned, f, indent=2)
     print("saved json to output.json")
 
 async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:int,refrence_image_path:str)->tuple[TaskItem, str]:
@@ -254,17 +261,11 @@ async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:
             except (FileNotFoundError,OSError)as e:
                 print(e)
                 continue
-            if check_if_label_not_saved(options,thooth_id):
-                print("not usfull")
-                continue
             try:
                 x, y, w, h = await get_json_cordinates(difference_path)
             except ValueError:
                 print("label wasn't found")
                 continue
-
-
-
 
             for k, _ in enumerate(labels):
                 inner_task.append( inner_json(
@@ -311,9 +312,6 @@ async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str,
             try:
                 label, label_categorie,options = map_label(parts[2], label_Data)
             except ValueError:
-                continue
-            if check_if_label_not_saved(options,parts[4]):
-                print("not usfull")
                 continue
 
 
