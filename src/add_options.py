@@ -29,20 +29,15 @@ def combine_labels(tasks:list[TaskItem])-> list[TaskItem]:
 
                 combine_annotaion.setdefault(key[0], []).append(anotation)
                 continue
-
             cur_anotation.append(anotation)
-
-
         task["predictions"][0]["result"] = cur_anotation+combine_anotations(combine_annotaion)
-
-
         items.append(task)
-
-
-
     return items
-def check_task_options(tasks:list[TaskItem]):
-    return combine_labels(tasks)
+
+def check_task_options(tasks:list[TaskItem])->list[TaskItem]:
+    task:list[TaskItem] = combine_labels(tasks)
+
+    return remove_labels(task)
 def get_new_rectangle(item:InnerAnnotation,x,y,width,height):
     if item["value"]["x"] < x or x == 0:
         x =item["value"]["x"]
@@ -115,27 +110,24 @@ def is_furthers_out(theet_id:str)->bool:
 
 
 
-def test_if_needs_combine(options:list[str])->bool:
-    for option in options:
-           parts = option.split(",")
-           for part in parts:
-               if part == "combine":
-                   return True
+def test_if_needs_combine(options:str)->bool:
+    parts = options.split(",")
+    for part in parts:
+        if part == "combine":
+            return True
     return False
-def test_if_inward(options:list[str],thooth_id:str)->bool:
-    for option in options:
-        parts = option.split(",")
+def test_if_inward(options:str,thooth_id:str)->bool:
+    parts = options.split(",")
+    for part in parts:
+        if part == "inward"and is_furthers_out(theet_id=thooth_id):
+            return True
+    return False
+def test_if_outward(options:str,thooth_id:str)->bool:
+        parts = options.split(",")
         for part in parts:
-            if part == "inward"and is_furthers_out(theet_id=thooth_id):
+            if part == "outward" and not is_furthers_out(theet_id=thooth_id):
                 return True
-    return False
-def test_if_outward(options:list[str],thooth_id:str)->bool:
-        for option in options:
-            parts = option.split(",")
-            for part in parts:
-                if part == "outward" and not is_furthers_out(theet_id=thooth_id):
-                    return True
         return False
 
-def check_if_label_removed(options:list[str],thooth_id:str)->bool:
+def check_if_label_removed(options:str,thooth_id:str)->bool:
     return test_if_inward(options,thooth_id) or test_if_outward(options,thooth_id)

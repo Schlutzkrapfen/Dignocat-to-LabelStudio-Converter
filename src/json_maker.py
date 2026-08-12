@@ -167,7 +167,7 @@ def inner_json(
     sub_index:int,
     prozent:str,
     label_catorgie:str,
-    option:list[str],thoot_id:str
+    option:str,thoot_id:str
 )->InnerAnnotation:
     """Creates an individual annotation object for a labeled bounding box.
 
@@ -269,7 +269,7 @@ async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:
 
             for k, _ in enumerate(labels):
                 inner_task.append( inner_json(
-                    labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k],options,thooth_id
+                    labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k],options[k],thooth_id
                 ))
                 id_addition +=1
             if refrence_image_path == "":
@@ -341,6 +341,6 @@ async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str,
             if label_categorie is None:
                 raise ValueError("label Category doesen't exist")
             for i,_ in enumerate(label):
-                task.append(inner_json(label[i], x, y, w, h, int(id)+i, parts[3], label_categorie[i],options,parts[4]))
+                task.append(inner_json(label[i], x, y, w, h, int(id)+i, parts[3], label_categorie[i],options[i],parts[4]))
             id += len(label)-1
         return outer_json(user_id, str(id), task)

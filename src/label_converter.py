@@ -46,8 +46,7 @@ def map_label(
                 their info, each containing "code" and "label_category".
 
         Returns:
-            tuple[str, str] | tuple[None, None]: (code, label_category) if
-                found, or (None, None) if `diagnocat_label` is not in `labels`.
+            tuple[str, str]  (code, label_category) if found
         """
     entries = labels.get(diagnocat_label)
     if not entries:
