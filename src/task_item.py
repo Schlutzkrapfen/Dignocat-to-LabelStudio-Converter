@@ -15,7 +15,7 @@ class InnerAnnotation(TypedDict):
         id: str
         value: Value
         score: float
-        options: list[str]
+        options: str
         thoot_id: str
 
 
