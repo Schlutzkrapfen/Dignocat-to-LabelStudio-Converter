@@ -62,3 +62,25 @@ def to_confidence(value: str)->float:
     except ValueError:
         print(f"Warning: '{value}' could not be converted!")
         return 0.0
+
+def strip_keys(obj, keys_to_remove: set[str]):
+    """Recursively remove the given keys from nested dicts and lists.
+
+    Args:
+        obj: The object to clean (dict, list, or any other value).
+        keys_to_remove: Set of key names to strip out at any nesting level.
+
+    Returns:
+        A new object with the same structure as `obj`, but without the
+        specified keys.
+    """
+    if isinstance(obj, dict):
+        return {
+            k: strip_keys(v, keys_to_remove)
+            for k, v in obj.items()
+            if k not in keys_to_remove
+        }
+    elif isinstance(obj, list):
+        return [strip_keys(item, keys_to_remove) for item in obj]
+    else:
+        return obj
