@@ -11,6 +11,7 @@ def remove_labels(tasks:list[TaskItem])-> list[TaskItem]:
             if check_if_label_removed(anotation["options"],anotation["thoot_id"]):
                 continue
             cur_anotation.append(anotation)
+        task["predictions"][0]["result"] = cur_anotation
         items.append(task)
     return (items)
 
@@ -65,42 +66,68 @@ def get_new_rectangle(item:InnerAnnotation,x,y,width,height):
             height = x+width-item["value"]["y"]
 
     return x,y,width,height
+def create_cluster(annoataions: list[InnerAnnotation])->list[list[InnerAnnotation]]:
+
+    clusters: list[list[InnerAnnotation]] = []
+
+    for item in annoataions:
+        placed = False
+        for cluster in clusters:
+            if any(
+                check_if_two_theeth_are_near_each_other(
+                    (int(item["thoot_id"][1:2])), (int(other["thoot_id"][1:2]))
+                )
+                for other in cluster
+            ):
+                cluster.append(item)
+                placed = True
+                break
+        if not placed:
+            clusters.append([item])
+
+    return clusters
+
 def combine_anotations(dict_combinations:dict[str, list[InnerAnnotation]])->list[InnerAnnotation]:
 
     new_annotations: list[InnerAnnotation] =[]
-    for annotaions in dict_combinations.values():
 
-            x:float = 0
-            y:float  = 0
-            width:float = 0
-            height:float = 0
-            for item in annotaions:
-                x,y,width,height = get_new_rectangle(item,x,y,width,height)
-                values = Value(
-                    {
-                                "rotation": 0,
-                                "rectanglelabels": item["value"]["rectanglelabels"],
-                                "x": x,
-                                "y": y,
-                                "width": width,
-                                "height": height,
-                    })
+    for annotations in dict_combinations.values():
+        clusters = create_cluster(annotations)
 
-                annotation = InnerAnnotation({
-                    "from_name": item["from_name"],
-                    "to_name": item["to_name"],
-                    "type": item["type"],
-                    "id": item["id"],
-                    "value": values,
-                    "score": item["score"],
+        for cluster in clusters:
+            x: float = 0
+            y: float = 0
+            width: float = 0
+            height: float = 0
 
-                    "options":item["options"],
-                    "thoot_id": item["thoot_id"]
-                })
-                new_annotations.append(annotation)
+            for item in cluster:
+                x, y, width, height = get_new_rectangle(item, x, y, width, height)
+
+            value = Value({
+                "rotation": 0,
+                "rectanglelabels": cluster[0]["value"]["rectanglelabels"],
+                "x": x,
+                "y": y,
+                "width": width,
+                "height": height,
+            })
+
+            annotation = InnerAnnotation({
+                "from_name": cluster[0]["from_name"],
+                "to_name": cluster[0]["to_name"],
+                "type": cluster[0]["type"],
+                "id": cluster[0]["id"],
+                "value": value,
+                "score": cluster[0]["score"],
+                "options": cluster[0]["options"],
+                "thoot_id": cluster[0]["thoot_id"],
+            })
+            new_annotations.append(annotation)
+
     return new_annotations
 
-
+def check_if_two_theeth_are_near_each_other(number_one:int,number_two:int,distance:int = 1)->bool:
+    return  abs(number_one -number_two) <= distance
 
 
 def is_furthers_out(theet_id:str)->bool:
