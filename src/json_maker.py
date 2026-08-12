@@ -9,7 +9,6 @@ from task_item import InnerAnnotation,  Prediction, TaskItem, Value
 from playwright.async_api import Page
 
 from helper_functions import get_info, strip_keys, to_percent,get_image_size,to_confidence
-from add_options import    test_if_needs_combine
 from typing import cast
 from webcrawler import (
     get_refrence_image,
@@ -221,7 +220,7 @@ def dump_json(task: list[TaskItem]):
     Args:
         task: The list of TaskItem objects to save.
     """
-    cleaned = strip_keys(task, {"combine", "thoot_id"})
+    cleaned = strip_keys(task, { "thoot_id1"})
     with open("output.json", "w") as f:
         json.dump(cleaned, f, indent=2)
     print("saved json to output.json")
