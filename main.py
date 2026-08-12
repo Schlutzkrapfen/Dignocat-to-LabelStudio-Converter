@@ -1,7 +1,7 @@
 import argparse
 import asyncio
-import logging
 import os
+import logging
 import sys
 from typing import cast
 
@@ -9,30 +9,26 @@ from playwright.async_api import Page, async_playwright
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
+from add_options import check_task_options
 from json_maker import (
     dump_json,
-    get_difference,
-    get_info,
-    get_json_cordinates,
-    inner_json,
-    outer_json,
+    get_task
+
+
 )
-from label_converter import load_label_mapping, map_label
-from task_item import InnerAnnotation, TaskItem
+from label_converter import load_label_mapping
+from task_item import  TaskItem
 from webcrawler import (
     find_page,
     get_patient_amount,
-    get_refrence_image,
-    get_theeh_picture,
-    get_thooth_id,
-    get_tooth_descriptions,
-    get_user_screenshoots,
     login,
 )
 logger = logging.getLogger(__name__)
 
 USER_DATA_DIR = "user_data"
 screenshot_quality_mulitplayer: float = 4
+refrence_image_path = ""
+
 
 
 def parse_id_range(total: int) -> list[int]:
@@ -102,124 +98,23 @@ async def main():
             await login(page)
             page_amount = await get_patient_amount(page)
             print(f"You have {page_amount} patience")
-
             refrence_image_path = ""
 
+
             for i in parse_id_range(page_amount):
-
-
                 try:
                     user_id = await find_page(page,i,page_amount,output_dir)
                 except (ValueError,OSError)as e:
                     print(f"complete failure:{e}")
                     raise OSError
+                single_task,refrence_image_path  = await get_task(page,label_Data,user_id,refrence_image_path)
+                task.append(single_task)
+            task = check_task_options(task)
+            dump_json(task)
 
-                not_conv_labels = await get_tooth_descriptions(page)
-
-                inner_task:list[InnerAnnotation] = []
-                for i, non_conv_label in enumerate(not_conv_labels):
-                    label, label_categorie = map_label(
-                        non_conv_label["type"], label_Data
-                    )
-                    if label is None:
-                        continue
-                    try:
-                        thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
-
-
-                        refrence_image_path = await get_refrence_image(page, user_id )
-                        paths = await get_theeh_picture(page, thooth_id, str(user_id))
-                    except ValueError:
-                        continue
-                    print(thooth_id)
-                    print(f"Saved {paths}")
-                    if refrence_image_path is None:
-                        print("Refrence Image is missing")
-                        continue
-                    try:
-                        difference_path = await get_difference(refrence_image_path, paths)
-                    except (FileNotFoundError,OSError)as e:
-                        print(e)
-                        continue
-                    try:
-                        x, y, w, h = await get_json_cordinates(difference_path)
-                    except ValueError:
-                        print("label wasn't found")
-                        continue
-
-                    if label_categorie is None:
-                        print("Refrence Image is missing")
-                        continue
-
-                    inner_task.append( inner_json(
-                        label, x, y, w, h, str(i), "100%", label_categorie
-                    ))
-                    if refrence_image_path == "":
-                        print("Refrence Image is none")
-                        continue
-                images_paths = await get_user_screenshoots(page, user_id)
-                task.append( await make_json(
-                images_paths, label_Data, refrence_image_path, inner_task, user_id, page
-            ))
-                dump_json(task)
 
         finally:
-
-            pass
-
-
-async def make_json(images_paths:list[str], label_Data: dict[str, dict[str, str]], refrence_image_path:str, task :list[InnerAnnotation] , user_id:int, page:Page)->TaskItem:
-    """Diff each image against a reference image and append the resulting annotations to `task`.
-
-        Args:
-            images_paths: Paths to the tooth images to process.
-            label_Data: Lookup table used to resolve a label key to a (label, category) pair.
-            refrence_image_path: Path to the reference image each entry is diffed against.
-            task: List of annotations to append to (mutated in place).
-            user_id: Currently unused.
-            page: Playwright page used to re-fetch a replacement image if a diff fails.
-
-        Returns:
-            TaskItem: `task` wrapped with the user_id/id of the last processed image.
-
-        Raises:
-            ValueError: If a resolved label has no category.
-        """
-    id = 0
-    user_id = 0
-    thooth_leng = len(refrence_image_path)
-    for paths in images_paths:
-        parts = get_info(paths)
-        label, label_categorie = map_label(parts[2], label_Data)
-        if label is None:
-            continue
-        user_id = int(parts[0])
-        id = str(int(parts[1]) + thooth_leng)
-        difference_path = await get_difference(refrence_image_path, paths)
-        try:
-            x, y, w, h = await get_json_cordinates(difference_path)
-        except ValueError:
-            continue
-        if w == 0 and h == 0:
-            logger.warning(
-                f"Something went wrong with id= {id},user_id={user_id},label={label}/{parts[2]},thoot_id = {parts[4]}\n removed the broken Picture. "
-            )
-            os.remove(paths)
-            paths = await get_theeh_picture(page, parts[4], id)
-            difference_path = await  get_difference(refrence_image_path, paths)
-            try:
-                x, y, w, h = await get_json_cordinates(difference_path)
-            except ValueError:
-                continue
-            if w == 0 and h == 0:
-                logger.error("Failed to get the  hole thoot Picture as replacement")
-                continue
-
-        if label_categorie is None:
-            raise ValueError("label Category doesen't exist")
-        task.append(inner_json(label, x, y, w, h, id, parts[3], label_categorie))
-    return outer_json(user_id, str(id), task)
-
+            print("Finished")
 
 if __name__ == "__main__":
     asyncio.run(main())

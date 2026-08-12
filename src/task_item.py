@@ -1,13 +1,24 @@
 from typing import TypedDict
 
 
+class Value(TypedDict):
+    rotation: int
+    rectanglelabels:  list[str]
+    x: float
+    y: float
+    width: float
+    height: float
 class InnerAnnotation(TypedDict):
         from_name:str
         to_name:str
         type:str
         id: str
-        value:  dict[str, int | list[str] | float]
+        value: Value
         score: float
+        options: str
+        thoot_id: str
+
+
 
 class Prediction(TypedDict):
     id: str
