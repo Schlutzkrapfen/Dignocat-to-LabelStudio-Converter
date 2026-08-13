@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 
-def find_duplicates_of(image_path: Path, images_path: str) -> list[str]:
+def find_duplicates_of(image_path: Path, images_path: Path) -> list[Path]:
     """Finds duplicate images in a directory by comparing file hashes.
 
         Args:
@@ -15,10 +15,10 @@ def find_duplicates_of(image_path: Path, images_path: str) -> list[str]:
             A list of file paths that are duplicates of the target image.
         """
     target_hash = _hash_file(image_path)
-    duplicates: list[str] = []
+    duplicates: list[Path] = []
 
-    for filename in os.listdir(images_path):
-        filepath = os.path.join(images_path, filename)
+    for filename in images_path.iterdir():
+        filepath =Path( images_path/ filename)
         if not os.path.isfile(filepath) or filepath == image_path:
             continue
 

@@ -64,6 +64,26 @@ def combine_labels(tasks:list[TaskItem])-> list[TaskItem]:
     return items
 
 def check_task_options(tasks:list[TaskItem])->list[TaskItem]:
+    """Applies option-based processing steps to a list of tasks.
+
+        Currently combines nearby annotations sharing the same label via
+        `combine_labels`. Acts as a central entry point for applying
+        option-driven transformations to tasks before they are finalized.
+
+        Args:
+            tasks (list[TaskItem]): List of tasks to process.
+
+        Returns:
+            list[TaskItem]: The tasks after applying the option-based
+                transformations.
+
+        Note:
+            This function is meant to grow as new annotation options are
+            introduced (e.g. beyond "combine"). New options should be
+            handled by adding further processing steps here, so this
+            function stays the single place where all option-based task
+            transformations are applied.
+        """
     task:list[TaskItem] = combine_labels(tasks)
 
     return remove_labels(task)
@@ -175,7 +195,25 @@ def get_thooth_id_from_cluster(cluster:list[InnerAnnotation])-> str:
 
 
 def combine_anotations(dict_combinations:dict[str, list[InnerAnnotation]])->list[InnerAnnotation]:
+    """Merges grouped annotations into single combined annotations.
 
+    For each label group, clusters its annotations by tooth proximity
+    via `create_cluster`, then merges each cluster into a single
+    annotation: the bounding box is expanded to enclose all rectangles
+    in the cluster (via `get_new_rectangle`), the tooth id is derived
+    from the cluster (via `get_thooth_id_from_cluster`), and all other
+    fields (label, from_name, to_name, type, id, score, options) are
+    copied from the cluster's first annotation.
+
+    Args:
+        dict_combinations (dict[str, list[InnerAnnotation]]): Mapping
+            from rectangle label to the list of annotations sharing
+            that label, to be clustered and merged.
+
+    Returns:
+        list[InnerAnnotation]: One merged annotation per cluster,
+            across all label groups.
+    """
     new_annotations: list[InnerAnnotation] =[]
 
     for annotations in dict_combinations.values():
