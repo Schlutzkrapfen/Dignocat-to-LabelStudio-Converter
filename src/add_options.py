@@ -148,6 +148,32 @@ def create_cluster(annotations: list[InnerAnnotation])->list[list[InnerAnnotatio
 
     return clusters
 
+def get_thooth_id_from_cluster(cluster:list[InnerAnnotation])-> str:
+    """Returns the highest thoot_id in a cluster of annotations.
+
+        Compares annotations by the third character (index 2) of their
+        `thoot_id` — i.e. the tooth's position digit — and returns the
+        full `thoot_id` of the annotation with the highest value at that
+        position. If the cluster is empty, the default `"0000"` is
+        returned.
+
+        Args:
+            cluster (list[InnerAnnotation]): Annotations to compare.
+
+        Returns:
+            str: The `thoot_id` of the annotation with the highest
+                position digit, or `"0000"` if the cluster is empty.
+        """
+    highest_thood_id:str = "0000"
+    for item in cluster:
+        cur_thooth_id = item["thoot_id"]
+        if cur_thooth_id[2] > highest_thood_id[2]:
+            highest_thood_id =  cur_thooth_id
+
+    return highest_thood_id
+
+
+
 def combine_anotations(dict_combinations:dict[str, list[InnerAnnotation]])->list[InnerAnnotation]:
 
     new_annotations: list[InnerAnnotation] =[]
@@ -160,9 +186,11 @@ def combine_anotations(dict_combinations:dict[str, list[InnerAnnotation]])->list
             y: float = 0
             width: float = 0
             height: float = 0
+            thoot_id:str = get_thooth_id_from_cluster(cluster)
 
             for item in cluster:
                 x, y, width, height = get_new_rectangle(item, x, y, width, height)
+
 
             value = Value({
                 "rotation": 0,
@@ -181,17 +209,45 @@ def combine_anotations(dict_combinations:dict[str, list[InnerAnnotation]])->list
                 "value": value,
                 "score": cluster[0]["score"],
                 "options": cluster[0]["options"],
-                "thoot_id": cluster[0]["thoot_id"],
+                "thoot_id": thoot_id,
             })
             new_annotations.append(annotation)
 
     return new_annotations
 
 def check_if_two_theeth_are_near_each_other(number_one:int,number_two:int,distance:int = 1)->bool:
+    """Checks whether two tooth numbers are within a given distance.
+
+        Args:
+            number_one (int): First tooth number.
+            number_two (int): Second tooth number.
+            distance (int): Maximum allowed difference between the two
+                numbers for them to be considered near each other.
+                Defaults to 1.
+
+        Returns:
+            bool: True if the absolute difference between `number_one` and
+                `number_two` is less than or equal to `distance`, False
+                otherwise.
+        """
     return  abs(number_one -number_two) <= distance
 
 
 def is_furthers_out(theet_id:str)->bool:
+    """Checks whether a tooth is the furthest-out one in its position.
+
+        A tooth is considered the furthest out if the third character of
+        its identifier (index 2) is "8" (e.g. wisdom teeth, typically
+        numbered *8 in dental notation).
+
+        Args:
+            theet_id (str): Identifier of the tooth, expected to have its
+                position digit at index 2.
+
+        Returns:
+            bool: True if the tooth is the furthest-out one, False
+                otherwise.
+        """
     second_letter = theet_id[2]
     return second_letter == "8"
 
