@@ -1,9 +1,10 @@
 import hashlib
 import os
+from pathlib import Path
 
 
 
-def find_duplicates_of(image_path: str, images_path: str) -> list[str]:
+def find_duplicates_of(image_path: Path, images_path: Path) -> list[Path]:
     """Finds duplicate images in a directory by comparing file hashes.
 
         Args:
@@ -14,20 +15,20 @@ def find_duplicates_of(image_path: str, images_path: str) -> list[str]:
             A list of file paths that are duplicates of the target image.
         """
     target_hash = _hash_file(image_path)
-    duplicates: list[str] = []
+    duplicates: list[Path] = []
 
-    for filename in os.listdir(images_path):
-        filepath = os.path.join(images_path, filename)
+    for filename in images_path.iterdir():
+        filepath =Path( images_path/ filename)
         if not os.path.isfile(filepath) or filepath == image_path:
             continue
 
-        if _hash_file(filepath) == target_hash:
+        if _hash_file(Path(filepath)) == target_hash:
             duplicates.append(filepath)
 
     return duplicates
 
 
-def _hash_file(filepath: str, chunk_size: int = 8192):
+def _hash_file(filepath: Path, chunk_size: int = 8192):
     """Calculates the MD5 hash of a file by reading it in chunks.
 
         Args:
