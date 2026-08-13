@@ -332,7 +332,7 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
             try:
                 label, label_categorie,options = map_label(parts[2], label_Data)
             except ValueError as e:
-                print(f"Warning: {e}")
+                print(f"Info: {e}")
                 continue
 
 
