@@ -320,16 +320,23 @@ async def deactivated_show_buttons(page: Page) :
 async def get_patient_amount(page: Page)->int:
     """Gets the total patient count from Diagnocat.
 
-        Tries to read the count directly from the active filter badge first.
-        If that element isn't found, falls back to scrolling the patient
-        table until no new rows load, then returns the row count.
+       Tries to read the count directly from the active filter badge first.
+       If that element isn't found (or raises a Playwright `Error`), falls
+       back to scrolling the patient table until no new rows load for
+       `max_stable_checks` consecutive polls, then returns the row count.
 
-        Args:
-            page: The Playwright Page object for the Diagnocat patients view.
+       Args:
+           page (Page): The Playwright Page object for the Diagnocat
+               patients view.
 
-        Returns:
-            The total number of patients.
-        """
+       Returns:
+           int: The total number of patients.
+
+       Raises:
+           LookupError: If the filter badge amount is 0, or if the
+               filter badge element could not be located (this is caught
+               internally and triggers the scroll-based fallback).
+       """
     try:
         amount_el = await page.wait_for_selector(
             "span.Filters-module_amount_zjpHX.Filters-module_amountActive_ysGOs"
@@ -339,7 +346,7 @@ async def get_patient_amount(page: Page)->int:
             amount = int(amount_text)  # 697
             print(f"Active filter amount: {amount}")
             if amount == 0:
-                raise ValueError(amount)
+                raise LookupError("amount of 0")
             return(amount)
         else:
             amount = None

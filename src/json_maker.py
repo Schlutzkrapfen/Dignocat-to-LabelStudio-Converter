@@ -239,14 +239,13 @@ async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:
                 labels, label_categories,options = map_label(
                 non_conv_label["type"], label_Data
             )
-            except ValueError:
-                continue
-            try:
+
                 thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
 
                 refrence_image_path = await get_refrence_image(page, user_id )
                 paths = await get_theeh_picture(page, thooth_id, user_id)
-            except ValueError:
+            except ValueError as e :
+                print(f"Warning: {e}")
                 continue
 
 
@@ -311,7 +310,8 @@ async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str,
             parts = get_info(paths)
             try:
                 label, label_categorie,options = map_label(parts[2], label_Data)
-            except ValueError:
+            except ValueError as e:
+                print(f"Warning: {e}")
                 continue
 
 
