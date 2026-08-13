@@ -14,19 +14,16 @@ def find_duplicates_of(image_path: Path, images_path: Path) -> list[Path]:
         Returns:
             A list of file paths that are duplicates of the target image.
         """
+    images_path = Path(images_path)
+    image_path = Path(image_path)
     target_hash = _hash_file(image_path)
     duplicates: list[Path] = []
-
-    for filename in images_path.iterdir():
-        filepath =Path( images_path/ filename)
-        if not os.path.isfile(filepath) or filepath == image_path:
+    for filepath in images_path.iterdir():
+        if not filepath.is_file() or filepath == image_path:
             continue
-
-        if _hash_file(Path(filepath)) == target_hash:
+        if _hash_file(filepath) == target_hash:
             duplicates.append(filepath)
-
     return duplicates
-
 
 def _hash_file(filepath: Path, chunk_size: int = 8192):
     """Calculates the MD5 hash of a file by reading it in chunks.
