@@ -351,8 +351,8 @@ async def get_patient_amount(page: Page)->int:
         else:
             amount = None
             raise LookupError("No type found")
-    except Error:
-        print("tried to find amount out with scrooling " )
+    except LookupError as e :
+        print(f"{e}, tried to find amount out with scrooling " )
 
         row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
 

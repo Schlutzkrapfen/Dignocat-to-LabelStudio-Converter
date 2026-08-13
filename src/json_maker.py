@@ -2,7 +2,6 @@ import json
 import os
 import logging
 from pathlib import Path
-from sys import path
 
 import numpy as np
 from PIL import Image, ImageChops
@@ -58,9 +57,9 @@ async def get_difference(refrence_path:Path, image_path:str)-> str:
         img1 = Image.open(refrence_path).convert("RGB")
         img2 = Image.open(image_path).convert("RGB")
     except FileNotFoundError:
-        raise FileNotFoundError("either `refrence_path` or `image_path` does not point to an existing file.")
+        raise FileNotFoundError(f"either `refrence_path`:{refrence_path} or `image_path`:{image_path} does not point to an existing file.")
     except OSError:
-        raise OSError("either `refrence_path` or `image_path` cannot be opened/identified as an image by Pillow.")
+        raise OSError(f"either `refrence_path`:{refrence_path} or `image_path':{image_path} cannot be opened/identified as an image by Pillow.")
 
    # if img1.size != img2.size:
    #     img2 = img2.resize(img1.size, Image.Resampling.LANCZOS)
