@@ -110,8 +110,8 @@ async def main():
                     raise OSError
                 single_task,refrence_image_path  = await get_task(page,label_Data,user_id,refrence_image_path)
                 task.append(single_task)
-            task = check_task_options(task)
-            dump_json(task)
+                task = check_task_options(task)
+                dump_json(task)
 
 
         finally:
