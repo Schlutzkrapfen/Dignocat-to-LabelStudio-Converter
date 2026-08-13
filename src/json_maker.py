@@ -1,6 +1,7 @@
 import json
 import os
 import logging
+from pathlib import Path
 from sys import path
 
 import numpy as np
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 ERROR_PROZENTAGE = 50
 
 
-async def get_difference(refrence_path:str, image_path:str)-> str:
+async def get_difference(refrence_path:Path, image_path:str)-> str:
     """
         Compute the pixel-wise difference between a reference image and a
         comparison image, and save the result as a PNG file.
@@ -225,7 +226,7 @@ def dump_json(task: list[TaskItem]):
         json.dump(cleaned, f, indent=2)
     print("saved json to output.json")
 
-async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:int,refrence_image_path:str)->tuple[TaskItem, str]:
+async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:int,refrence_image_path:Path)->tuple[TaskItem, Path]:
 
         not_conv_labels = await get_tooth_descriptions(page)
 
@@ -282,7 +283,7 @@ async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:
 
 
 
-async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str, str]]], refrence_image_path:str, task :list[InnerAnnotation] , user_id:int, page:Page,)->TaskItem:
+async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str, str]]], refrence_image_path:Path, task :list[InnerAnnotation] , user_id:int, page:Page,)->TaskItem:
         """Diff each image against a reference image and append the resulting annotations to `task`.
         def add_option():
             :
@@ -305,7 +306,7 @@ async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str,
         id = 0
         user_id = 0
         options = []
-        thooth_leng = len(refrence_image_path)
+        thooth_leng = len(str(refrence_image_path))
         for paths in images_paths:
             parts = get_info(paths)
             try:

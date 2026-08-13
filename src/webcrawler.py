@@ -1,5 +1,6 @@
 from csv import Error
 import os
+from pathlib import Path
 from typing import cast
 from playwright.async_api import Error as PlaywrightError, TimeoutError as PlaywrightTimeoutError
 
@@ -176,9 +177,14 @@ async def find_page(page: Page,i:int,page_amount:int,output_dir:str)->int:
             await deactivated_show_buttons(page)
         except PlaywrightTimeoutError:
             continue
-        refrence_image_path = await get_refrence_image(
-            page, user_id, skip_if_exist=False
-        )
+        try:
+            refrence_image_path = await get_refrence_image(
+                page, user_id, skip_if_exist=False
+            )
+        except LookupError as e:
+            print(f"Error:{e}")
+            continue
+
         if refrence_image_path is None:
 
             raise ValueError("There is no Refrance Image")
@@ -443,18 +449,28 @@ async def remove_overlay(page: Page):
 """)
 
 
-async def get_refrence_image(page: Page, user_id:int, skip_if_exist: bool = True):
-    """gets a empty Image for refrence"""
+async def get_refrence_image(page: Page, user_id:int, skip_if_exist: bool = True)-> Path:
+    """gets a empty Image for refrence
+    Args:
+            page (Page): Browser page used to interact with the canvas.
+            user_id (int): Identifier of the user, used to build the
+                output file path.
+            skip_if_exist (bool): If True, skips regenerating the
+                screenshot when a file already exists at the target path.
+                Defaults to True.
+    Raises:
+        LookupError: Couldn't find the canvas
+    """
     picture_path = f"output/{user_id}.png"
 
     if not os.path.exists(picture_path) or not skip_if_exist:
         await deactivated_show_buttons(page)
         canvas = await page.wait_for_selector("canvas")
         if canvas is None:
-            raise ValueError("Got no Canvas")
+            raise LookupError("Got no Canvas")
         await take_screenshot(page,canvas,picture_path)
         print(f"Saved {picture_path}")
     else:
         print(f"Screenshot already exists: {picture_path}")
 
-    return picture_path
+    return Path(picture_path)

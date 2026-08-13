@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import os
 import logging
+from pathlib import Path
 import sys
 from typing import cast
 
@@ -27,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 USER_DATA_DIR = "user_data"
 screenshot_quality_mulitplayer: float = 4
-refrence_image_path = ""
+refrence_image_path = Path("")
 
 
 
@@ -98,7 +99,7 @@ async def main():
             await login(page)
             page_amount = await get_patient_amount(page)
             print(f"You have {page_amount} patience")
-            refrence_image_path = ""
+            refrence_image_path = Path("")
 
 
             for i in parse_id_range(page_amount):
