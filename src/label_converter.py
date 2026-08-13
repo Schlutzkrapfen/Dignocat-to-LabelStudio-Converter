@@ -43,14 +43,17 @@ def map_label(
         Args:
             diagnocat_label (str): The label name to look up.
             labels (dict[str, dict[str, str]]): Mapping from label names to
-                their info, each containing "code" and "label_category".
+                their info, each containing "code", "label_category" and "options".
 
         Returns:
-            tuple[str, str]  (code, label_category) if found
+            tuple[list[str], list[str], list[str]]   (list of code, list of label_category, list of options) if found
+
+        Raises:
+            ValueError: when there are no entries in class
         """
     entries = labels.get(diagnocat_label)
     if not entries:
-          raise ValueError
+          raise ValueError("no entries Found")
     codes:list[str] = []
     label_categorie:list[str] = []
     options:list[str] = []

@@ -1,7 +1,7 @@
 import json
 import os
 import logging
-from sys import path
+from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageChops
@@ -9,7 +9,6 @@ from task_item import InnerAnnotation,  Prediction, TaskItem, Value
 from playwright.async_api import Page
 
 from helper_functions import get_info, strip_keys, to_percent,get_image_size,to_confidence
-from add_options import    test_if_needs_combine
 from typing import cast
 from webcrawler import (
     get_refrence_image,
@@ -24,7 +23,7 @@ logger = logging.getLogger(__name__)
 ERROR_PROZENTAGE = 50
 
 
-async def get_difference(refrence_path:str, image_path:str)-> str:
+async def get_difference(refrence_path:Path, image_path:Path)-> str:
     """
         Compute the pixel-wise difference between a reference image and a
         comparison image, and save the result as a PNG file.
@@ -58,9 +57,9 @@ async def get_difference(refrence_path:str, image_path:str)-> str:
         img1 = Image.open(refrence_path).convert("RGB")
         img2 = Image.open(image_path).convert("RGB")
     except FileNotFoundError:
-        raise FileNotFoundError("either `refrence_path` or `image_path` does not point to an existing file.")
+        raise FileNotFoundError(f"either `refrence_path`:{refrence_path} or `image_path`:{image_path} does not point to an existing file.")
     except OSError:
-        raise OSError("either `refrence_path` or `image_path` cannot be opened/identified as an image by Pillow.")
+        raise OSError(f"either `refrence_path`:{refrence_path} or `image_path':{image_path} cannot be opened/identified as an image by Pillow.")
 
    # if img1.size != img2.size:
    #     img2 = img2.resize(img1.size, Image.Resampling.LANCZOS)
@@ -221,69 +220,90 @@ def dump_json(task: list[TaskItem]):
     Args:
         task: The list of TaskItem objects to save.
     """
-    cleaned = strip_keys(task, {"combine", "thoot_id"})
+    cleaned = strip_keys(task, { "thoot_id1"})
     with open("output.json", "w") as f:
         json.dump(cleaned, f, indent=2)
     print("saved json to output.json")
 
-async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:int,refrence_image_path:str)->tuple[TaskItem, str]:
+async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:int,refrence_image_path:Path)->tuple[TaskItem, Path]:
 
-        not_conv_labels = await get_tooth_descriptions(page)
+    """Builds a labeling task from per-tooth screenshots vs a reference image.
 
-        inner_task:list[InnerAnnotation] = []
-        id_addition:int = 0
-        for i, non_conv_label in enumerate(not_conv_labels):
-            labels:list[str]
-            label_categories:list[str]
-            try:
-                labels, label_categories,options = map_label(
-                non_conv_label["type"], label_Data
-            )
-            except ValueError:
-                continue
-            try:
-                thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
+    For each tooth description on the page, maps its type to labels,
+    resolves its tooth id, captures its screenshot, and diffs it
+    against the reference image to derive bounding box coordinates.
+    Annotations are built from the results and collected into a task.
+    Entries that fail any step are skipped with a warning.
 
-                refrence_image_path = await get_refrence_image(page, user_id )
-                paths = await get_theeh_picture(page, thooth_id, user_id)
-            except ValueError:
-                continue
+    Args:
+        page (Page): The Playwright Page instance to interact with.
+        label_Data (dict[str, list[dict[str, str]]]): Mapping used by
+            `map_label` to resolve a label's categories and options.
+        user_id (int): Identifier of the user, used to build image
+            file paths.
+        refrence_image_path (Path): Reference image used as a
+            baseline; may be replaced during processing.
 
+    Returns:
+        tuple[TaskItem, Path]: The generated task and the reference
+            image path used.
 
+    """
+    not_conv_labels = await get_tooth_descriptions(page)
 
-            print(f"Saved {paths}")
-            if refrence_image_path is None:
-                print("Refrence Image is missing")
-                continue
-            try:
+    inner_task:list[InnerAnnotation] = []
+    id_addition:int = 0
+    for i, non_conv_label in enumerate(not_conv_labels):
+        labels:list[str]
+        label_categories:list[str]
+        try:
+            labels, label_categories,options = map_label(
+            non_conv_label["type"], label_Data
+        )
 
-                difference_path = await get_difference(refrence_image_path, paths)
-            except (FileNotFoundError,OSError)as e:
-                print(e)
-                continue
-            try:
-                x, y, w, h = await get_json_cordinates(difference_path)
-            except ValueError:
-                print("label wasn't found")
-                continue
+            thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
 
-            for k, _ in enumerate(labels):
-                inner_task.append( inner_json(
-                    labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k],options[k],thooth_id
-                ))
-                id_addition +=1
-            if refrence_image_path == "":
-                print("Refrence Image is none")
-                continue
-        images_paths = await get_user_screenshoots(page, user_id)
-
-        return( await make_json(
-                        images_paths, label_Data, refrence_image_path, inner_task, user_id, page
-                ),refrence_image_path)
+            refrence_image_path = await get_refrence_image(page, user_id )
+            paths = await get_theeh_picture(page, thooth_id, user_id)
+        except ValueError as e :
+            print(f"Warning: {e}")
+            continue
 
 
 
-async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str, str]]], refrence_image_path:str, task :list[InnerAnnotation] , user_id:int, page:Page,)->TaskItem:
+        print(f"Saved {paths}")
+        if refrence_image_path is None:
+            print("Refrence Image is missing")
+            continue
+        try:
+
+            difference_path = await get_difference(refrence_image_path, paths)
+        except (FileNotFoundError,OSError)as e:
+            print(e)
+            continue
+        try:
+            x, y, w, h = await get_json_cordinates(difference_path)
+        except ValueError:
+            print("label wasn't found")
+            continue
+
+        for k, _ in enumerate(labels):
+            inner_task.append( inner_json(
+                labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k],options[k],thooth_id
+            ))
+            id_addition +=1
+        if refrence_image_path == "":
+            print("Refrence Image is none")
+            continue
+    images_paths = await get_user_screenshoots(page, user_id)
+
+    return( await make_json(
+                    images_paths, label_Data, refrence_image_path, inner_task, user_id, page
+            ),refrence_image_path)
+
+
+
+async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str, str]]], refrence_image_path:Path, task :list[InnerAnnotation] , user_id:int, page:Page,)->TaskItem:
         """Diff each image against a reference image and append the resulting annotations to `task`.
         def add_option():
             :
@@ -306,12 +326,13 @@ async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str,
         id = 0
         user_id = 0
         options = []
-        thooth_leng = len(refrence_image_path)
+        thooth_leng = len(str(refrence_image_path))
         for paths in images_paths:
-            parts = get_info(paths)
+            parts = get_info(str(paths))
             try:
                 label, label_categorie,options = map_label(parts[2], label_Data)
-            except ValueError:
+            except ValueError as e:
+                print(f"Warning: {e}")
                 continue
 
 
