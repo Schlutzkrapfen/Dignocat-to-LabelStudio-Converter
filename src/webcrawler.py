@@ -273,16 +273,18 @@ async def take_screenshot(page:Page,canvas:ElementHandle,path:str,max_retries: i
     except (PlaywrightTimeoutError, PlaywrightError) as e:
         if max_retries <= 0:
                     print(f"Couldn't get screenshot, no retries left:{e}")
-                    raise
+                    raise TimeoutError
         print(f"Couldn't get screenshot, trying again {e}")
         await take_screenshot(page, canvas, path, max_retries - 1)
 
 
-async def deactivated_show_buttons(page: Page) -> None:
+async def deactivated_show_buttons(page: Page) :
     """Waits for and clicks active, enabled filter buttons on the page.
 
     Args:
         page: The Playwright Page instance.
+    Raises:
+        TimeoutError: if the selector can't be selected
     """
     selector = "button.MaskFilterButton-module_container_EFNpE"
 
