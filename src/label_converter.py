@@ -53,7 +53,7 @@ def map_label(
         """
     entries = labels.get(diagnocat_label)
     if not entries:
-          raise ValueError("no entries Found")
+          raise ValueError(f"{diagnocat_label} not used")
     codes:list[str] = []
     label_categorie:list[str] = []
     options:list[str] = []
