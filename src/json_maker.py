@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 ERROR_PROZENTAGE = 50
 
 
-async def get_difference(refrence_path:Path, image_path:str)-> str:
+async def get_difference(refrence_path:Path, image_path:Path)-> str:
     """
         Compute the pixel-wise difference between a reference image and a
         comparison image, and save the result as a PNG file.
@@ -227,61 +227,83 @@ def dump_json(task: list[TaskItem]):
 
 async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:int,refrence_image_path:Path)->tuple[TaskItem, Path]:
 
-        not_conv_labels = await get_tooth_descriptions(page)
+    """Builds a labeling task from per-tooth screenshots vs a reference image.
 
-        inner_task:list[InnerAnnotation] = []
-        id_addition:int = 0
-        for i, non_conv_label in enumerate(not_conv_labels):
-            labels:list[str]
-            label_categories:list[str]
-            try:
-                labels, label_categories,options = map_label(
-                non_conv_label["type"], label_Data
-            )
+    For each tooth description on the page, maps its type to labels,
+    resolves its tooth id, captures its screenshot, and diffs it
+    against the reference image to derive bounding box coordinates.
+    Annotations are built from the results and collected into a task.
+    Entries that fail any step are skipped with a warning.
 
-                thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
+    Args:
+        page (Page): The Playwright Page instance to interact with.
+        label_Data (dict[str, list[dict[str, str]]]): Mapping used by
+            `map_label` to resolve a label's categories and options.
+        user_id (int): Identifier of the user, used to build image
+            file paths.
+        refrence_image_path (Path): Reference image used as a
+            baseline; may be replaced during processing.
 
-                refrence_image_path = await get_refrence_image(page, user_id )
-                paths = await get_theeh_picture(page, thooth_id, user_id)
-            except ValueError as e :
-                print(f"Warning: {e}")
-                continue
+    Returns:
+        tuple[TaskItem, Path]: The generated task and the reference
+            image path used.
 
+    """
+    not_conv_labels = await get_tooth_descriptions(page)
 
+    inner_task:list[InnerAnnotation] = []
+    id_addition:int = 0
+    for i, non_conv_label in enumerate(not_conv_labels):
+        labels:list[str]
+        label_categories:list[str]
+        try:
+            labels, label_categories,options = map_label(
+            non_conv_label["type"], label_Data
+        )
 
-            print(f"Saved {paths}")
-            if refrence_image_path is None:
-                print("Refrence Image is missing")
-                continue
-            try:
+            thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
 
-                difference_path = await get_difference(refrence_image_path, paths)
-            except (FileNotFoundError,OSError)as e:
-                print(e)
-                continue
-            try:
-                x, y, w, h = await get_json_cordinates(difference_path)
-            except ValueError:
-                print("label wasn't found")
-                continue
-
-            for k, _ in enumerate(labels):
-                inner_task.append( inner_json(
-                    labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k],options[k],thooth_id
-                ))
-                id_addition +=1
-            if refrence_image_path == "":
-                print("Refrence Image is none")
-                continue
-        images_paths = await get_user_screenshoots(page, user_id)
-
-        return( await make_json(
-                        images_paths, label_Data, refrence_image_path, inner_task, user_id, page
-                ),refrence_image_path)
+            refrence_image_path = await get_refrence_image(page, user_id )
+            paths = await get_theeh_picture(page, thooth_id, user_id)
+        except ValueError as e :
+            print(f"Warning: {e}")
+            continue
 
 
 
-async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str, str]]], refrence_image_path:Path, task :list[InnerAnnotation] , user_id:int, page:Page,)->TaskItem:
+        print(f"Saved {paths}")
+        if refrence_image_path is None:
+            print("Refrence Image is missing")
+            continue
+        try:
+
+            difference_path = await get_difference(refrence_image_path, paths)
+        except (FileNotFoundError,OSError)as e:
+            print(e)
+            continue
+        try:
+            x, y, w, h = await get_json_cordinates(difference_path)
+        except ValueError:
+            print("label wasn't found")
+            continue
+
+        for k, _ in enumerate(labels):
+            inner_task.append( inner_json(
+                labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k],options[k],thooth_id
+            ))
+            id_addition +=1
+        if refrence_image_path == "":
+            print("Refrence Image is none")
+            continue
+    images_paths = await get_user_screenshoots(page, user_id)
+
+    return( await make_json(
+                    images_paths, label_Data, refrence_image_path, inner_task, user_id, page
+            ),refrence_image_path)
+
+
+
+async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str, str]]], refrence_image_path:Path, task :list[InnerAnnotation] , user_id:int, page:Page,)->TaskItem:
         """Diff each image against a reference image and append the resulting annotations to `task`.
         def add_option():
             :
@@ -306,7 +328,7 @@ async def make_json(images_paths:list[str], label_Data: dict[str, list[dict[str,
         options = []
         thooth_leng = len(str(refrence_image_path))
         for paths in images_paths:
-            parts = get_info(paths)
+            parts = get_info(str(paths))
             try:
                 label, label_categorie,options = map_label(parts[2], label_Data)
             except ValueError as e:

@@ -1,4 +1,3 @@
-from csv import Error
 import os
 from pathlib import Path
 from typing import cast
@@ -54,7 +53,7 @@ async def get_tooth_descriptions(page: Page) -> list[dict[str, str]]:
     return tooth_types
 
 
-async def get_theeh_picture(page: Page, teeth_id: str, user_id: int) -> str:
+async def get_theeh_picture(page: Page, teeth_id: str, user_id: int) -> Path:
     """Retrieves or generates a screenshot of a specific tooth's canvas.
 
         Checks if a screenshot for the given tooth and user already exists on
@@ -82,7 +81,7 @@ async def get_theeh_picture(page: Page, teeth_id: str, user_id: int) -> str:
     picture_path = f"output/teeth-screenshoots/{user_id}-{teeth_id}.png"
 
     if os.path.exists(picture_path):
-        return picture_path
+        return Path(picture_path)
 
     section = page.locator(f'section[id$="{teeth_id}"]')
     div = section.locator("div.ConditionTitle-module_container_vpIP9")
@@ -92,7 +91,7 @@ async def get_theeh_picture(page: Page, teeth_id: str, user_id: int) -> str:
     if canvas is None:
         raise ValueError("Got no Canvas")
     await take_screenshot(page,canvas,picture_path)
-    return picture_path
+    return Path(picture_path)
 
 
 async def get_thooth_id(page: Page, thoot_id: int)->str:
@@ -131,12 +130,14 @@ async def get_thooth_id(page: Page, thoot_id: int)->str:
     raise ValueError
 
 
-async def find_page(page: Page,i:int,page_amount:int,output_dir:str)->int:
-    """Finds a page/user whose reference image has duplicates.
+async def find_page(page: Page,i:int,page_amount:int,output_dir:Path)->int:
+    """Finds a page/user whose reference image has no duplicates left.
 
         Starting from index `i`, checks successive users by generating a
-        reference image and searching `output_dir` for duplicates, until no
-        duplicates remain or the search space is exhausted.
+        reference image and searching `output_dir` for duplicates, skipping
+        already-tested users, until no duplicates remain, an unrecoverable
+        error occurs (e.g. missing canvas or timeout), or the search space
+        is exhausted.
 
         Args:
             page: Playwright `Page` used to navigate the patient report UI.
@@ -148,10 +149,12 @@ async def find_page(page: Page,i:int,page_amount:int,output_dir:str)->int:
             The resulting `user_id` (`page_amount - i - 1`).
 
         Raises:
-            ValueError: If no users remain to check, no reference image is
-                found, or `user_id` goes negative before resolving duplicates.
+            ValueError: If no users remain to check within `page_amount`,
+                no reference image is found, or `user_id` becomes negative
+                before duplicates are resolved.
+            OSError: If navigating to a patient's report fails.
         """
-    duplictas: list[str] = ["", "", ""]
+    duplictas: list[Path] = [Path("")]
     already_skipped: list[int] = []
     duplictas_i = 0
     user_id = 0
@@ -196,7 +199,7 @@ async def find_page(page: Page,i:int,page_amount:int,output_dir:str)->int:
     return user_id
 
 
-async def get_user_screenshoots(page: Page, user_id: int) -> list[str]:
+async def get_user_screenshoots(page: Page, user_id: int) -> list[Path]:
     """
        Screenshot each condition button's canvas view for a user.
        For every condition button on the page: hovers it, reads its name,
@@ -218,7 +221,7 @@ async def get_user_screenshoots(page: Page, user_id: int) -> list[str]:
         print("something went wrong while Fetching, lets try again.")
         return await get_user_screenshoots(page, user_id)
 
-    saved_screenshoots: list[str] = []
+    saved_screenshoots: list[Path] = []
     for i in range(count):
         button = buttons.nth(i)
         await button.hover()
@@ -237,11 +240,11 @@ async def get_user_screenshoots(page: Page, user_id: int) -> list[str]:
 
         if os.path.exists(picture_path):
             print(f"Skipping {picture_path}, already exists")
-            saved_screenshoots.append(picture_path)
+            saved_screenshoots.append(Path(picture_path))
             continue
 
         print(f"Saved {picture_path}")
-        saved_screenshoots.append(picture_path)
+        saved_screenshoots.append(Path(picture_path))
         await take_screenshot(page, canvas, picture_path)
 
     return saved_screenshoots

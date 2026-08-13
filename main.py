@@ -80,7 +80,7 @@ def parse_id_range(total: int) -> list[int]:
 
 async def main():
     """Main Function"""
-    output_dir = "output"
+    output_dir = Path("output")
     os.makedirs(output_dir, exist_ok=True)
     label_Data = load_label_mapping()
 
