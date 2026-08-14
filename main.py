@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 from add_options import check_task_options
 from json_maker import (
+    delete_screenshot_folders,
     dump_json,
     get_task
 
@@ -84,7 +85,6 @@ async def main():
     os.makedirs(output_dir, exist_ok=True)
     label_Data = load_label_mapping()
 
-
     # Starts the browser
     async with async_playwright() as p:
         context = await p.chromium.launch_persistent_context(
@@ -92,8 +92,6 @@ async def main():
             headless=False,
             # How good the quality of the Screenshots is
             device_scale_factor=screenshot_quality_mulitplayer,
-
-
         )
 
         page: Page = await context.new_page()
@@ -102,7 +100,6 @@ async def main():
         refrence_image_path:Path = Path()
         try:
             await login(page)
-
             page_amount = await get_patient_amount(page)
             print(f"You have {page_amount} patience")
 
@@ -118,6 +115,9 @@ async def main():
                 task.append(single_task)
                 task = check_task_options(task)
                 dump_json(task)
+                #When debugging can be deaktivated for faster new runs
+                #delete_screenshot_folders()
+
 
 
         finally:
