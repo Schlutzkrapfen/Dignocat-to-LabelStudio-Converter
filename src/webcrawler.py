@@ -80,8 +80,8 @@ async def get_theeh_picture(page: Page, teeth_id: str, user_id: int) -> Path:
         """
     picture_path = Path(f"output/teeth-screenshoots/{user_id}-{teeth_id}.png")
 
-    if os.path.exists(picture_path):
-        return Path(picture_path)
+    if picture_path.exists():
+        return picture_path
 
     section = page.locator(f'section[id$="{teeth_id}"]')
     div = section.locator("div.ConditionTitle-module_container_vpIP9")
@@ -91,7 +91,7 @@ async def get_theeh_picture(page: Page, teeth_id: str, user_id: int) -> Path:
     if canvas is None:
         raise ValueError("Got no Canvas")
     await take_screenshot(page,canvas,picture_path)
-    return Path(picture_path)
+    return picture_path
 
 
 async def get_thooth_id(page: Page, thoot_id: int)->str:
