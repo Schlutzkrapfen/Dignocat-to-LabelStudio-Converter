@@ -95,11 +95,12 @@ async def main():
 
         page: Page = await context.new_page()
         task:list[TaskItem] = []
+
+        refrence_image_path:Path = Path()
         try:
             await login(page)
             page_amount = await get_patient_amount(page)
             print(f"You have {page_amount} patience")
-            refrence_image_path = Path("")
 
 
             for i in parse_id_range(page_amount):
