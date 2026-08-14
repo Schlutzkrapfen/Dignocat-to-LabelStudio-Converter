@@ -7,6 +7,7 @@ import numpy as np
 from PIL import Image, ImageChops
 from task_item import InnerAnnotation,  Prediction, TaskItem, Value
 from playwright.async_api import Page
+import shutil
 
 from helper_functions import get_info, strip_keys, to_percent,get_image_size,to_confidence
 from typing import cast
@@ -220,7 +221,7 @@ def dump_json(task: list[TaskItem]):
     Args:
         task: The list of TaskItem objects to save.
     """
-    cleaned = strip_keys(task, { "thoot_id","options"})
+    cleaned = strip_keys(task, { "thoot_id1","options1"})
     with open("output.json", "w") as f:
         json.dump(cleaned, f, indent=2)
     print("saved json to output.json")
@@ -371,3 +372,10 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
                 task.append(inner_json(label[i], x, y, w, h, int(id)+i, parts[3], label_categorie[i],options[i],parts[4]))
             id += len(label)-1
         return outer_json(user_id, str(id), task)
+
+def delete_screenshot_folders(teeth_folder:Path =Path("output/teeth-screenshoots"),screenshot_folder:Path=Path("output/screenshots") ):
+    if teeth_folder.exists():
+        shutil.rmtree(teeth_folder)
+    if screenshot_folder.exists():
+        shutil.rmtree(screenshot_folder)
+    print("Deleted the old screenshots of the single labels")

@@ -85,8 +85,9 @@ def check_task_options(tasks:list[TaskItem])->list[TaskItem]:
             transformations are applied.
         """
     task:list[TaskItem] = combine_labels(tasks)
+    task = remove_labels(task)
 
-    return remove_labels(task)
+    return task
 def get_new_rectangle(item:InnerAnnotation,x,y,width,height):
     """Expands a bounding box to also enclose a new annotation's rectangle.
 
@@ -154,9 +155,10 @@ def create_cluster(annotations: list[InnerAnnotation])->list[list[InnerAnnotatio
     for item in annotations:
         placed = False
         for cluster in clusters:
+
             if any(
                 check_if_two_theeth_are_near_each_other(
-                    (int(item["thoot_id"][1:2])), (int(other["thoot_id"][1:2]))
+                    (int(item["thoot_id"][1:3])), (int(other["thoot_id"][1:3]))
                 )
                 for other in cluster
             ):
@@ -165,7 +167,7 @@ def create_cluster(annotations: list[InnerAnnotation])->list[list[InnerAnnotatio
                 break
         if not placed:
             clusters.append([item])
-
+    print(clusters)
     return clusters
 
 def get_thooth_id_from_cluster(cluster:list[InnerAnnotation])-> str:
