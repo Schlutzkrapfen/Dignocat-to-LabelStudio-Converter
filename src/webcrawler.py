@@ -123,7 +123,6 @@ async def get_thooth_id(page: Page, thoot_id: int)->str:
             continue
         id = int(numeric_tokens[-1])
         if id == thoot_id:
-            print(id)
             section_id:str = cast(str, await section.evaluate("el => el.id"))
             return section_id[-4:]
 
