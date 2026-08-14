@@ -263,7 +263,7 @@ async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:
 
             thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
 
-            refrence_image_path = await get_refrence_image(page, user_id )
+            refrence_image_path = await get_refrence_image(page, user_id)
             paths = await get_theeh_picture(page, thooth_id, user_id)
         except ValueError as e :
             print(f"Warning: {e}")
@@ -272,9 +272,7 @@ async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:
 
 
         print(f"Saved {paths}")
-        if refrence_image_path is None:
-            print("Refrence Image is missing")
-            continue
+
         try:
 
             difference_path = await get_difference(refrence_image_path, paths)
