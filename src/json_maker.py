@@ -220,7 +220,7 @@ def dump_json(task: list[TaskItem]):
     Args:
         task: The list of TaskItem objects to save.
     """
-    cleaned = strip_keys(task, { "thoot_id1"})
+    cleaned = strip_keys(task, { "thoot_id","options"})
     with open("output.json", "w") as f:
         json.dump(cleaned, f, indent=2)
     print("saved json to output.json")
