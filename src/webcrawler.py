@@ -271,14 +271,15 @@ async def take_screenshot(page:Page,canvas:ElementHandle,path:Path,max_retries: 
             TimeoutError: If the screenshot still fails after exhausting all
                 retry attempts.
         """
-    await page.wait_for_timeout(500)
+
     await page.evaluate("""
           () => new Promise(resolve => {
             requestAnimationFrame(() => requestAnimationFrame(resolve));
           })
         """)
+    await page.wait_for_timeout(500)
     try:
-        _screenshot = await canvas.screenshot(path=path)
+        _screenshot = await canvas.screenshot(path=str(path))
     except (PlaywrightTimeoutError, PlaywrightError) as e:
         if max_retries <= 0:
                     print(f"Couldn't get screenshot, no retries left:{e}")

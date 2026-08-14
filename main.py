@@ -84,6 +84,7 @@ async def main():
     os.makedirs(output_dir, exist_ok=True)
     label_Data = load_label_mapping()
 
+
     # Starts the browser
     async with async_playwright() as p:
         context = await p.chromium.launch_persistent_context(
@@ -91,6 +92,8 @@ async def main():
             headless=False,
             # How good the quality of the Screenshots is
             device_scale_factor=screenshot_quality_mulitplayer,
+
+
         )
 
         page: Page = await context.new_page()
@@ -99,6 +102,7 @@ async def main():
         refrence_image_path:Path = Path()
         try:
             await login(page)
+
             page_amount = await get_patient_amount(page)
             print(f"You have {page_amount} patience")
 

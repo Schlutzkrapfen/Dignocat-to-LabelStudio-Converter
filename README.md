@@ -110,12 +110,10 @@ After signing in, the script will automatically process the images.
  -   Do not move your mouse: The web crawler takes screenshots and uses hover effects to extract data. Having your mouse over the window may interfere with the data collection.
 
  -   Keep Focus: For best results, keep the automated browser window focused (on top) while it runs.
+
+ -    Keep Zoom at 100%: The program does not check the browser's zoom level. If it's not at 100%, screenshots will be incorrect.
 ## Output
 
 At the end of the process, the script will generate an output.json file.
 
 You can upload this file directly to your Label Studio project to see your annotated images.
-
-
-
-
