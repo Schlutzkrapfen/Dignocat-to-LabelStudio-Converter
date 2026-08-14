@@ -167,7 +167,6 @@ def create_cluster(annotations: list[InnerAnnotation])->list[list[InnerAnnotatio
                 break
         if not placed:
             clusters.append([item])
-    print(clusters)
     return clusters
 
 def get_thooth_id_from_cluster(cluster:list[InnerAnnotation])-> str:
