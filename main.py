@@ -116,7 +116,7 @@ async def main():
                 task = check_task_options(task)
                 dump_json(task)
                 #When debugging can be deaktivated for faster new runs
-                #delete_screenshot_folders()
+                delete_screenshot_folders()
 
 
 
