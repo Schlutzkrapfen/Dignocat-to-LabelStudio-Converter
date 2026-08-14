@@ -13,8 +13,6 @@ def find_duplicates_of(image_path: Path, images_path: Path) -> list[Path]:
         Returns:
             A list of file paths that are duplicates of the target image.
         """
-    images_path = Path(images_path)
-    image_path = Path(image_path)
     target_hash = _hash_file(image_path)
     duplicates: list[Path] = []
     for filepath in images_path.iterdir():
