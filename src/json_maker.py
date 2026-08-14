@@ -221,7 +221,7 @@ def dump_json(task: list[TaskItem]):
     Args:
         task: The list of TaskItem objects to save.
     """
-    cleaned = strip_keys(task, { "thoot_id1","options1"})
+    cleaned = strip_keys(task, { "thoot_id","options"})
     with open("output.json", "w") as f:
         json.dump(cleaned, f, indent=2)
     print("saved json to output.json")
@@ -370,6 +370,7 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
                 raise ValueError("label Category doesen't exist")
             for i,_ in enumerate(label):
                 task.append(inner_json(label[i], x, y, w, h, int(id)+i, parts[3], label_categorie[i],options[i],parts[4]))
+            print(id)
             id += len(label)-1
         return outer_json(user_id, str(id), task)
 
