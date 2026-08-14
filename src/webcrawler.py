@@ -483,4 +483,4 @@ async def get_refrence_image(page: Page, user_id:int, skip_if_exist: bool = True
     else:
         print(f"Screenshot already exists: {picture_path}")
 
-    return Path(picture_path)
+    return picture_path

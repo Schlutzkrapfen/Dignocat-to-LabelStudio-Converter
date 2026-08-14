@@ -225,7 +225,7 @@ def dump_json(task: list[TaskItem]):
         json.dump(cleaned, f, indent=2)
     print("saved json to output.json")
 
-async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:int,refrence_image_path:Path)->tuple[TaskItem, Path]:
+async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:int)->TaskItem :
 
     """Builds a labeling task from per-tooth screenshots vs a reference image.
 
@@ -241,18 +241,22 @@ async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:
             `map_label` to resolve a label's categories and options.
         user_id (int): Identifier of the user, used to build image
             file paths.
-        refrence_image_path (Path): Reference image used as a
-            baseline; may be replaced during processing.
+
 
     Returns:
-        tuple[TaskItem, Path]: The generated task and the reference
-            image path used.
+        TaskItem: The generated task
 
     """
     not_conv_labels = await get_tooth_descriptions(page)
 
     inner_task:list[InnerAnnotation] = []
     id_addition:int = 0
+    try:
+        refrence_image_path:Path = await get_refrence_image(page, user_id)
+    except LookupError as e:
+        print(f"Fatal Error:{e}, tries again")
+        return await get_task(page,label_Data,user_id)
+
     for i, non_conv_label in enumerate(not_conv_labels):
         labels:list[str]
         label_categories:list[str]
@@ -267,8 +271,7 @@ async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:
 
             thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
 
-            refrence_image_path = await get_refrence_image(page, user_id)
-            print(refrence_image_path)
+
             paths = await get_theeh_picture(page, thooth_id, user_id)
         except ValueError as e :
             print(f"Warning: {e}")
@@ -302,7 +305,7 @@ async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:
 
     return( await make_json(
                     images_paths, label_Data, refrence_image_path, inner_task, user_id, page
-            ),refrence_image_path)
+            ))
 
 
 
