@@ -109,6 +109,7 @@ async def main():
                 except (ValueError,OSError)as e:
                     print(f"complete failure:{e}")
                     raise OSError
+                print(refrence_image_path)
                 single_task,refrence_image_path  = await get_task(page,label_Data,user_id,refrence_image_path)
                 task.append(single_task)
                 task = check_task_options(task)
