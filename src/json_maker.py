@@ -305,23 +305,19 @@ async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:
     images_paths = await get_user_screenshoots(page, user_id)
 
     return( await make_json(
-                    images_paths, label_Data, refrence_image_path, inner_task, user_id, page
+                    images_paths, label_Data, refrence_image_path, inner_task,len(not_conv_labels)+id_addition , page
             ))
 
 
 
-async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str, str]]], refrence_image_path:Path, task :list[InnerAnnotation] , user_id:int, page:Page,)->TaskItem:
+async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str, str]]], refrence_image_path:Path, task :list[InnerAnnotation] , current_id:int, page:Page,)->TaskItem:
         """Diff each image against a reference image and append the resulting annotations to `task`.
-        def add_option():
-            :
-
-
             Args:
                 images_paths: Paths to the tooth images to process.
                 label_Data: Lookup table used to resolve a label key to a (label, category) pair.
                 refrence_image_path: Path to the reference image each entry is diffed against.
                 task: List of annotations to append to (mutated in place).
-                user_id: Currently unused.
+                current_id:id that should be added.
                 page: Playwright page used to re-fetch a replacement image if a diff fails.
 
             Returns:
@@ -369,9 +365,8 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
             if label_categorie is None:
                 raise ValueError("label Category doesen't exist")
             for i,_ in enumerate(label):
-                task.append(inner_json(label[i], x, y, w, h, int(id)+i, parts[3], label_categorie[i],options[i],parts[4]))
-            print(id)
-            id += len(label)-1
+                task.append(inner_json(label[i], x, y, w, h, id+current_id, parts[3], label_categorie[i],options[i],parts[4]))
+                id +=1
         return outer_json(user_id, str(id), task)
 
 def delete_screenshot_folders(teeth_folder:Path =Path("output/teeth-screenshoots"),screenshot_folder:Path=Path("output/screenshots") ):
