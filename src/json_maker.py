@@ -294,7 +294,7 @@ async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:
                 labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k],options[k],thooth_id
             ))
             id_addition +=1
-        if refrence_image_path == "":
+        if refrence_image_path == Path("."):
             print("Refrence Image is none")
             continue
     images_paths = await get_user_screenshoots(page, user_id)
