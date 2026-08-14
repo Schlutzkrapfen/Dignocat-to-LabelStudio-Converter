@@ -260,6 +260,10 @@ async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:
             labels, label_categories,options = map_label(
             non_conv_label["type"], label_Data
         )
+        except ValueError as e:
+            print(f"Info: {e}")
+            continue
+        try:
 
             thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
 
