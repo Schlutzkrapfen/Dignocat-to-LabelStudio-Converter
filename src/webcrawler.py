@@ -78,7 +78,7 @@ async def get_theeh_picture(page: Page, teeth_id: str, user_id: int) -> Path:
             ValueError: If no canvas element is found on the page after
                 hovering over the tooth's title.
         """
-    picture_path = f"output/teeth-screenshoots/{user_id}-{teeth_id}.png"
+    picture_path = Path(f"output/teeth-screenshoots/{user_id}-{teeth_id}.png")
 
     if os.path.exists(picture_path):
         return Path(picture_path)
@@ -236,21 +236,21 @@ async def get_user_screenshoots(page: Page, user_id: int) -> list[Path]:
             print("something went wrong while Fetching, lets try again.")
             return await get_user_screenshoots(page, user_id)
 
-        picture_path = f"output/screenshots/{user_id}_{i}_{await name.inner_text()}_{await percentage.inner_text()}_{last_4}.png"
+        picture_path =Path(f"output/screenshots/{user_id}_{i}_{await name.inner_text()}_{await percentage.inner_text()}_{last_4}.png")
 
         if os.path.exists(picture_path):
             print(f"Skipping {picture_path}, already exists")
-            saved_screenshoots.append(Path(picture_path))
+            saved_screenshoots.append(picture_path)
             continue
 
         print(f"Saved {picture_path}")
-        saved_screenshoots.append(Path(picture_path))
+        saved_screenshoots.append(picture_path)
         await take_screenshot(page, canvas, picture_path)
 
     return saved_screenshoots
 
 
-async def take_screenshot(page:Page,canvas:ElementHandle,path:str,max_retries: int = 10 ):
+async def take_screenshot(page:Page,canvas:ElementHandle,path:Path,max_retries: int = 10 ):
     """Captures a screenshot of a canvas element and saves it to disk.
 
         Waits briefly for the page to settle and for two animation frames to
@@ -471,7 +471,7 @@ async def get_refrence_image(page: Page, user_id:int, skip_if_exist: bool = True
     Raises:
         LookupError: Couldn't find the canvas
     """
-    picture_path = f"output/{user_id}.png"
+    picture_path = Path(f"output/{user_id}.png")
 
     if not os.path.exists(picture_path) or not skip_if_exist:
         await deactivated_show_buttons(page)
