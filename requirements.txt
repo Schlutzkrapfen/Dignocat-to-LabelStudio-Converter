@@ -4,3 +4,4 @@
  playwright
  numpy
  Pillow
+torch
