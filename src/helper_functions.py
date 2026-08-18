@@ -3,7 +3,7 @@ from pathlib import Path
 from PIL import Image
 
 from task_item import TaskItem
-def get_info(filename: str)-> tuple[int,str,str,str,str]:
+def get_info(filename: str)-> tuple[int,int,str,str,str]:
     """Gets the info out of the filename.
 
         Args:
@@ -13,13 +13,13 @@ def get_info(filename: str)-> tuple[int,str,str,str,str]:
         Returns:
             tuple[int, str, str, str, str]: A tuple containing, in order,
             the patient ID (int), picture ID, "what-it-is" label, percent
-            value, and sub ID (all str), parsed from the filename.
+            value, and sub ID/Thooth id (all str), parsed from the filename.
         """
 
     filename = os.path.basename(filename)  # removes "output/"
     name, _ext = os.path.splitext(filename)
     parts:list[str] = name.split("_")
-    return int(parts[0]), parts[1] , parts[2], parts[3], parts[4]
+    return int(parts[0]), int(parts[1]) , parts[2], parts[3], parts[4]
 
 def get_path_from_taskItem(item:TaskItem)-> Path:
     """Extracts the relative image path from a task item.
