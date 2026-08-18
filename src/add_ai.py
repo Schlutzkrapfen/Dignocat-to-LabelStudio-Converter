@@ -1,7 +1,6 @@
 
 from __future__ import annotations
 
-from typing_extensions import Tuple
 
 import torch
 import statistics
@@ -20,6 +19,24 @@ AI_DIR:Path = Path("AI-Models")
 PADDING_PERCENT:int = 5 #the padding was also used in the training
 
 def add_ai(tasks:list[TaskItem]):
+    """Enriches task annotations with AI-predicted labels and scores.
+
+        For each task, opens the associated image and iterates over its
+        prediction results. For annotations flagged for AI processing (per
+        `test_if_ai`), runs the appropriate AI model to predict a label and
+        confidence amount, then updates the annotation's `from_name`,
+        `rectanglelabels`, and `score` (averaged with the existing score)
+        based on the predicted label's mapping.
+
+        Args:
+            tasks (list[TaskItem]): List of tasks to process. Each task is
+                expected to contain image path info and a
+                `predictions[0]["result"]` list of annotations.
+
+        Returns:
+            list[TaskItem]: The same tasks, with AI-eligible annotations
+            updated in place.
+    """
     items:list[TaskItem] = []
     labels = load_label_mapping(ai=True)
     for task in tasks:
@@ -39,7 +56,24 @@ def add_ai(tasks:list[TaskItem]):
     return items
 
 
-def ai_predict(ai_path: Path, image: Image.Image) -> Tuple[float,str]:
+def ai_predict(ai_path: Path, image: Image.Image) -> tuple[float,str]:
+    """Runs image classification inference using a saved ResNet18 checkpoint.
+
+        Loads a ResNet18 model and its class names from a checkpoint file,
+        preprocesses the input image (resize, tensor conversion, and
+        normalization), and runs inference to predict the most likely class.
+
+        Args:
+            ai_path (Path): Path to the model checkpoint file. The checkpoint
+                must contain a "model_state" (state dict) and "class_names"
+                (list of class labels).
+            image (Image.Image): The PIL image to classify.
+
+        Returns:
+            tuple[float, str]: A tuple of (confidence, predicted_class), where
+            `confidence` is the softmax probability (0-1) of the predicted
+            class, and `predicted_class` is the predicted class name.
+    """
     IMG_SIZE = 224
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -75,6 +109,19 @@ def ai_predict(ai_path: Path, image: Image.Image) -> Tuple[float,str]:
     return confidence,predicted_class
 
 def crop_with_padding(image: Image.Image, x_pct, y_pct, w_pct, h_pct, padding_pct):
+    """Crops a region of an image, adding padding around it.
+
+        Args:
+            image (Image.Image): The PIL image to crop.
+            x_pct (float): X coordinate of the region's top-left corner, as % of image width.
+            y_pct (float): Y coordinate of the region's top-left corner, as % of image height.
+            w_pct (float): Width of the region, as % of image width.
+            h_pct (float): Height of the region, as % of image height.
+            padding_pct (float): Padding around the region, as % of the region's own size.
+
+        Returns:
+            Image.Image: The cropped image, clamped to the original image's bounds.
+        """
     img_w, img_h = image.size
 
     x = x_pct / 100 * img_w
@@ -92,11 +139,29 @@ def crop_with_padding(image: Image.Image, x_pct, y_pct, w_pct, h_pct, padding_pc
 
     return image.crop((int(left), int(top), int(right), int(bottom)))
 def get_which_ai_modell_to_use(options:str)-> Path:
-   path= Path(AI_DIR /  options.split(":")[1])
-   return path
+    """Resolves the AI model path from an options string.
+        Args:
+            options (str): A string containing the model identifier in the
+                format "ai:model_name" (e.g. "ai:gpt4"). The part
+                after the colon is used as the model's filename/subpath.
+        Returns:
+            Path: Full path to the model, obtained by joining AI_DIR with
+            the value after the colon in `options`.
+    """
+    path= Path(AI_DIR /  options.split(":")[1])
+    return path
 def test_if_ai(options:str):
-        parts = options.split(",")
-        for part in parts:
-            if part[:2] == "ai" :
-                return True
-        return False
+    """Checks whether an annotation has the option ai
+
+            Args:
+                options (str): Comma-separated list of option flags.
+
+            Returns:
+                bool: True if the annotation has the option ai that
+                     False otherwise.
+    """
+    parts = options.split(",")
+    for part in parts:
+        if part[:2] == "ai" :
+            return True
+    return False
