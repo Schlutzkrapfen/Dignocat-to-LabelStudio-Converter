@@ -329,6 +329,9 @@ def test_if_inward(options:str,thooth_id:str)->bool:
         if part == "inward"and is_furthers_out(theet_id=thooth_id):
             return True
     return False
+
+
+
 def test_if_outward(options:str,thooth_id:str)->bool:
     """Checks whether an annotation should be removed as an outward duplicate.
 
