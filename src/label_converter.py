@@ -5,18 +5,16 @@ from numpy.ma.core import empty
 
 
 def load_label_mapping(ai:bool=False)-> dict[str,list[dict[str,str]]]:
-    """
-        Load the Diagnocat label mapping from a TSV file.
+    """Loads the Diagnocat label mapping from a TSV file.
 
-        Reads `label_mapping.csv` (tab-separated) located one directory above
-        this file, and builds a mapping from each `diagnocat_label` to its
-        corresponding `code`, `label_category`and 'options'.
         Args:
-            ais:
+            ai (bool): If True, loads the AI label mapping from
+                "AI-Models/ai-labels.csv". If False, loads the standard
+                mapping from "label_mapping.csv". Defaults to False.
 
         Returns:
-            dict[str, dict[str, str]]: Mapping from label name to a dict with
-                "code" and "label_category" keys.
+            dict[str, list[dict[str, str]]]: Mapping from label name to a
+            list of dicts with "code", "label_category", and "option" keys.
         """
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if ai:

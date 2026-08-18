@@ -80,7 +80,11 @@ def parse_id_range(total: int) -> list[int]:
 
 
 async def main():
-    """Main Function"""
+    """Runs the full pipeline: login, iterate patients, and extract task data.
+
+        Raises:
+            OSError: If a patient's page can't be found/loaded.
+        """
     output_dir = Path("output")
     os.makedirs(output_dir, exist_ok=True)
     label_Data = load_label_mapping()

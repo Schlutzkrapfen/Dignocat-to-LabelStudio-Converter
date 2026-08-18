@@ -108,7 +108,9 @@ async def get_thooth_id(page: Page, thoot_id: int)->str:
         Returns:
             The last 4 characters of the matching section's HTML id attribute,
             or raises a Valuerror if no match is found.
-        """
+        Raises:
+                   ValueError: If no section matching the given tooth ID is found.
+         """
     thoot_id = int(thoot_id)
     sections = await page.locator("section.WidgetCard-module_container_1PPfu").all()
     for section in sections:
@@ -126,7 +128,7 @@ async def get_thooth_id(page: Page, thoot_id: int)->str:
             section_id:str = cast(str, await section.evaluate("el => el.id"))
             return section_id[-4:]
 
-    raise ValueError
+    raise ValueError("Couldn't find thooth id")
 
 
 async def find_page(page: Page,i:int,page_amount:int,output_dir:Path)->int:
@@ -393,7 +395,27 @@ async def get_patient_amount(page: Page)->int:
 
 
 async def go_to_patient_report(page: Page, user_id: int,max_retries:int=20):
-    """Goes to the right page"""
+    """Navigates to a specific patient's report page.
+
+        Opens the patients list page, scrolls through the infinite-scroll
+        table until the row for `user_id` is loaded, clicks it to open the
+        patient, and then opens the report card. Retries on timeouts/errors
+        (reloading the patients page) up to `max_retries` times, and on a
+        missing report card, retries with the next `user_id`.
+
+        Args:
+            page (Page): The Playwright Page instance.
+            user_id (int): Index of the patient row to open in the table.
+            max_retries (int): Maximum number of retry attempts on page
+                load/timeout errors. Defaults to 20.
+
+
+        Raises:
+            OSError: If the page can't be loaded/seen after exhausting
+                `max_retries`.
+            ValueError: If no users are left to retry after exhausting
+                `max_retries` on a report-card timeout.
+        """
     print("Opening data page...")
     try:
         _website = await page.goto(
@@ -448,6 +470,11 @@ async def go_to_patient_report(page: Page, user_id: int,max_retries:int=20):
 
 
 async def remove_overlay(page: Page):
+    """Removes the HubSpot overlay element from the page, if present.
+
+        Args:
+            page (Page): The Playwright Page instance.
+        """
     await page.evaluate("""
     const el = document.querySelector('#hs-web-interactives-top-anchor');
     if (el) el.remove();
@@ -463,6 +490,9 @@ async def get_refrence_image(page: Page, user_id:int, skip_if_exist: bool = True
             skip_if_exist (bool): If True, skips regenerating the
                 screenshot when a file already exists at the target path.
                 Defaults to True.
+   Returns:
+                       Path: Path to the reference screenshot, either newly created
+                       or already existing.
     Raises:
         LookupError: Couldn't find the canvas
     """

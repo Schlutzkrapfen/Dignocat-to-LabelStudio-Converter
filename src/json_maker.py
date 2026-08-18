@@ -376,6 +376,17 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
         return outer_json(user_id, str(id), task)
 
 def delete_screenshot_folders(teeth_folder:Path =Path("output/teeth-screenshoots"),screenshot_folder:Path=Path("output/screenshots") ):
+    """Deletes the folders containing previously generated screenshots.
+
+        Removes the teeth-screenshot folder and the general screenshot
+        folder (along with all their contents) if they exist, to save disk space.
+
+        Args:
+            teeth_folder (Path): Path to the folder containing teeth
+                screenshots. Defaults to Path("output/teeth-screenshoots").
+            screenshot_folder (Path): Path to the folder containing general
+                screenshots. Defaults to Path("output/screenshots").
+    """
     if teeth_folder.exists():
         shutil.rmtree(teeth_folder)
     if screenshot_folder.exists():
