@@ -1,5 +1,8 @@
 import os
 from PIL import Image
+
+from task_item import TaskItem
+import task_item
 def get_info(filename: str)-> list[str]:
     """Gets the info out of the filename.
 
@@ -17,6 +20,9 @@ def get_info(filename: str)-> list[str]:
     parts = name.split("_")
     return parts
 
+def get_image_from_taskitem(item:TaskItem):
+    print(item["data"]["image"])
+    pass
 
 def get_image_size(imagePath: str)->tuple[int,int]:
     """Gets the image size of a path.

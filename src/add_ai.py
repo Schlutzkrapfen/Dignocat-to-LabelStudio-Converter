@@ -5,6 +5,7 @@ from pathlib import Path
 from PIL.Image import Image
 
 
+from helper_functions import get_image_from_taskitem
 from task_item import InnerAnnotation, TaskItem
 AI_DIR:Path = Path("AI-Models")
 PADDING_PERCENT:int = 5 #the padding was also used in the training
@@ -17,6 +18,8 @@ def add_ai(tasks:list[TaskItem]):
         combine_annotaion: dict[str,list[ InnerAnnotation]] = {}
         for anotation in result:
             if test_if_ai(anotation["options"]):
+                get_which_ai_modell_to_use(anotation["options"])
+                get_image_from_taskitem(item)
                 key = anotation["value"]["rectanglelabels"]
                 continue
             cur_anotation.append(anotation)
