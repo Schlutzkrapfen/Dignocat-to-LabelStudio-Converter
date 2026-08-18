@@ -32,6 +32,7 @@ def add_ai(tasks:list[TaskItem]):
                 cur_amount,cur_name = ai_predict(get_which_ai_modell_to_use(anotation["options"]),image)
                 anotation["from_name"] = labels[cur_name][0]["label_category"]
                 anotation["value"]["rectanglelabels"] = [str(item["code"]) for item in labels[cur_name]]
+                anotation["score"] =  float(statistics.mean([anotation["score"],cur_amount]))
 
             cur_anotation.append(anotation)
         task["predictions"][0]["result"] = cur_anotation

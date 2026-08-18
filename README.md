@@ -52,16 +52,34 @@ playwright install chromium
 Before running the script, you must configure how the labels are translated. This is done in the label_mapping.csv file.
 ### Mapping the CSV
 
-The CSV file contains three columns: diagnocat_label, code, and label_category.
+The CSV file contains four columns: diagnocat_label, code, label_category and options.
 
-- diagnocat_label: This is the name of the label as it appears in DiagnoCat. You can find these names by clicking on any label within the DiagnoCat interface.
-   - Note: If you don't want to use a specific label, simply leave the row blank.
+- **`diagnocat_label`**: The name of the label as it appears in DiagnoCat. You can find these names by clicking on any label within the DiagnoCat interface.
+  > **Note:** If you don't want to use a specific label, simply leave the row blank.
 <img width="2559" height="1599" alt="image" src="https://github.com/user-attachments/assets/6ffdb6ad-db7d-4f87-b075-b100f6b5ff1c" />
 <img width="2559" height="1599" alt="image" src="https://github.com/user-attachments/assets/7e8e23ac-5577-4a60-b380-946be962e363" />
     
-- code: This corresponds to the Label value in your Label Studio configuration.
+- **`code`**: Corresponds to the `value` attribute of your `<Label>` tag in Label Studio.
 
-- label_category: This corresponds to the name attribute of your <RectangleLabels> tag in Label Studio.
+- **`label_category`**: Corresponds to the `name` attribute of your `<RectangleLabels>` tag in Label Studio.
+
+- **`options`**: Allows you to pass specific modifiers or AI processing flags to a label. Multiple options must be separated by a comma (e.g., `inward,combine`).
+
+#### Available Options
+
+- **`inward`**: Uses all labels except the furthest outer teeth (wisdom teeth).
+- **`outward`**: Uses only the furthest outer teeth (wisdom teeth).
+- **`combine`**: If two teeth share the same label and are adjacent to each other, it combines them into a single label.
+- **`ai:<model_name>`**: Uses a secondary AI model to split the label into more parts. See the **AI Models** section below.
+##### AI Models
+
+If you want to split or refine a label into smaller parts, you can attach an AI model to it using the `ai:<model_name>` option.
+
+1. **Model Location:** Save your model file inside the `AI-models/` directory (e.g., `AI-models/crown.pth`).
+2. **Usage in Options:** Add `ai:` followed by the model filename in the `options` column (e.g., `ai:crown.pth`).
+3. **AI Mapping File:** Configure `ai-label.csv` to map the AI outputs.
+   - It works identically to `label_mapping.csv`, but without the `options` column.
+   - Replace `diagnocat_label` with `ai_label` (the label name predicted by your AI model).
 
 ### Example:
 
@@ -76,9 +94,9 @@ XML
 ```
 
 To map the DiagnoCat label "Füllung" to "Metal-Filling", your CSV row should look like this:
-| diagnocat_label | code | label_category |
-| :--- | :--- | :--- |
-| Füllung | Metal-Filling | metal |
+| diagnocat_label | code | label_category | options |
+| :--- | :--- | :--- | :--- |
+| Füllung | Metal-Filling | metal | ai:filling.pth,inward |
 
 ## Usage
 
