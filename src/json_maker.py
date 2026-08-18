@@ -332,16 +332,16 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
         options = []
         thooth_leng = len(str(refrence_image_path))
         for paths in images_paths:
-            parts = get_info(str(paths))
+            patient_id,picture_id,diagnocat_label,prozent,sub_id = get_info(str(paths))
             try:
-                label, label_categorie,options = map_label(parts[2], label_Data)
+                label, label_categorie,options = map_label(diagnocat_label, label_Data)
             except ValueError as e:
                 print(f"Info: {e}")
                 continue
 
 
-            user_id = int(parts[0])
-            id = int(parts[1]) + thooth_leng
+            user_id = patient_id
+            id = picture_id + thooth_leng
             try:
                 difference_path = await get_difference(refrence_image_path, paths)
                 x, y, w, h = await get_json_cordinates(difference_path)
@@ -355,10 +355,10 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
             if w == 0 and h == 0 or hole:
                 if not hole:
                     logger.warning(
-                        f"Something went wrong with id= {id},user_id={user_id},label={label}/{parts[2]},thoot_id = {parts[4]}\n removed the broken Picture. "
+                        f"Something went wrong with id= {id},user_id={user_id},label={label}/{diagnocat_label},thoot_id = {sub_id}\n removed the broken Picture. "
                     )
                 os.remove(paths)
-                paths = await get_theeh_picture(page, parts[4], id)
+                paths = await get_theeh_picture(page, sub_id, id)
                 difference_path = await  get_difference(refrence_image_path, paths)
                 try:
                     x, y, w, h = await get_json_cordinates(difference_path)
@@ -371,7 +371,7 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
             if label_categorie is None:
                 raise ValueError("label Category doesen't exist")
             for i,_ in enumerate(label):
-                task.append(inner_json(label[i], x, y, w, h, id+current_id, parts[3], label_categorie[i],options[i],parts[4]))
+                task.append(inner_json(label[i], x, y, w, h, id+current_id, prozent, label_categorie[i],options[i],sub_id))
                 id +=1
         return outer_json(user_id, str(id), task)
 
