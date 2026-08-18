@@ -331,7 +331,14 @@ def test_if_inward(options:str,thooth_id:str)->bool:
         if part == "inward"and is_furthers_out(theet_id=thooth_id):
             return True
     return False
+def check_if_hole(options:str)->bool:
+    parts = options.split(",")
+    for part in parts:
+        if part == "hole" :
+            return True
+    return False
 
+    return False
 
 
 def test_if_outward(options:str,thooth_id:str)->bool:

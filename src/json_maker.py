@@ -5,6 +5,7 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageChops
+from add_options import check_if_hole
 from task_item import InnerAnnotation,  Prediction, TaskItem, Value
 from playwright.async_api import Page
 import shutil
@@ -347,10 +348,15 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
             except (ValueError,FileNotFoundError,OSError) as e :
                 print(f"Error: {e}")
                 continue
-            if w == 0 and h == 0:
-                logger.warning(
-                    f"Something went wrong with id= {id},user_id={user_id},label={label}/{parts[2]},thoot_id = {parts[4]}\n removed the broken Picture. "
-                )
+            hole:bool = False
+            for i,_ in enumerate(label):
+                if check_if_hole(options[i]):
+                    hole = True
+            if w == 0 and h == 0 or hole:
+                if not hole:
+                    logger.warning(
+                        f"Something went wrong with id= {id},user_id={user_id},label={label}/{parts[2]},thoot_id = {parts[4]}\n removed the broken Picture. "
+                    )
                 os.remove(paths)
                 paths = await get_theeh_picture(page, parts[4], id)
                 difference_path = await  get_difference(refrence_image_path, paths)

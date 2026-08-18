@@ -3,23 +3,19 @@ from pathlib import Path
 from PIL import Image
 
 from task_item import TaskItem
-import task_item
-def get_info(filename: str)-> list[str]:
+def get_info(filename: str)-> tuple[int,str,str,str,str]:
     """Gets the info out of the filename.
 
         Args:
             filename: Path to the image, expected format:
                       "Path/to/PatientId_PictureId_What-it-is_Prozent_SubId.png"
 
-        Returns:
-            list[str]: A list containing the split parts:
-                       [PatientId, PictureId, What-it-is, Prozent, SubId/TheetId]
         """
 
     filename = os.path.basename(filename)  # removes "output/"
     name, _ext = os.path.splitext(filename)
-    parts = name.split("_")
-    return parts
+    parts:list[str] = name.split("_")
+    return int(parts[0]), parts[1] , parts[2], parts[3], parts[4]
 
 def get_path_from_taskItem(item:TaskItem)-> Path:
     path = item["data"]["image"]

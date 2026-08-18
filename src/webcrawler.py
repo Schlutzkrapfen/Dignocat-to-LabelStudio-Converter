@@ -410,12 +410,7 @@ async def go_to_patient_report(page: Page, user_id: int,max_retries:int=20):
             raise OSError("Window is closed or can't be seen")
         await go_to_patient_report(page,user_id,max_retries -1)
         return
-
-
-
     # Scroll until we have enough rows loaded to reach user_id
-
-
     # Wait for the next page
     try:
         while True:
