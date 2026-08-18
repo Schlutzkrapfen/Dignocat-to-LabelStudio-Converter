@@ -7,9 +7,13 @@ def get_info(filename: str)-> tuple[int,str,str,str,str]:
     """Gets the info out of the filename.
 
         Args:
-            filename: Path to the image, expected format:
-                      "Path/to/PatientId_PictureId_What-it-is_Prozent_SubId.png"
+            filename (str): Path to the image, expected format:
+                "Path/to/PatientId_PictureId_What-it-is_Prozent_SubId.png".
 
+        Returns:
+            tuple[int, str, str, str, str]: A tuple containing, in order,
+            the patient ID (int), picture ID, "what-it-is" label, percent
+            value, and sub ID (all str), parsed from the filename.
         """
 
     filename = os.path.basename(filename)  # removes "output/"
@@ -18,6 +22,19 @@ def get_info(filename: str)-> tuple[int,str,str,str,str]:
     return int(parts[0]), parts[1] , parts[2], parts[3], parts[4]
 
 def get_path_from_taskItem(item:TaskItem)-> Path:
+    """Extracts the relative image path from a task item.
+
+        Takes the full image path stored in the task item and keeps only
+        the last two path components (e.g. "folder/image.png").
+
+        Args:
+            item (TaskItem): Task item containing the image path under
+                `item["data"]["image"]`.
+
+        Returns:
+            Path: The relative path consisting of the last two components
+            of the original image path.
+    """
     path = item["data"]["image"]
     parts = path.split("/")
     result = "/".join(parts[-2:])
