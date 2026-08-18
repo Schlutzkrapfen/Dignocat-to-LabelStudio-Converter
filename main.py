@@ -118,8 +118,6 @@ async def main():
                 #When debugging can be deaktivated for faster new runs
                 delete_screenshot_folders()
 
-
-
         finally:
             print("Finished")
 
