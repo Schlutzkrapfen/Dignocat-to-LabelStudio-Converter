@@ -4,7 +4,7 @@ Endodontisch behandelter Zahn	Zement-Rootfilling	"Zement/Guttapercha
 Füllung	Metall-Filling	"metal
 "	
 Künstliche Zahnkrone	Metal-Crown	"metal
-"	
+"	ai:crown.pth
 Parodontaler Knochenverlust	Horizontal Bone loss (to enamel-dentin-border)	Peridontology	
 Periapikale Radioluzenz	PPC/Ostitis/Zyst	"PPC/Ostitis/Zyst
 "	
