@@ -1,5 +1,6 @@
 
 
+from add_ai import add_ai
 from task_item import InnerAnnotation, TaskItem, Value
 
 def remove_labels(tasks:list[TaskItem])-> list[TaskItem]:
@@ -86,6 +87,7 @@ def check_task_options(tasks:list[TaskItem])->list[TaskItem]:
         """
     task:list[TaskItem] = combine_labels(tasks)
     task = remove_labels(task)
+    task = add_ai(task)
 
     return task
 def get_new_rectangle(item:InnerAnnotation,x,y,width,height):

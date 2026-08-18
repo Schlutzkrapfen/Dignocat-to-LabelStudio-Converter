@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from PIL import Image
 
 from task_item import TaskItem
@@ -20,9 +21,11 @@ def get_info(filename: str)-> list[str]:
     parts = name.split("_")
     return parts
 
-def get_image_from_taskitem(item:TaskItem):
-    print(item["data"]["image"])
-    pass
+def get_path_from_taskItem(item:TaskItem)-> Path:
+    path = item["data"]["image"]
+    parts = path.split("/")
+    result = "/".join(parts[-2:])
+    return Path(result)
 
 def get_image_size(imagePath: str)->tuple[int,int]:
     """Gets the image size of a path.
