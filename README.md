@@ -52,7 +52,7 @@ playwright install chromium
 Before running the script, you must configure how the labels are translated. This is done in the label_mapping.csv file.
 ### Mapping the CSV
 
-The CSV file contains four columns: diagnocat_label, code, label_category and options.
+The CSV file contains four columns: `diagnocat_label`, `code`, `label_category`, and `options`.
 
 - **`diagnocat_label`**: The name of the label as it appears in DiagnoCat. You can find these names by clicking on any label within the DiagnoCat interface.
   > **Note:** If you don't want to use a specific label, simply leave the row blank.
@@ -70,6 +70,7 @@ The CSV file contains four columns: diagnocat_label, code, label_category and op
 - **`inward`**: Uses all labels except the furthest outer teeth (wisdom teeth).
 - **`outward`**: Uses only the furthest outer teeth (wisdom teeth).
 - **`combine`**: If two teeth share the same label and are adjacent to each other, it combines them into a single label.
+- **`hole`**: gets the hole theeth instead of just a part of the thoot
 - **`ai:<model_name>`**: Uses a secondary AI model to split the label into more parts. See the **AI Models** section below.
 ##### AI Models
 

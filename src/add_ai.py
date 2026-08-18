@@ -22,7 +22,6 @@ PADDING_PERCENT:int = 5 #the padding was also used in the training
 def add_ai(tasks:list[TaskItem]):
     items:list[TaskItem] = []
     labels = load_label_mapping(ai=True)
-    print(labels)
     for task in tasks:
         image =Image.open( get_path_from_taskItem(task))
         result = task["predictions"][0]["result"]
@@ -71,8 +70,6 @@ def ai_predict(ai_path: Path, image: Image.Image) -> Tuple[float,str]:
         probs = torch.softmax(outputs, dim=1)[0]
         predicted_idx = int(torch.argmax(probs).item())
 
-    print(f"Predicted class: {class_names[predicted_idx]}")
-    print(f"Confidence: {probs[predicted_idx]*100:.1f}%")
     confidence = probs[predicted_idx].item()
     predicted_class = class_names[predicted_idx]
     return confidence,predicted_class
