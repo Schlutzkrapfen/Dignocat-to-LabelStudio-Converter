@@ -2,10 +2,10 @@ diagnocat_label	code	label_category	option
 Endodontisch behandelter Zahn	Zement-Rootfilling	"Zement/Guttapercha
 "	
 Füllung	Metall-Filling	"metal
-"	
+"	ai:filling.pth
 Künstliche Zahnkrone	Metal-Crown	"metal
 "	ai:crown.pth
-Parodontaler Knochenverlust	Horizontal Bone loss (to enamel-dentin-border)	Peridontology	hole
+Zahn	Horizontal Bone loss (to enamel-dentin-border)	Peridontology	hole
 Periapikale Radioluzenz	PPC/Ostitis/Zyst	"PPC/Ostitis/Zyst
 "	
 Periimplantitis	PPC/Ostitis/Zyst	"PPC/Ostitis/Zyst

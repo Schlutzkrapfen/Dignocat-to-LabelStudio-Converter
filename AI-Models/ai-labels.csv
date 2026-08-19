@@ -1,6 +1,9 @@
 ai_label	code	label_category	
 Ceramic-Crown	Ceramic-Crown	ceramic	
 Composit-Crown	Plastic/Composit-Crown	Plastic / Composite	
-Metal-Crown	Metal-Crown	"metal
-"	"
+Metal-Crown	Metal-Crown	metal	"
 "
+Ceramic-Filling	Ceramic-Filling	Ceramic	
+Composit-Filling	Plastic/Composit-Filling	Plastic / Composite	
+Metall-Filling	Metall-Filling	metal	
+Zement-Filling	Zement-Filling	Zement/Guttapercha	
