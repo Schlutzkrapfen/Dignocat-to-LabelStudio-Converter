@@ -1,12 +1,16 @@
 
 
+from numpy import true_divide
 from torch.jit.annotations import Tuple
 
 from add_ai import add_ai
+from check_options import test_if_inward, test_if_needs_combine, test_if_no_overlapp, test_if_outward
+from helper_functions import get_user_id_from_TaskItem
+from json_maker import get_difference, get_json_cordinates
 from task_item import InnerAnnotation, TaskItem, Value
-from webcrawler import  get_thooth_id
+from webcrawler import  get_refrence_image, get_theeh_picture, get_thooth_id
 
-def remove_labels(tasks:list[TaskItem])-> list[TaskItem]:
+async def remove_labels(tasks:list[TaskItem])-> list[TaskItem]:
     """Removes labeled-as-removed annotations from a list of tasks.
 
         For each task, iterates over the annotations contained in the
@@ -25,15 +29,15 @@ def remove_labels(tasks:list[TaskItem])-> list[TaskItem]:
     items:list[TaskItem] = []
     for task in tasks:
         result = task["predictions"][0]["result"]
+        user_id = get_user_id_from_TaskItem(task)
         cur_anotation:list[InnerAnnotation] = []
         for anotation in result:
-            if check_if_label_removed(anotation["options"],anotation["thoot_id"]):
+            if await check_if_label_removed(anotation["options"],anotation["thoot_id"], user_id):
                 continue
             cur_anotation.append(anotation)
         task["predictions"][0]["result"] = cur_anotation
         items.append(task)
     return (items)
-
 
 def combine_labels(tasks:list[TaskItem])-> list[TaskItem]:
     """Combines nearby annotations that share the same label.
@@ -67,7 +71,7 @@ def combine_labels(tasks:list[TaskItem])-> list[TaskItem]:
         items.append(task)
     return items
 
-def check_task_options(tasks:list[TaskItem])->list[TaskItem]:
+async def check_task_options(tasks:list[TaskItem])->list[TaskItem]:
     """Applies option-based processing steps to a list of tasks.
 
         Currently combines nearby annotations sharing the same label via
@@ -89,7 +93,7 @@ def check_task_options(tasks:list[TaskItem])->list[TaskItem]:
             transformations are applied.
         """
     task:list[TaskItem] = combine_labels(tasks)
-    task = remove_labels(task)
+    task = await remove_labels(task)
     task = add_ai(task)
 
     return task
@@ -277,105 +281,9 @@ def check_if_two_theeth_are_near_each_other(number_one:int,number_two:int,distan
     return  abs(number_one -number_two) <= distance
 
 
-def is_furthers_out(theet_id:str)->bool:
-    """Checks whether a tooth is the furthest-out one in its position.
-
-        A tooth is considered the furthest out if the third character of
-        its identifier (index 2) is "8" (e.g. wisdom teeth, typically
-        numbered *8 in dental notation).
-
-        Args:
-            theet_id (str): Identifier of the tooth, expected to have its
-                position digit at index 2.
-
-        Returns:
-            bool: True if the tooth is the furthest-out one, False
-                otherwise.
-        """
-    second_letter = theet_id[2]
-    return second_letter == "8"
 
 
-
-
-def test_if_needs_combine(options:str)->bool:
-    """Checks whether an annotation is flagged for combination.
-
-        Args:
-            options (str): Comma-separated list of option flags.
-
-        Returns:
-            bool: True if the "combine" flag is present, False otherwise.
-        """
-    parts = options.split(",")
-    for part in parts:
-        if part == "combine":
-            return True
-    return False
-def test_if_inward(options:str,thooth_id:str)->bool:
-    """Checks whether an annotation should be removed as an inward duplicate.
-
-        An annotation is considered an inward duplicate if it is flagged
-        with "inward" and its tooth is the furthest-out one for its
-        position (i.e. a further-out tooth already covers the same area,
-        making this inward annotation redundant).
-
-        Args:
-            options (str): Comma-separated list of option flags.
-            thooth_id (str): Identifier of the tooth the annotation
-                belongs to.
-
-        Returns:
-            bool: True if the annotation is an inward duplicate that
-                should be removed, False otherwise.
-        """
-    parts = options.split(",")
-    for part in parts:
-        if part == "inward"and is_furthers_out(theet_id=thooth_id):
-            return True
-    return False
-def check_if_hole(options:str)->bool:
-    """Checks whether an annotation has the option hole
-
-        Args:
-            options (str): Comma-separated list of option flags.
-
-        Returns:
-            bool: True if the annotation has the option hole that
-                 False otherwise.
-        """
-    parts = options.split(",")
-    for part in parts:
-        if part == "hole" :
-            return True
-    return False
-
-
-
-def test_if_outward(options:str,thooth_id:str)->bool:
-    """Checks whether an annotation should be removed as an outward duplicate.
-
-        An annotation is considered an outward duplicate if it is flagged
-        with "outward" and its tooth is not the furthest-out one for its
-        position (i.e. it's a less-relevant outward annotation superseded
-        by a further-out tooth).
-
-        Args:
-            options (str): Comma-separated list of option flags.
-            thooth_id (str): Identifier of the tooth the annotation
-                belongs to.
-
-        Returns:
-            bool: True if the annotation is an outward duplicate that
-                should be removed, False otherwise.
-        """
-    parts = options.split(",")
-    for part in parts:
-        if part == "outward" and not is_furthers_out(theet_id=thooth_id):
-            return True
-    return False
-
-def check_if_label_removed(options:str,thooth_id:str)->bool:
+async def check_if_label_removed(options:str,thooth_id:str,user_id:int)->bool:
     """Checks whether an annotation's label should be considered removed.
 
         An annotation is treated as removed if it qualifies as either an
@@ -391,30 +299,49 @@ def check_if_label_removed(options:str,thooth_id:str)->bool:
             bool: True if the annotation should be removed, False
                 otherwise.
         """
-    if test_if_no_overlapp(options):
-        return is_overlapping(thooth_id)
+    if test_if_no_overlapp(options)and await is_overlapping(thooth_id,user_id):
+
+         return True
     return test_if_inward(options,thooth_id) or test_if_outward(options,thooth_id)
 
-def is_overlapping(thoth_id:str)->bool:
-    thoot1,thoot2 =  find_thooth_id_oround(thoth_id)
+async def is_overlapping(thooth_id:str,user_id:int,offset:float=0.1)->bool:
+    """
+        Checks whether the teeth adjacent to `thooth_id` have overlapping
+        bounding boxes on the x-axis, based on diff images against the
+        user's reference image.
+
+        Args:
+            thooth_id: Tooth to find neighbors around.
+            user_id: User whose images to use.
+            offset: Horizontal tolerance when comparing bounding boxes.
+
+        Returns:
+            True if the two teeth's boxes overlap horizontally, else False.
+            Returns False if there's no following tooth.
+        Note:
+            Only the x and width values from `get_json_cordinates` are used;
+            the y and height values are discarded and not considered
+        """
+    thoot1,thoot2 =  find_thooth_id_oround(thooth_id)
     if thoot2 == None:
         return False
-        get_thooth_id()
+    thoot1_id = await get_thooth_id(thoot1)
+    thoot2_id = await get_thooth_id(thoot2)
+    refrence_path = await get_refrence_image(user_id)
+    image_path1 = await get_theeh_picture(thoot1_id, user_id)
+    image_path2 = await get_theeh_picture(thoot2_id, user_id)
+    diff_path1 = await get_difference(refrence_path, image_path1)
+    x_pct1, _y_pct1, w_pct1, _h_pct1 = await get_json_cordinates(diff_path1)
+    diff_path2 = await get_difference(refrence_path, image_path2)
+    x_pct2, _y_pct2, w_pct2, _h_pct2 = await get_json_cordinates(diff_path2)
 
-
-    return False
+    left_point = min(x_pct1+w_pct1, x_pct2+w_pct2)
+    right_point = max(x_pct1+w_pct1, x_pct2+w_pct2)
+    return left_point + offset >= right_point
 
 def find_thooth_id_oround(thooth_id:str)-> Tuple[int,int|None]:
     thooth0 =  int(thooth_id[1:3])-1
     thooth1 =  int(thooth_id[1:3])+1
-    if thooth1 >= 9:
+    if thooth1%10 >= 9:
         return thooth0,None
     return thooth0,thooth1
-
-
-def test_if_no_overlapp(options:str):
-    parts = options.split(",")
-    for part in parts:
-        if part == "nooverlap":
-            return True
-    return False
