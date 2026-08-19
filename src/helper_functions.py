@@ -65,6 +65,18 @@ def to_percent(value: float, dimension: float) -> float:
         """
     return (value / dimension) * 100
 
+def get_user_id_from_TaskItem(task: TaskItem) -> int:
+    """Extracts the user ID from the task item.
+
+    Args:
+        task: The task item from which to extract the user ID.
+
+    Returns:
+       int : The user ID associated with the task.
+    """
+    return task["id"]
+
+
 def to_confidence(value: str)->float:
     """Converts a percentage string to a float value (e.g., "50%" -> 0.5).
 

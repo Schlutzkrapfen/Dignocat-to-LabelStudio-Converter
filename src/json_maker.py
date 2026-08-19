@@ -5,9 +5,8 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageChops
-from add_options import check_if_hole
+from check_options import check_if_hole
 from task_item import InnerAnnotation,  Prediction, TaskItem, Value
-from playwright.async_api import Page
 import shutil
 
 from helper_functions import get_info, strip_keys, to_percent,get_image_size,to_confidence

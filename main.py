@@ -117,9 +117,9 @@ async def main():
                 print(refrence_image_path)
                 single_task  = await get_task(label_Data,user_id)
                 task.append(single_task)
-                task = check_task_options(task)
+                task = await check_task_options(task)
                 dump_json(task)
-                #When debugging can be deaktivated for faster new runs
+                #When debugging can be deaktivated for faster new runs and shows what screenshots were made
                 delete_screenshot_folders()
 
         finally:
