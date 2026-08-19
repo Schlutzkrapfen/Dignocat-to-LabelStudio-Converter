@@ -1,0 +1,2 @@
+filling model:loss: 0.6158 - validation accuracy: 72.1%
+crown model: loss: 0.3556 - validation accuracy: 91.2%
