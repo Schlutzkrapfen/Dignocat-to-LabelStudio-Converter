@@ -227,7 +227,7 @@ def dump_json(task: list[TaskItem]):
         json.dump(cleaned, f, indent=2)
     print("saved json to output.json")
 
-async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:int)->TaskItem :
+async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int)->TaskItem :
 
     """Builds a labeling task from per-tooth screenshots vs a reference image.
 
@@ -238,7 +238,6 @@ async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:
     Entries that fail any step are skipped with a warning.
 
     Args:
-        page (Page): The Playwright Page instance to interact with.
         label_Data (dict[str, list[dict[str, str]]]): Mapping used by
             `map_label` to resolve a label's categories and options.
         user_id (int): Identifier of the user, used to build image
@@ -249,15 +248,15 @@ async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:
         TaskItem: The generated task
 
     """
-    not_conv_labels = await get_tooth_descriptions(page)
+    not_conv_labels = await get_tooth_descriptions()
 
     inner_task:list[InnerAnnotation] = []
     id_addition:int = 0
     try:
-        refrence_image_path:Path = await get_refrence_image(page, user_id)
+        refrence_image_path:Path = await get_refrence_image( user_id)
     except LookupError as e:
         print(f"Fatal Error:{e}, tries again")
-        return await get_task(page,label_Data,user_id)
+        return await get_task(label_Data,user_id)
 
     for i, non_conv_label in enumerate(not_conv_labels):
         labels:list[str]
@@ -271,10 +270,10 @@ async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:
             continue
         try:
 
-            thooth_id = await get_thooth_id(page, int(non_conv_label["id"]))
+            thooth_id = await get_thooth_id( int(non_conv_label["id"]))
 
 
-            paths = await get_theeh_picture(page, thooth_id, user_id)
+            paths = await get_theeh_picture( thooth_id, user_id)
         except ValueError as e :
             print(f"Warning: {e}")
             continue
@@ -303,15 +302,15 @@ async def get_task(page:Page,label_Data:dict[str, list[dict[str, str]]],user_id:
         if refrence_image_path == Path("."):
             print("Refrence Image is none")
             continue
-    images_paths = await get_user_screenshoots(page, user_id)
+    images_paths = await get_user_screenshoots( user_id)
 
     return( await make_json(
-                    images_paths, label_Data, refrence_image_path, inner_task,len(not_conv_labels)+id_addition , page
+                    images_paths, label_Data, refrence_image_path, inner_task,len(not_conv_labels)+id_addition
             ))
 
 
 
-async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str, str]]], refrence_image_path:Path, task :list[InnerAnnotation] , current_id:int, page:Page,)->TaskItem:
+async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str, str]]], refrence_image_path:Path, task :list[InnerAnnotation] , current_id:int,)->TaskItem:
         """Diff each image against a reference image and append the resulting annotations to `task`.
             Args:
                 images_paths: Paths to the tooth images to process.
@@ -319,7 +318,6 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
                 refrence_image_path: Path to the reference image each entry is diffed against.
                 task: List of annotations to append to (mutated in place).
                 current_id:id that should be added.
-                page: Playwright page used to re-fetch a replacement image if a diff fails.
 
             Returns:
                 TaskItem: `task` wrapped with the user_id/id of the last processed image.
@@ -358,7 +356,7 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
                         f"Something went wrong with id= {id},user_id={user_id},label={label}/{diagnocat_label},thoot_id = {sub_id}\n removed the broken Picture. "
                     )
                 os.remove(paths)
-                paths = await get_theeh_picture(page, sub_id, id)
+                paths = await get_theeh_picture( sub_id, id)
                 difference_path = await  get_difference(refrence_image_path, paths)
                 try:
                     x, y, w, h = await get_json_cordinates(difference_path)

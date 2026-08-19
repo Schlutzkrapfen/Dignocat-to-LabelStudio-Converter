@@ -104,18 +104,18 @@ async def main():
         refrence_image_path:Path = Path()
         try:
             await login(page)
-            page_amount = await get_patient_amount(page)
+            page_amount = await get_patient_amount()
             print(f"You have {page_amount} patience")
 
 
             for i in parse_id_range(page_amount):
                 try:
-                    user_id = await find_page(page,i,page_amount,output_dir)
+                    user_id = await find_page(i,page_amount,output_dir)
                 except (ValueError,OSError)as e:
                     print(f"complete failure:{e}")
                     raise OSError
                 print(refrence_image_path)
-                single_task  = await get_task(page,label_Data,user_id)
+                single_task  = await get_task(label_Data,user_id)
                 task.append(single_task)
                 task = check_task_options(task)
                 dump_json(task)
