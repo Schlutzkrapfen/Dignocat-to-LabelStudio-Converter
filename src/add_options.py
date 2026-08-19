@@ -1,6 +1,7 @@
 
 
 from numpy import true_divide
+from torch._dynamo.utils import T
 from torch.jit.annotations import Tuple
 
 from add_ai import add_ai
@@ -278,6 +279,9 @@ def check_if_two_theeth_are_near_each_other(number_one:int,number_two:int,distan
                 `number_two` is less than or equal to `distance`, False
                 otherwise.
         """
+    if min(number_one,number_two) == 11 and max(number_one,number_two) == 21 or  min(number_one,number_two) == 31 and max(number_one,number_two) == 41:
+        return True
+
     return  abs(number_one -number_two) <= distance
 
 
