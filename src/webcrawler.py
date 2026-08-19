@@ -7,7 +7,8 @@ from playwright.async_api import ElementHandle,   Page
 from controll import find_duplicates_of
 
 
-async def login(page: Page):
+page:Page
+async def login(page1: Page):
     """
        Ensure the browser session is logged in to Diagnocat.
 
@@ -21,6 +22,8 @@ async def login(page: Page):
                login status.
        """
     print("Checking login status...")
+    global page
+    page = page1
     _website = await page.goto("https://app.diagnocat.eu/sign-in")
 
     # If we are already logged in, the site might auto-redirect to /patients
@@ -34,11 +37,9 @@ async def login(page: Page):
         print("Login successful!")
 
 
-async def get_tooth_descriptions(page: Page) -> list[dict[str, str]]:
+async def get_tooth_descriptions() -> list[dict[str, str]]:
     """Extracts tooth names and identifiers from the page.
 
-        Args:
-            page: The Playwright Page instance to scrape.
 
         Returns:
             A list of dictionaries, where each dictionary contains the "type"
@@ -53,7 +54,7 @@ async def get_tooth_descriptions(page: Page) -> list[dict[str, str]]:
     return tooth_types
 
 
-async def get_theeh_picture(page: Page, teeth_id: str, user_id: int) -> Path:
+async def get_theeh_picture( teeth_id: str, user_id: int) -> Path:
     """Retrieves or generates a screenshot of a specific tooth's canvas.
 
         Checks if a screenshot for the given tooth and user already exists on
@@ -63,7 +64,6 @@ async def get_theeh_picture(page: Page, teeth_id: str, user_id: int) -> Path:
         appear, and captures a screenshot of it.
 
         Args:
-            page: The Playwright Page instance to search and interact with.
             teeth_id: The identifier of the tooth, used to locate the
                 corresponding section on the page and to build the output
                 filename.
@@ -90,11 +90,11 @@ async def get_theeh_picture(page: Page, teeth_id: str, user_id: int) -> Path:
     canvas = await page.wait_for_selector("canvas")
     if canvas is None:
         raise ValueError("Got no Canvas")
-    await take_screenshot(page,canvas,picture_path)
+    await take_screenshot(canvas,picture_path)
     return picture_path
 
 
-async def get_thooth_id(page: Page, thoot_id: int)->str:
+async def get_thooth_id( thoot_id: int)->str:
     """Finds the trailing 4 characters of a section's ID matching the given tooth ID.
 
         This function searches through dental widget cards on the page, extracts
@@ -102,7 +102,6 @@ async def get_thooth_id(page: Page, thoot_id: int)->str:
         the requested tooth_id.
 
         Args:
-            page: The Playwright Page instance.
             thoot_id: The numerical ID of the tooth to locate.
 
         Returns:
@@ -111,7 +110,6 @@ async def get_thooth_id(page: Page, thoot_id: int)->str:
         Raises:
                    ValueError: If no section matching the given tooth ID is found.
          """
-    thoot_id = int(thoot_id)
     sections = await page.locator("section.WidgetCard-module_container_1PPfu").all()
     for section in sections:
         div = section.locator("div.ConditionTitle-module_container_vpIP9")
@@ -131,7 +129,7 @@ async def get_thooth_id(page: Page, thoot_id: int)->str:
     raise ValueError("Couldn't find thooth id")
 
 
-async def find_page(page: Page,i:int,page_amount:int,output_dir:Path)->int:
+async def find_page(i:int,page_amount:int,output_dir:Path)->int:
     """Finds a page/user whose reference image has no duplicates left.
 
         Starting from index `i`, checks successive users by generating a
@@ -141,7 +139,6 @@ async def find_page(page: Page,i:int,page_amount:int,output_dir:Path)->int:
         is exhausted.
 
         Args:
-            page: Playwright `Page` used to navigate the patient report UI.
             i: Starting index for the search.
             page_amount: Total number of available pages/users.
             output_dir: Directory to search for duplicate images.
@@ -173,17 +170,17 @@ async def find_page(page: Page,i:int,page_amount:int,output_dir:Path)->int:
         user_id:int = page_amount - i - 1
 
         try:
-            await go_to_patient_report(page, user)
+            await go_to_patient_report( user)
         except OSError as e:
             print(e)
             raise OSError(e)
         try:
-            await deactivated_show_buttons(page)
+            await deactivated_show_buttons()
         except PlaywrightTimeoutError:
             continue
         try:
             refrence_image_path = await get_refrence_image(
-                page, user_id, skip_if_exist=False
+                 user_id, skip_if_exist=False
             )
         except LookupError as e:
             print(f"Error:{e}")
@@ -200,7 +197,7 @@ async def find_page(page: Page,i:int,page_amount:int,output_dir:Path)->int:
     return user_id
 
 
-async def get_user_screenshoots(page: Page, user_id: int) -> list[Path]:
+async def get_user_screenshoots( user_id: int) -> list[Path]:
     """
        Screenshot each condition button's canvas view for a user.
        For every condition button on the page: hovers it, reads its name,
@@ -208,7 +205,6 @@ async def get_user_screenshoots(page: Page, user_id: int) -> list[Path]:
        <canvas> to `output/screenshots/{user_id}_{i}_{name}_{percentage}_{section_suffix}.png`.
        Skips screenshots that already exist on disk.
        Args:
-           page: Active Playwright Page, already on the target view.
            user_id: Used to namespace output filenames.
        Returns:
            List of screenshot file paths, one per condition button.
@@ -220,7 +216,7 @@ async def get_user_screenshoots(page: Page, user_id: int) -> list[Path]:
 
     if count == 0 or canvas is None:
         print("something went wrong while Fetching, lets try again.")
-        return await get_user_screenshoots(page, user_id)
+        return await get_user_screenshoots(user_id)
 
     saved_screenshoots: list[Path] = []
     for i in range(count):
@@ -235,7 +231,7 @@ async def get_user_screenshoots(page: Page, user_id: int) -> list[Path]:
 
         if await name.count() == 0 or await percentage.count() == 0:
             print("something went wrong while Fetching, lets try again.")
-            return await get_user_screenshoots(page, user_id)
+            return await get_user_screenshoots( user_id)
 
         picture_path =Path(f"output/screenshots/{user_id}_{i}_{await name.inner_text()}_{await percentage.inner_text()}_{last_4}.png")
 
@@ -246,12 +242,12 @@ async def get_user_screenshoots(page: Page, user_id: int) -> list[Path]:
 
         print(f"Saved {picture_path}")
         saved_screenshoots.append(picture_path)
-        await take_screenshot(page, canvas, picture_path)
+        await take_screenshot( canvas, picture_path)
 
     return saved_screenshoots
 
 
-async def take_screenshot(page:Page,canvas:ElementHandle,path:Path,max_retries: int = 10 ):
+async def take_screenshot(canvas:ElementHandle,path:Path,max_retries: int = 10 ):
     """Captures a screenshot of a canvas element and saves it to disk.
 
         Waits briefly for the page to settle and for two animation frames to
@@ -261,8 +257,6 @@ async def take_screenshot(page:Page,canvas:ElementHandle,path:Path,max_retries: 
         before giving up.
 
         Args:
-            page: The Playwright Page instance used to wait for rendering
-                to complete.
             canvas: The ElementHandle representing the canvas element to
                 capture.
             path: The file path where the screenshot will be saved.
@@ -286,10 +280,10 @@ async def take_screenshot(page:Page,canvas:ElementHandle,path:Path,max_retries: 
                     print(f"Couldn't get screenshot, no retries left:{e}")
                     raise TimeoutError
         print(f"Couldn't get screenshot, trying again {e}")
-        await take_screenshot(page, canvas, path, max_retries - 1)
+        await take_screenshot( canvas, path, max_retries - 1)
 
 
-async def deactivated_show_buttons(page: Page) :
+async def deactivated_show_buttons() :
     """Waits for and clicks active, enabled filter buttons on the page.
 
     Args:
@@ -322,7 +316,7 @@ async def deactivated_show_buttons(page: Page) :
             await button.click()
 
 
-async def get_patient_amount(page: Page)->int:
+async def get_patient_amount()->int:
     """Gets the total patient count from Diagnocat.
 
        Tries to read the count directly from the active filter badge first.
@@ -330,9 +324,6 @@ async def get_patient_amount(page: Page)->int:
        back to scrolling the patient table until no new rows load for
        `max_stable_checks` consecutive polls, then returns the row count.
 
-       Args:
-           page (Page): The Playwright Page object for the Diagnocat
-               patients view.
 
        Returns:
            int: The total number of patients.
@@ -394,7 +385,7 @@ async def get_patient_amount(page: Page)->int:
         return previous_count
 
 
-async def go_to_patient_report(page: Page, user_id: int,max_retries:int=20):
+async def go_to_patient_report( user_id: int,max_retries:int=20):
     """Navigates to a specific patient's report page.
 
         Opens the patients list page, scrolls through the infinite-scroll
@@ -404,7 +395,7 @@ async def go_to_patient_report(page: Page, user_id: int,max_retries:int=20):
         missing report card, retries with the next `user_id`.
 
         Args:
-            page (Page): The Playwright Page instance.
+
             user_id (int): Index of the patient row to open in the table.
             max_retries (int): Maximum number of retry attempts on page
                 load/timeout errors. Defaults to 20.
@@ -430,7 +421,7 @@ async def go_to_patient_report(page: Page, user_id: int,max_retries:int=20):
     except (PlaywrightTimeoutError, PlaywrightError):
         if max_retries <= 0:
             raise OSError("Window is closed or can't be seen")
-        await go_to_patient_report(page,user_id,max_retries -1)
+        await go_to_patient_report(user_id,max_retries -1)
         return
     # Scroll until we have enough rows loaded to reach user_id
     # Wait for the next page
@@ -457,23 +448,22 @@ async def go_to_patient_report(page: Page, user_id: int,max_retries:int=20):
     except ValueError as e:
         print(f"the picture wasn't there: {e} ")
         # TODO: find a more efficent way to go true the loop if it failed
-        await go_to_patient_report(page, user_id + 1)
+        await go_to_patient_report( user_id + 1)
         return
     except PlaywrightTimeoutError:
         if max_retries <= 0:
             raise ValueError("No Users Left")
-        await go_to_patient_report(page,user_id,max_retries -1)
+        await go_to_patient_report(user_id,max_retries -1)
         return
 
-    await remove_overlay(page)
+    await remove_overlay()
     print(f"Now on: {page.url}")
 
 
-async def remove_overlay(page: Page):
+async def remove_overlay():
     """Removes the HubSpot overlay element from the page, if present.
 
         Args:
-            page (Page): The Playwright Page instance.
         """
     await page.evaluate("""
     const el = document.querySelector('#hs-web-interactives-top-anchor');
@@ -481,10 +471,9 @@ async def remove_overlay(page: Page):
 """)
 
 
-async def get_refrence_image(page: Page, user_id:int, skip_if_exist: bool = True)-> Path:
+async def get_refrence_image(user_id:int, skip_if_exist: bool = True)-> Path:
     """gets a empty Image for refrence
     Args:
-            page (Page): Browser page used to interact with the canvas.
             user_id (int): Identifier of the user, used to build the
                 output file path.
             skip_if_exist (bool): If True, skips regenerating the
@@ -499,11 +488,11 @@ async def get_refrence_image(page: Page, user_id:int, skip_if_exist: bool = True
     picture_path = Path(f"output/{user_id}.png")
 
     if not os.path.exists(picture_path) or not skip_if_exist:
-        await deactivated_show_buttons(page)
+        await deactivated_show_buttons()
         canvas = await page.wait_for_selector("canvas")
         if canvas is None:
             raise LookupError("Got no Canvas")
-        await take_screenshot(page,canvas,picture_path)
+        await take_screenshot(canvas,picture_path)
         print(f"Saved {picture_path}")
     else:
         print(f"Screenshot already exists: {picture_path}")

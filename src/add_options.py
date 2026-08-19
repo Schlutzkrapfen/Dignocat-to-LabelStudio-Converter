@@ -1,7 +1,10 @@
 
 
+from torch.jit.annotations import Tuple
+
 from add_ai import add_ai
 from task_item import InnerAnnotation, TaskItem, Value
+from webcrawler import  get_thooth_id
 
 def remove_labels(tasks:list[TaskItem])-> list[TaskItem]:
     """Removes labeled-as-removed annotations from a list of tasks.
@@ -388,4 +391,30 @@ def check_if_label_removed(options:str,thooth_id:str)->bool:
             bool: True if the annotation should be removed, False
                 otherwise.
         """
+    if test_if_no_overlapp(options):
+        return is_overlapping(thooth_id)
     return test_if_inward(options,thooth_id) or test_if_outward(options,thooth_id)
+
+def is_overlapping(thoth_id:str)->bool:
+    thoot1,thoot2 =  find_thooth_id_oround(thoth_id)
+    if thoot2 == None:
+        return False
+        get_thooth_id()
+
+
+    return False
+
+def find_thooth_id_oround(thooth_id:str)-> Tuple[int,int|None]:
+    thooth0 =  int(thooth_id[1:3])-1
+    thooth1 =  int(thooth_id[1:3])+1
+    if thooth1 >= 9:
+        return thooth0,None
+    return thooth0,thooth1
+
+
+def test_if_no_overlapp(options:str):
+    parts = options.split(",")
+    for part in parts:
+        if part == "nooverlap":
+            return True
+    return False
