@@ -444,17 +444,18 @@ async def go_to_patient_report( user_id: int,max_retries:int=20):
         button = await page.query_selector("div.ReportCard-module_container_ONmLU")
         if button is None:
             print("couldn't find button")
-            raise ValueError("Picture Isn't here")
+            raise ValueError("Button Isn't here")
         await button.click()
     except ValueError as e:
-        print(f"the picture wasn't there: {e} ")
+        print(f"User_id: {user_id} the picture wasn't there: {e} ")
         # TODO: find a more efficent way to go true the loop if it failed
         await go_to_patient_report( user_id + 1)
         return
-    except PlaywrightTimeoutError:
+    except PlaywrightTimeoutError as e:
+        print(f"Something went wrong, skipping: {e}")
         if max_retries <= 0:
             raise ValueError("No Users Left")
-        await go_to_patient_report(user_id,max_retries -1)
+        await go_to_patient_report(user_id + 1,max_retries -1)
         return
 
     await remove_overlay()
