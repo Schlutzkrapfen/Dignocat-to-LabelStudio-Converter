@@ -324,35 +324,70 @@ async def is_overlapping(thooth_id:str,user_id:int,offset:float=0.0)->bool:
             Only the x and width values from `get_json_cordinates` are used;
             the y and height values are discarded and not considered
         """
-    thoot1,thoot2 =  find_thooth_id_oround(thooth_id)
+    thoot1,thoot2 =  find_tooth_id_oround(thooth_id)
     if thoot2 == None:
         return False
     try:
         thoot1_id = await get_thooth_id(convert_thooth_id_to_number(thoot1))
 
         thoot2_id = await get_thooth_id(convert_thooth_id_to_number(thoot2))
+        refrence_path = await get_refrence_image(user_id)
+        image_path1 = await get_theeh_picture(thoot1_id, user_id)
+        image_path2 = await get_theeh_picture(thoot2_id, user_id)
+        diff_path1 = await get_difference(refrence_path, image_path1)
+        x_pct1, _y_pct1, w_pct1, _h_pct1 = await get_json_cordinates(diff_path1)
+        diff_path2 = await get_difference(refrence_path, image_path2)
+        x_pct2, _y_pct2, w_pct2, _h_pct2 = await get_json_cordinates(diff_path2)
     except ValueError as er:
         print(er)
         return False
-    refrence_path = await get_refrence_image(user_id)
-    image_path1 = await get_theeh_picture(thoot1_id, user_id)
-    image_path2 = await get_theeh_picture(thoot2_id, user_id)
-    diff_path1 = await get_difference(refrence_path, image_path1)
-    x_pct1, _y_pct1, w_pct1, _h_pct1 = await get_json_cordinates(diff_path1)
-    diff_path2 = await get_difference(refrence_path, image_path2)
-    x_pct2, _y_pct2, w_pct2, _h_pct2 = await get_json_cordinates(diff_path2)
+    print(f"x_pct1: {x_pct1}, x_pct2: {x_pct2}, w_pct1: {w_pct1}, w_pct2: {w_pct2}")
 
     left_point = min(x_pct1+w_pct1, x_pct2+w_pct2)
-    right_point = max(x_pct1+w_pct1, x_pct2+w_pct2)
+    right_point = max(x_pct1, x_pct2)
     print(f"left_point: {left_point}, right_point: {right_point}")
     return left_point + offset >= right_point
 
 
 
 
-def find_thooth_id_oround(thooth_id:str)-> Tuple[int,int|None]:
-    thooth0 =  int(thooth_id[1:3])-1
-    thooth1 =  int(thooth_id[1:3])+1
-    if thooth1%10 >= 9:
-        return thooth0,None
-    return thooth0,thooth1
+def find_tooth_id_oround(tooth_id:str)-> Tuple[int,int|None]:
+    """
+        Get the previous and next tooth numbers within the same quadrant.
+
+        The tooth number is read from `tooth_id[1:3]` (FDI-style notation:
+        first digit = quadrant, second digit = tooth position 1-8).
+
+        Args:
+            tooth_id (str): Tooth identifier, e.g. "T18" -> tooth number 18.
+
+        Returns:
+            Tuple[int, int | None]: (previous_tooth, next_tooth).
+                - previous_tooth wraps to the neighboring quadrant when it
+                  would fall below position 1 (10->21, 20->11, 30->41, 40->31).
+                - next_tooth is None if incrementing would exceed the quadrant
+                  (i.e. its last digit would be >= 9).
+
+        Example:
+            >>> find_tooth_id_oround("T18")
+            (17, None)
+            >>> find_tooth_id_oround("T13")
+            (12, 14)
+            >>> find_tooth_id_oround("T11")
+            (21, 12)
+        """
+    tooth0 =  int(tooth_id[1:3])-1
+    tooth1 =  int(tooth_id[1:3])+1
+    if tooth0 == 10:
+        tooth0 = 21
+    elif tooth0 == 20:
+        tooth0 = 11
+    elif tooth0 == 30:
+        tooth0 = 41
+    elif tooth0 == 40:
+        tooth0 = 31
+
+
+    if tooth1%10 >= 9:
+        return tooth0,None
+    return tooth0,tooth1
