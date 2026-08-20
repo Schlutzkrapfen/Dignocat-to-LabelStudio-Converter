@@ -306,7 +306,7 @@ async def check_if_label_removed(options:str,thooth_id:str,user_id:int)->bool:
          return True
     return test_if_inward(options,thooth_id) or test_if_outward(options,thooth_id)
 
-async def is_overlapping(thooth_id:str,user_id:int,offset:float=0.0)->bool:
+async def is_overlapping(thooth_id:str,user_id:int,offset:float=0.1)->bool:
     """
         Checks whether the teeth adjacent to `thooth_id` have overlapping
         bounding boxes on the x-axis, based on diff images against the
@@ -341,11 +341,9 @@ async def is_overlapping(thooth_id:str,user_id:int,offset:float=0.0)->bool:
     except ValueError as er:
         print(er)
         return False
-    print(f"x_pct1: {x_pct1}, x_pct2: {x_pct2}, w_pct1: {w_pct1}, w_pct2: {w_pct2}")
 
     left_point = min(x_pct1+w_pct1, x_pct2+w_pct2)
     right_point = max(x_pct1, x_pct2)
-    print(f"left_point: {left_point}, right_point: {right_point}")
     return left_point + offset >= right_point
 
 
