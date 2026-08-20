@@ -117,8 +117,14 @@ async def main():
                 print(refrence_image_path)
                 single_task  = await get_task(label_Data,user_id)
                 task.append(single_task)
-                task = await check_task_options(task)
-                dump_json(task)
+                task_dic = await check_task_options(task)
+                for key,value in task_dic.items():
+                    if key =="main":
+                        dump_json(value)
+                    else:
+                        dump_json(value, Path(f"json/{key}.json"))
+
+
                 #When debugging can be deaktivated for faster new runs and shows what screenshots were made
                 delete_screenshot_folders()
 

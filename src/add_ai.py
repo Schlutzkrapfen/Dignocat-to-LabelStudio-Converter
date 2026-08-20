@@ -121,7 +121,7 @@ def crop_with_padding(image: Image.Image, x_pct, y_pct, w_pct, h_pct, padding_pc
 
         Returns:
             Image.Image: The cropped image, clamped to the original image's bounds.
-        """
+    """
     img_w, img_h = image.size
 
     x = x_pct / 100 * img_w

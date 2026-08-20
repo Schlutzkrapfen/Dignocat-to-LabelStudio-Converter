@@ -13,6 +13,21 @@ def test_if_no_overlapp(options:str):
         if part == "neighborsconnect":
             return True
     return False
+def test_if_ownjson(options:str):
+    """Checks whether an annotation has the option ownjson
+
+        Args:
+            options (str): Comma-separated list of option flags.
+
+        Returns:
+            bool: True if the annotation has the option own,
+                 False otherwise.
+        """
+    parts = options.split(",")
+    for part in parts:
+        if part == "ownjson":
+            return True
+    return False
 def test_if_outward(options:str,thooth_id:str)->bool:
     """Checks whether an annotation should be removed as an outward duplicate.
 
