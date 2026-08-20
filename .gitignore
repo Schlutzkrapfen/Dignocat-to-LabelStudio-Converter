@@ -16,3 +16,4 @@ user_data/
 output.json
 src/__pycache__/*
 venv/*
+json/*
