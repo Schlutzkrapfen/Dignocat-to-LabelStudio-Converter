@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 from add_options import check_task_options
 from json_maker import (
+    delete_screenshot_folders,
     dump_json,
     get_task
 
@@ -119,7 +120,7 @@ async def main():
                 task = await check_task_options(task)
                 dump_json(task)
                 #When debugging can be deaktivated for faster new runs and shows what screenshots were made
-                #delete_screenshot_folders()
+                delete_screenshot_folders()
 
         finally:
             print("Finished")

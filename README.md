@@ -71,6 +71,7 @@ The CSV file contains four columns: `diagnocat_label`, `code`, `label_category`,
 - **`outward`**: Uses only the furthest outer teeth (wisdom teeth).
 - **`combine`**: If two teeth share the same label and are adjacent to each other, it combines them into a single label.
 - **`hole`**: gets the hole theeth instead of just a part of the thoot
+- **`neighborsconnect`**: Skips saving the label if the bounding boxes of the left and right neighboring teeth already connect/overlap with each other.
 - **`ai:<model_name>`**: Uses a secondary AI model to split the label into more parts. See the **AI Models** section below.
 ##### AI Models
 
