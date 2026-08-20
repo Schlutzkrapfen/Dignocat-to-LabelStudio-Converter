@@ -211,7 +211,7 @@ def inner_json(
     return task
 
 
-def dump_json(task: list[TaskItem]):
+def dump_json(task: list[TaskItem],output_path:Path=Path("output.json")):
     """Save the task list to a JSON file, excluding internal-only fields.
 
     Removes the "combine" and "thoot_id" keys (used only internally)
@@ -220,15 +220,18 @@ def dump_json(task: list[TaskItem]):
 
     Args:
         task: The list of TaskItem objects to save.
+        output_path: The path to save the JSON file to.
     """
     cleaned = strip_keys(task, { "thoot_id","options"})
-    with open("output.json", "w") as f:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w") as f:
         json.dump(cleaned, f, indent=2)
     print("saved json to output.json")
 
 async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int)->TaskItem :
 
-    """Builds a labeling task from per-tooth screenshots vs a reference image.
+    """
+        Builds a labeling task from per-tooth screenshots vs a reference image.
 
     For each tooth description on the page, maps its type to labels,
     resolves its tooth id, captures its screenshot, and diffs it
@@ -249,7 +252,7 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int)->Task
     """
     not_conv_labels = await get_tooth_descriptions()
 
-    inner_task:list[InnerAnnotation] = []
+    inner_task:list[ InnerAnnotation] = []
     id_addition:int = 0
     try:
         refrence_image_path:Path = await get_refrence_image( user_id)
