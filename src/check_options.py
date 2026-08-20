@@ -1,7 +1,16 @@
 def test_if_no_overlapp(options:str):
+    """Checks whether an annotation has the option neighborsconnect
+
+        Args:
+            options (str): Comma-separated list of option flags.
+
+        Returns:
+            bool: True if the annotation has the option neighborsconnect,
+                 False otherwise.
+        """
     parts = options.split(",")
     for part in parts:
-        if part == "nooverlap":
+        if part == "neighborsconnect":
             return True
     return False
 def test_if_outward(options:str,thooth_id:str)->bool:

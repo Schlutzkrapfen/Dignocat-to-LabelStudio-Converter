@@ -18,5 +18,7 @@ Implantat	Metal-Implant	"metal
 Brückenglied	Metal-Bridge	"metal
 "	
 Fehlt	Missing/lost Odontom	Odontoms	
-Fehlt 	Gap	Restauration	combine,inward,nooverlap
+Fehlt 	Gap	Restauration	combine,inward,neighborsconnect
 Brückenglied	Blocking	Restauration	
+Brückenglied	Missing/lost Odontom	Odontoms	
+Implantat	Implant	Restauration	
