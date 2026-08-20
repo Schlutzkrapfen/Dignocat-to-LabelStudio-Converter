@@ -1,9 +1,12 @@
 
 
+from collections import defaultdict
+
 from torch.jit.annotations import Tuple
+import copy
 
 from add_ai import add_ai
-from check_options import test_if_inward, test_if_needs_combine, test_if_no_overlapp, test_if_outward
+from check_options import test_if_inward, test_if_needs_combine, test_if_no_overlapp, test_if_outward, test_if_ownjson
 from helper_functions import convert_thooth_id_to_number, get_user_id_from_TaskItem
 from json_maker import get_difference, get_json_cordinates
 from task_item import InnerAnnotation, TaskItem, Value
@@ -69,8 +72,27 @@ def combine_labels(tasks:list[TaskItem])-> list[TaskItem]:
         task["predictions"][0]["result"] = cur_anotation+combine_anotations(combine_annotaion)
         items.append(task)
     return items
+def split_tasks(tasks: list[TaskItem]) -> dict[str, list[TaskItem]]:
+        items: dict[str, list[TaskItem]] = defaultdict(list)
 
-async def check_task_options(tasks:list[TaskItem])->list[TaskItem]:
+        for task in tasks:
+            result = task["predictions"][0]["result"]
+            cur_anotation: dict[str, list[InnerAnnotation]] = defaultdict(list)
+
+            for anotation in result:
+                if test_if_ownjson(anotation["options"]):
+                    key = anotation["value"]["rectanglelabels"][0]
+                else:
+                    key = "main"
+                cur_anotation[key].append(anotation)
+
+            for key, value in cur_anotation.items():
+                new_task = copy.deepcopy(task)
+                new_task["predictions"][0]["result"] = value
+                items[key].append(new_task)
+
+        return dict(items)
+async def check_task_options(tasks:list[TaskItem])->dict[str,list[TaskItem]]:
     """Applies option-based processing steps to a list of tasks.
 
         Currently combines nearby annotations sharing the same label via
@@ -80,9 +102,6 @@ async def check_task_options(tasks:list[TaskItem])->list[TaskItem]:
         Args:
             tasks (list[TaskItem]): List of tasks to process.
 
-        Returns:
-            list[TaskItem]: The tasks after applying the option-based
-                transformations.
 
         Note:
             This function is meant to grow as new annotation options are
@@ -94,8 +113,14 @@ async def check_task_options(tasks:list[TaskItem])->list[TaskItem]:
     task:list[TaskItem] = combine_labels(tasks)
     task = await remove_labels(task)
     task = add_ai(task)
+    task_dir:dict[str,list[TaskItem]] = split_tasks(task)
 
-    return task
+    return task_dir
+
+
+
+
+
 def get_new_rectangle(item:InnerAnnotation,x,y,width,height):
     """Expands a bounding box to also enclose a new annotation's rectangle.
 
@@ -306,7 +331,7 @@ async def check_if_label_removed(options:str,thooth_id:str,user_id:int)->bool:
          return True
     return test_if_inward(options,thooth_id) or test_if_outward(options,thooth_id)
 
-async def is_overlapping(thooth_id:str,user_id:int,offset:float=0.1)->bool:
+async def is_overlapping(thooth_id:str,user_id:int,offset:float=2.0)->bool:
     """
         Checks whether the teeth adjacent to `thooth_id` have overlapping
         bounding boxes on the x-axis, based on diff images against the
