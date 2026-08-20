@@ -176,7 +176,8 @@ async def find_page(i:int,page_amount:int,output_dir:Path)->int:
             raise OSError(e)
         try:
             await deactivated_show_buttons()
-        except PlaywrightTimeoutError:
+        except PlaywrightTimeoutError as e:
+            print(f"couldn't find buttons: {e}")
             continue
         try:
             refrence_image_path = await get_refrence_image(
@@ -416,10 +417,11 @@ async def go_to_patient_report( user_id: int,max_retries:int=20):
 
         _body = await page.wait_for_selector("body", timeout=15000)
         _row = await page.wait_for_selector(row_selector, timeout=15000)
-    except (PlaywrightTimeoutError, PlaywrightError):
+    except (PlaywrightTimeoutError, PlaywrightError) as e:
+        print(f"couldn't find body/row: {e}")
         if max_retries <= 0:
             raise OSError("Window is closed or can't be seen")
-        await go_to_patient_report(user_id,max_retries -1)
+        await go_to_patient_report(user_id +1,max_retries -1)
         return
     # Scroll until we have enough rows loaded to reach user_id
     # Wait for the next page
