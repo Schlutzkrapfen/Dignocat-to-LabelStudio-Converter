@@ -118,3 +118,13 @@ def strip_keys(obj, keys_to_remove: set[str]):
         return [strip_keys(item, keys_to_remove) for item in obj]
     else:
         return obj
+
+def convert_thooth_id_to_number(thooth_id:int)->int:
+    if thooth_id <20:
+        return 8 - (thooth_id - 11)
+    elif thooth_id> 20 and thooth_id <30:
+        return thooth_id - 12
+    elif thooth_id > 30 and thooth_id < 40:
+         return 24 - (thooth_id - 31)
+    else:
+        return thooth_id -16

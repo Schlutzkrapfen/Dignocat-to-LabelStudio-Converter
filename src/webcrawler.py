@@ -18,7 +18,7 @@ async def login(page1: Page):
        redirect to the patients page.
 
        Args:
-           page (Page): Playwright page object used to navigate and check
+           page1 (Page): Playwright page object used to navigate and check
                login status.
        """
     print("Checking login status...")
@@ -126,7 +126,7 @@ async def get_thooth_id( thoot_id: int)->str:
             section_id:str = cast(str, await section.evaluate("el => el.id"))
             return section_id[-4:]
 
-    raise ValueError("Couldn't find thooth id")
+    raise ValueError(f"Couldn't find thooth {thoot_id}")
 
 
 async def find_page(i:int,page_amount:int,output_dir:Path)->int:
@@ -286,8 +286,6 @@ async def take_screenshot(canvas:ElementHandle,path:Path,max_retries: int = 10 )
 async def deactivated_show_buttons() :
     """Waits for and clicks active, enabled filter buttons on the page.
 
-    Args:
-        page: The Playwright Page instance.
     Raises:
         TimeoutError: if the selector can't be selected
     """
