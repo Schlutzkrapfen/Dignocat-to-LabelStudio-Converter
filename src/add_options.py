@@ -1,12 +1,10 @@
 
 
-from numpy import true_divide
-from torch._dynamo.utils import T
 from torch.jit.annotations import Tuple
 
 from add_ai import add_ai
 from check_options import test_if_inward, test_if_needs_combine, test_if_no_overlapp, test_if_outward
-from helper_functions import get_user_id_from_TaskItem
+from helper_functions import convert_thooth_id_to_number, get_user_id_from_TaskItem
 from json_maker import get_difference, get_json_cordinates
 from task_item import InnerAnnotation, TaskItem, Value
 from webcrawler import  get_refrence_image, get_theeh_picture, get_thooth_id
@@ -308,7 +306,7 @@ async def check_if_label_removed(options:str,thooth_id:str,user_id:int)->bool:
          return True
     return test_if_inward(options,thooth_id) or test_if_outward(options,thooth_id)
 
-async def is_overlapping(thooth_id:str,user_id:int,offset:float=0.1)->bool:
+async def is_overlapping(thooth_id:str,user_id:int,offset:float=0.0)->bool:
     """
         Checks whether the teeth adjacent to `thooth_id` have overlapping
         bounding boxes on the x-axis, based on diff images against the
@@ -329,8 +327,13 @@ async def is_overlapping(thooth_id:str,user_id:int,offset:float=0.1)->bool:
     thoot1,thoot2 =  find_thooth_id_oround(thooth_id)
     if thoot2 == None:
         return False
-    thoot1_id = await get_thooth_id(thoot1)
-    thoot2_id = await get_thooth_id(thoot2)
+    try:
+        thoot1_id = await get_thooth_id(convert_thooth_id_to_number(thoot1))
+
+        thoot2_id = await get_thooth_id(convert_thooth_id_to_number(thoot2))
+    except ValueError as er:
+        print(er)
+        return False
     refrence_path = await get_refrence_image(user_id)
     image_path1 = await get_theeh_picture(thoot1_id, user_id)
     image_path2 = await get_theeh_picture(thoot2_id, user_id)
@@ -341,7 +344,11 @@ async def is_overlapping(thooth_id:str,user_id:int,offset:float=0.1)->bool:
 
     left_point = min(x_pct1+w_pct1, x_pct2+w_pct2)
     right_point = max(x_pct1+w_pct1, x_pct2+w_pct2)
+    print(f"left_point: {left_point}, right_point: {right_point}")
     return left_point + offset >= right_point
+
+
+
 
 def find_thooth_id_oround(thooth_id:str)-> Tuple[int,int|None]:
     thooth0 =  int(thooth_id[1:3])-1
