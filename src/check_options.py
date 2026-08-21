@@ -1,3 +1,18 @@
+def test_if_split(options:str) -> bool:
+    """Checks whether an annotation has the option split.
+    Args:
+        options (str): Comma-separated list of option flags.
+
+    Returns:
+        bool: True if the annotation has the option neighborsconnect,
+             False otherwise.
+    """
+    parts = options.split(",")
+    for part in parts:
+        if part == "split":
+            return True
+    return False
+
 def test_if_no_overlapp(options:str):
     """Checks whether an annotation has the option neighborsconnect
 
