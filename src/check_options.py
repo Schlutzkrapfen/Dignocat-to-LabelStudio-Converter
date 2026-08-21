@@ -1,15 +1,15 @@
 def test_if_split(options:str) -> bool:
-    """Checks whether an annotation has the option split.
+    """Checks whether an annotation has the option splith.
     Args:
         options (str): Comma-separated list of option flags.
 
     Returns:
-        bool: True if the annotation has the option neighborsconnect,
+        bool: True if the annotation has the option splith,
              False otherwise.
     """
     parts = options.split(",")
     for part in parts:
-        if part == "split":
+        if part == "splith":
             return True
     return False
 
