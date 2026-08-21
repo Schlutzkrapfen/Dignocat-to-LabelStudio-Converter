@@ -7,6 +7,7 @@ import statistics
 from pathlib import Path
 from torch import nn
 from typing import cast
+from torch.serialization import validate_cuda_device
 from torchvision import transforms, models
 
 from PIL import Image
@@ -45,7 +46,8 @@ def add_ai(tasks:list[TaskItem]):
         cur_anotation:list[InnerAnnotation] = []
         for anotation in result:
             if test_if_ai(anotation["options"]):
-                cur_amount,cur_name = ai_predict(get_which_ai_modell_to_use(anotation["options"]),image)
+                value = anotation["value"]
+                cur_amount,cur_name = ai_predict(get_which_ai_modell_to_use(anotation["options"]),crop_with_padding(image,value["x"], value["y"], value["width"], value["height"]))
                 anotation["from_name"] = labels[cur_name][0]["label_category"]
                 anotation["value"]["rectanglelabels"] = [str(item["code"]) for item in labels[cur_name]]
                 anotation["score"] =  float(statistics.mean([anotation["score"],cur_amount]))
@@ -106,9 +108,10 @@ def ai_predict(ai_path: Path, image: Image.Image) -> tuple[float,str]:
 
     confidence = probs[predicted_idx].item()
     predicted_class = class_names[predicted_idx]
+    print(f"Predicted class: {predicted_class}, confidence: {confidence}, predicted_idx: {predicted_idx}")
     return confidence,predicted_class
 
-def crop_with_padding(image: Image.Image, x_pct, y_pct, w_pct, h_pct, padding_pct):
+def crop_with_padding(image: Image.Image, x_pct:float, y_pct:float, w_pct:float, h_pct:float, padding_pct:float=5) -> Image.Image:
     """Crops a region of an image, adding padding around it.
 
         Args:
