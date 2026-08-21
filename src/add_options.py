@@ -9,39 +9,37 @@ from add_ai import add_ai
 from check_options import test_if_inward, test_if_needs_combine, test_if_no_overlapp, test_if_outward, test_if_ownjson
 from helper_functions import convert_thooth_id_to_number, get_user_id_from_TaskItem
 from json_maker import get_difference, get_json_cordinates
+from label_converter import load_label_mapping
 from task_item import InnerAnnotation, TaskItem, Value
 from webcrawler import  get_refrence_image, get_theeh_picture, get_thooth_id
 
-async def remove_labels(tasks:list[TaskItem])-> list[TaskItem]:
-    """Removes labeled-as-removed annotations from a list of tasks.
+async def remove_labels(task:TaskItem)-> TaskItem:
+    """Removes labeled-as-removed annotations from a task.
 
-        For each task, iterates over the annotations contained in the
+        Iterates over the annotations contained in the
         first prediction's result (`predictions[0]["result"]`) and keeps
         only those for which `check_if_label_removed` returns False,
         discarding the rest. The task's result list is then replaced with
         the filtered annotations.
 
         Args:
-            tasks (list[TaskItem]): List of tasks to process.
+            task (TaskItem): Task to process.
 
         Returns:
-            list[TaskItem]: The same list of tasks passed in, with
+            TaskItem: The same task passed in, with
                 `predictions[0]["result"]` updated to contain only the
                 annotations that were not removed."""
-    items:list[TaskItem] = []
-    for task in tasks:
-        result = task["predictions"][0]["result"]
-        user_id = get_user_id_from_TaskItem(task)
-        cur_anotation:list[InnerAnnotation] = []
-        for anotation in result:
-            if await check_if_label_removed(anotation["options"],anotation["thoot_id"], user_id):
-                continue
-            cur_anotation.append(anotation)
-        task["predictions"][0]["result"] = cur_anotation
-        items.append(task)
-    return (items)
+    result = task["predictions"][0]["result"]
+    user_id = get_user_id_from_TaskItem(task)
+    cur_anotation:list[InnerAnnotation] = []
+    for anotation in result:
+        if await check_if_label_removed(anotation["options"],anotation["thoot_id"], user_id):
+            continue
+        cur_anotation.append(anotation)
+    task["predictions"][0]["result"] = cur_anotation
+    return task
 
-def combine_labels(tasks:list[TaskItem])-> list[TaskItem]:
+def combine_labels(task:TaskItem)-> TaskItem:
     """Combines nearby annotations that share the same label.
 
         Groups annotations flagged by `test_if_needs_combine` by their
@@ -49,29 +47,26 @@ def combine_labels(tasks:list[TaskItem])-> list[TaskItem]:
         other annotations are left untouched.
 
         Args:
-            tasks (list[TaskItem]): List of tasks to process.
+            task (TaskItem): Task to process.
 
         Returns:
-            list[TaskItem]: The same tasks, with each task's result list
+            TaskItem: The same task, with its result list
                 updated to include the combined annotations.
 
         """
-    items:list[TaskItem] = []
-    for task in tasks:
-        result = task["predictions"][0]["result"]
-        cur_anotation:list[InnerAnnotation] = []
-        combine_annotaion: dict[str,list[ InnerAnnotation]] = {}
-        for anotation in result:
-            if test_if_needs_combine(anotation["options"]):
+    result = task["predictions"][0]["result"]
+    cur_anotation:list[InnerAnnotation] = []
+    combine_annotaion: dict[str,list[ InnerAnnotation]] = {}
+    for anotation in result:
+        if test_if_needs_combine(anotation["options"]):
 
-                key = anotation["value"]["rectanglelabels"]
+            key = anotation["value"]["rectanglelabels"]
 
-                combine_annotaion.setdefault(key[0], []).append(anotation)
-                continue
-            cur_anotation.append(anotation)
-        task["predictions"][0]["result"] = cur_anotation+combine_anotations(combine_annotaion)
-        items.append(task)
-    return items
+            combine_annotaion.setdefault(key[0], []).append(anotation)
+            continue
+        cur_anotation.append(anotation)
+    task["predictions"][0]["result"] = cur_anotation+combine_anotations(combine_annotaion)
+    return task
 def split_tasks(tasks: list[TaskItem]) -> dict[str, list[TaskItem]]:
     """Splits each task's annotations into separate tasks grouped by label.
 
@@ -130,10 +125,14 @@ async def check_task_options(tasks:list[TaskItem])->dict[str,list[TaskItem]]:
                         key (or "main") after combining, removing, and splitting
                         annotations.
                 """
-    task:list[TaskItem] = combine_labels(tasks)
-    task = await remove_labels(task)
-    task = add_ai(task)
-    task_dir:dict[str,list[TaskItem]] = split_tasks(task)
+    labels = load_label_mapping(ai=True)
+
+    for i, task in enumerate(tasks):
+        task = combine_labels(task)
+        task = await remove_labels(task)
+        task = add_ai(task, labels)
+        tasks[i] = task
+    task_dir:dict[str,list[TaskItem]] = split_tasks(tasks)
 
     return task_dir
 
