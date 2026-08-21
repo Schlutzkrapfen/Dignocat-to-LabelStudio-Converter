@@ -6,7 +6,7 @@ from torch.jit.annotations import Tuple
 import copy
 
 from add_ai import add_ai
-from check_options import test_if_inward, test_if_needs_combine, test_if_no_overlapp, test_if_outward, test_if_ownjson
+from check_options import test_if_inward, test_if_needs_combine, test_if_no_overlapp, test_if_outward, test_if_ownjson, test_if_split
 from helper_functions import convert_thooth_id_to_number, get_user_id_from_TaskItem
 from json_maker import get_difference, get_json_cordinates
 from label_converter import load_label_mapping
@@ -100,6 +100,44 @@ def split_tasks(tasks: list[TaskItem]) -> dict[str, list[TaskItem]]:
             items[key].append(new_task)
 
     return dict(items)
+def split_labels(task: TaskItem ,new_width:float = 5) -> TaskItem:
+    """
+        Splits each "splittable" annotation (test_if_split) into two deep-copied
+        annotations of width new_width, positioned at the left and right edges
+        of the original box.
+
+        Args:
+            task: TaskItem with task["predictions"][0]["result"].
+            new_width: width to assign to each split annotation.
+
+        Returns:
+            task with updated result (mutated in-place).
+    """
+    result = task["predictions"][0]["result"]
+    cur_annotations: list[InnerAnnotation] = []
+    half_width = new_width / 2
+
+    for annotation in result:
+        if not test_if_split(annotation["options"]):
+            cur_annotations.append(annotation)
+            continue
+
+        original_width = annotation["value"]["width"]
+        original_x = annotation["value"]["x"]
+
+        left:InnerAnnotation = copy.deepcopy(annotation)
+        left["value"]["width"] = new_width
+        left["value"]["x"] = original_x - half_width
+        cur_annotations.append(left)
+
+        right:InnerAnnotation = copy.deepcopy(annotation)
+        right["value"]["width"] = new_width
+        right["value"]["x"] = original_x - half_width + original_width
+        right["id"] = f"{annotation['id']}_right"
+        cur_annotations.append(right)
+
+    task["predictions"][0]["result"] = cur_annotations
+    return task
 async def check_task_options(tasks:list[TaskItem])->dict[str,list[TaskItem]]:
     """Applies option-based processing steps to a list of tasks.
 
@@ -129,6 +167,7 @@ async def check_task_options(tasks:list[TaskItem])->dict[str,list[TaskItem]]:
 
     for i, task in enumerate(tasks):
         task = combine_labels(task)
+        task = split_labels(task)
         task = await remove_labels(task)
         task = add_ai(task, labels)
         tasks[i] = task
