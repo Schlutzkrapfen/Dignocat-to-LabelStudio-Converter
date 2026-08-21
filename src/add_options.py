@@ -1,6 +1,7 @@
 
 
 from collections import defaultdict
+from math import exp
 
 from torch.jit.annotations import Tuple
 import copy
@@ -100,7 +101,7 @@ def split_tasks(tasks: list[TaskItem]) -> dict[str, list[TaskItem]]:
             items[key].append(new_task)
 
     return dict(items)
-def split_labels(task: TaskItem ,new_width:float = 5) -> TaskItem:
+def split_labels(task: TaskItem , new_width:float = 1) -> TaskItem:
     """
         Splits each "splittable" annotation (test_if_split) into two deep-copied
         annotations of width new_width, positioned at the left and right edges
@@ -116,28 +117,73 @@ def split_labels(task: TaskItem ,new_width:float = 5) -> TaskItem:
     result = task["predictions"][0]["result"]
     cur_annotations: list[InnerAnnotation] = []
     half_width = new_width / 2
+    teeth_ids:list[str] =[]
 
     for annotation in result:
         if not test_if_split(annotation["options"]):
             cur_annotations.append(annotation)
             continue
 
+
+
+
         original_width = annotation["value"]["width"]
         original_x = annotation["value"]["x"]
 
-        left:InnerAnnotation = copy.deepcopy(annotation)
-        left["value"]["width"] = new_width
-        left["value"]["x"] = original_x - half_width
-        cur_annotations.append(left)
+        left_is_already_annotated = False
+        right_is_already_annotated = False
+        for tooth_id in teeth_ids:
+            if check_if_two_theeth_are_near_each_other(int(tooth_id[1:3]), int(annotation["thoot_id"][1:3])):
+                if check_if_teeth_left(annotation["thoot_id"], tooth_id):
+                    right_is_already_annotated = True
+                else:
+                    left_is_already_annotated = True
+        if  not left_is_already_annotated:
+            left:InnerAnnotation = copy.deepcopy(annotation)
+            left["value"]["width"] = new_width
+            left["value"]["x"] = original_x - half_width
+            cur_annotations.append(left)
 
-        right:InnerAnnotation = copy.deepcopy(annotation)
-        right["value"]["width"] = new_width
-        right["value"]["x"] = original_x - half_width + original_width
-        right["id"] = f"{annotation['id']}_right"
-        cur_annotations.append(right)
+        if not right_is_already_annotated:
+            right:InnerAnnotation = copy.deepcopy(annotation)
+            right["value"]["width"] = new_width
+            right["value"]["x"] = original_x - half_width + original_width
+            right["id"] = f"{annotation['id']}_right"
+            cur_annotations.append(right)
+            teeth_ids.append(annotation["thoot_id"])
+            right:InnerAnnotation = copy.deepcopy(annotation)
 
     task["predictions"][0]["result"] = cur_annotations
     return task
+def check_if_teeth_left(tooth_id1:str, tooth_id2:str)->bool:
+    """
+       Returns True if tooth_id1 is positioned to the left of tooth_id2,
+       based on FDI quadrant/position (left quadrants 1,4; right quadrants 2,3).
+       Within the same side, lower/higher position determines order;
+       across sides, quadrant alone decides.
+
+       Args:
+           tooth_id1, tooth_id2: FDI tooth ids, e.g. "T11", "T48".
+
+       Returns:
+           bool: True if tooth_id1 is to the left of tooth_id2.
+       """
+    quadrant1 = int(tooth_id1[1:2])
+    position1 = int(tooth_id1[2:3])
+    quadrant2 =  int(tooth_id2[1:2])
+    position2 = int(tooth_id2[2:3])
+    if quadrant1 == 1 or quadrant1 == 4:
+        if quadrant2 == 1 or quadrant2 == 4:
+            return position1 > position2
+        else:
+            return True
+    else:
+        if quadrant2 == 2 or quadrant2 == 3:
+            return position1 < position2
+        else:
+            return False
+
+
 async def check_task_options(tasks:list[TaskItem])->dict[str,list[TaskItem]]:
     """Applies option-based processing steps to a list of tasks.
 
@@ -346,7 +392,7 @@ def combine_anotations(dict_combinations:dict[str, list[InnerAnnotation]])->list
     return new_annotations
 
 def check_if_two_theeth_are_near_each_other(number_one:int,number_two:int,distance:int = 1)->bool:
-    """Checks whether two tooth numbers are within a given distance.
+    """Checks whether two tooth numbers are within a given distance. needs the 11-48 format.
 
         Args:
             number_one (int): First tooth number.
