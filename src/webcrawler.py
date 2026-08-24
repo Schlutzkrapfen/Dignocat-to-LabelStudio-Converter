@@ -409,7 +409,7 @@ async def go_to_patient_report( user_id: int,max_retries:int=20):
         """
     print("Opening data page...")
     try:
-        if user_id > await  get_patient_amount():
+        if user_id >= await  get_patient_amount():
             print("User ID exceeds patient amount, starting from the first patient")
             await go_to_patient_report(0, max_retries)
             return
