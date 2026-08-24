@@ -417,7 +417,7 @@ async def go_to_patient_report( user_id: int,max_retries:int=20):
         max_patiens = await get_patient_amount()
         if user_id >= max_patiens:
                    print("User ID exceeds patient amount, starting from the first patient")
-                   await go_to_patient_report(max_patiens - 1, max_retries)
+                   await go_to_patient_report(-1, max_retries)
                    return
         row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
 
