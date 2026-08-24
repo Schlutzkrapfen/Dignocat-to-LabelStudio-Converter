@@ -1,4 +1,3 @@
-from collections import UserDict
 import os
 from pathlib import Path
 from typing import cast
@@ -415,9 +414,10 @@ async def go_to_patient_report( user_id: int,max_retries:int=20):
         wait_until="domcontentloaded",
         timeout=10000,
         )
-        if user_id >= await  get_patient_amount():
+        max_patiens = await get_patient_amount()
+        if user_id >= max_patiens:
                    print("User ID exceeds patient amount, starting from the first patient")
-                   await go_to_patient_report(0, max_retries)
+                   await go_to_patient_report(max_patiens - 1, max_retries)
                    return
         row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
 
@@ -471,7 +471,6 @@ async def go_to_patient_report( user_id: int,max_retries:int=20):
 async def remove_overlay():
     """Removes the HubSpot overlay element from the page, if present.
 
-        Args:
         """
     await page.evaluate("""
     const el = document.querySelector('#hs-web-interactives-top-anchor');
