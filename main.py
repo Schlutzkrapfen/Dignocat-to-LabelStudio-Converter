@@ -84,6 +84,7 @@ async def main():
 
         Raises:
             OSError: If a patient's page can't be found/loaded.
+            ValueError: If a patient's page is out of bounds.
         """
     output_dir = Path("output")
     os.makedirs(output_dir, exist_ok=True)
