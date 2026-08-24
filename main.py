@@ -110,10 +110,14 @@ async def main():
 
             for i in parse_id_range(page_amount):
                 try:
+                    print(f"processing {i},page_amount={page_amount}")
                     user_id = await find_page(i,page_amount,output_dir)
-                except (ValueError,OSError)as e:
+                except OSError as e:
                     print(f"complete failure:{e}")
                     raise OSError
+                except ValueError as e:
+                    print(f"value error:{e}")
+                    raise   ValueError
                 print(refrence_image_path)
                 single_task  = await get_task(label_Data,user_id)
                 task.append(single_task)
