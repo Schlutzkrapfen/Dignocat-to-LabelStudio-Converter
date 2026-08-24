@@ -155,6 +155,7 @@ async def find_page(i:int,page_amount:int,output_dir:Path)->int:
     duplictas: list[Path] = [Path("")]
     already_skipped: list[int] = []
     duplictas_i = 0
+    first_over: bool = False
     user_id = 0
     while len(duplictas) > 0:
         user = i + duplictas_i
@@ -165,6 +166,13 @@ async def find_page(i:int,page_amount:int,output_dir:Path)->int:
         print(f"USERID = {user}")
 
         user_id:int = page_amount - i - 1
+        if page_amount - user < 0:
+            if not first_over:
+                duplictas_i = 0
+                first_over = True
+                continue
+            user = 0 + duplictas_i
+
 
         try:
             await go_to_patient_report( user)
@@ -335,7 +343,7 @@ async def get_patient_amount()->int:
         )
         if amount_el:
             amount_text = (await amount_el.inner_text()).strip()
-            amount = int(amount_text)  # 697
+            amount = int(amount_text)
             print(f"Active filter amount: {amount}")
             if amount == 0:
                 raise LookupError("amount of 0")
@@ -414,7 +422,7 @@ async def go_to_patient_report( user_id: int,max_retries:int=20):
         max_patiens = await get_patient_amount()
         if user_id >= max_patiens:
                    print("User ID exceeds patient amount, starting from the first patient")
-                   await go_to_patient_report(-1, max_retries)
+                   await go_to_patient_report(0, max_retries)
                    return
         row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
 
@@ -438,7 +446,12 @@ async def go_to_patient_report( user_id: int,max_retries:int=20):
                # Not enough rows yet — scroll down to load more
                await rows[-1].scroll_into_view_if_needed()
 
-        await rows[user_id].click()
+        try:
+            await rows[user_id].click()
+        except IndexError as e:
+            print(f"User_id: {user_id} the picture wasn't there: {e} ")
+            await go_to_patient_report(0,max_retries)
+
         print("Clicked first patient row")
 
         print(f"Now on: {page.url}")
@@ -452,7 +465,7 @@ async def go_to_patient_report( user_id: int,max_retries:int=20):
     except ValueError as e:
         print(f"User_id: {user_id} the picture wasn't there: {e} ")
         # TODO: find a more efficent way to go true the loop if it failed
-        await go_to_patient_report(user_id + 1)
+        await go_to_patient_report(user_id + 1,max_retries)
         return
     except PlaywrightTimeoutError as e:
         print(f"Something went wrong, skipping: {e}")
