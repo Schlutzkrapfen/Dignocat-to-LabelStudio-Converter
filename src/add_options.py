@@ -119,13 +119,10 @@ def split_labels(task: TaskItem , new_width:float = 1) -> TaskItem:
     teeth_ids:list[str] =[]
 
     for annotation in result:
-        if not test_if_split(annotation["options"]):
+        already_split = annotation["value"]["width"] == new_width or annotation["id"].endswith(("_left", "_right"))
+        if not test_if_split(annotation["options"]) or already_split:
             cur_annotations.append(annotation)
             continue
-
-
-
-
         original_width = annotation["value"]["width"]
         original_x = annotation["value"]["x"]
 
@@ -149,8 +146,7 @@ def split_labels(task: TaskItem , new_width:float = 1) -> TaskItem:
             right["value"]["x"] = original_x - half_width + original_width
             right["id"] = f"{annotation['id']}_right"
             cur_annotations.append(right)
-            teeth_ids.append(annotation["thoot_id"])
-            right:InnerAnnotation = copy.deepcopy(annotation)
+        teeth_ids.append(annotation["thoot_id"])
 
     task["predictions"][0]["result"] = cur_annotations
     return task
