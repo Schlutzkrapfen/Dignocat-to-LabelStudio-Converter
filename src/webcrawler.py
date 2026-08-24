@@ -159,12 +159,9 @@ async def find_page(i:int,page_amount:int,output_dir:Path)->int:
     while len(duplictas) > 0:
         user = i + duplictas_i
         duplictas_i += 1
-
         if user in already_skipped:
             print(f"User {user} already testet")
             continue
-        if page_amount - user < 0:
-            raise ValueError("didn't find any doubles")
         print(f"USERID = {user}")
 
         user_id:int = page_amount - i - 1
@@ -455,12 +452,12 @@ async def go_to_patient_report( user_id: int,max_retries:int=20):
     except ValueError as e:
         print(f"User_id: {user_id} the picture wasn't there: {e} ")
         # TODO: find a more efficent way to go true the loop if it failed
-        await go_to_patient_report( user_id + 1)
+        await go_to_patient_report(user_id + 1)
         return
     except PlaywrightTimeoutError as e:
         print(f"Something went wrong, skipping: {e}")
         if max_retries <= 0:
-            raise ValueError("No Users Left")
+            raise ValueError("Max retries exceeded")
         await go_to_patient_report(0,max_retries -1)
         return
 
