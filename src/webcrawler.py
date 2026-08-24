@@ -455,7 +455,7 @@ async def go_to_patient_report( user_id: int,max_retries:int=20):
         print(f"Something went wrong, skipping: {e}")
         if max_retries <= 0:
             raise ValueError("No Users Left")
-        await go_to_patient_report(user_id + 1,max_retries -1)
+        await go_to_patient_report(0,max_retries -1)
         return
 
     await remove_overlay()

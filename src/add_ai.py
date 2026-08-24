@@ -37,7 +37,11 @@ def add_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]])->TaskItem:
             list[TaskItem]: The same tasks, with AI-eligible annotations
             updated in place.
     """
-    image =Image.open( get_path_from_taskItem(task))
+    try:
+        image =Image.open( get_path_from_taskItem(task))
+    except FileNotFoundError as e:
+        print(f"Image not found, Ai Prediction skipped: {get_path_from_taskItem(task)}, error: {e}")
+        return task
     result = task["predictions"][0]["result"]
     cur_anotation:list[InnerAnnotation] = []
     for anotation in result:
@@ -103,7 +107,6 @@ def ai_predict(ai_path: Path, image: Image.Image) -> tuple[float,str]:
 
     confidence = probs[predicted_idx].item()
     predicted_class = class_names[predicted_idx]
-    print(f"Predicted class: {predicted_class}, confidence: {confidence}, predicted_idx: {predicted_idx}")
     return confidence,predicted_class
 
 def crop_with_padding(image: Image.Image, x_pct:float, y_pct:float, w_pct:float, h_pct:float, padding_pct:float=5) -> Image.Image:
