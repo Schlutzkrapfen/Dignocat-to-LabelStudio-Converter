@@ -1,7 +1,6 @@
 
 
 from collections import defaultdict
-from math import exp
 
 from torch.jit.annotations import Tuple
 import copy
