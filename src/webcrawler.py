@@ -1,3 +1,4 @@
+from collections import UserDict
 import os
 from pathlib import Path
 from typing import cast
@@ -408,6 +409,10 @@ async def go_to_patient_report( user_id: int,max_retries:int=20):
         """
     print("Opening data page...")
     try:
+        if user_id > await  get_patient_amount():
+            print("User ID exceeds patient amount, starting from the first patient")
+            await go_to_patient_report(0, max_retries)
+            return
         _website = await page.goto(
         "https://app.diagnocat.eu/patients",
         wait_until="domcontentloaded",
