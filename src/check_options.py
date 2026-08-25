@@ -1,3 +1,5 @@
+
+
 def test_if_split(options:str) -> bool:
     """Checks whether an annotation has the option splith.
     Args:
@@ -24,9 +26,26 @@ def test_if_height(options:str):
         """
     parts = options.split(",")
     for part in parts:
-        if part[:5] == "height" :
+        if part[:6] == "height" :
             return True
     return False
+
+def get_heigt(options:str) -> float:
+    """Returns the height of the annotation from the options string.
+
+        Args:
+            options (str): Comma-separated list of option flags.
+
+        Returns:
+            float: The height of the annotation to multiply with.
+        Raises:
+            ValueError: If no height is found in the options.
+        """
+    parts = options.split(",")
+    for part in parts:
+        if part[:6] == "height" :
+            return float(part.split(":")[1])
+    raise ValueError("No height found in options")
 
 def test_if_no_overlapp(options:str):
     """Checks whether an annotation has the option neighborsconnect
@@ -148,3 +167,19 @@ def is_furthers_out(theet_id:str)->bool:
         """
     second_letter = theet_id[2]
     return second_letter == "8"
+
+def test_if_ai(options:str):
+    """Checks whether an annotation has the option ai
+
+            Args:
+                options (str): Comma-separated list of option flags.
+
+            Returns:
+                bool: True if the annotation has the option ai that
+                     False otherwise.
+    """
+    parts = options.split(",")
+    for part in parts:
+        if part[:2] == "ai" :
+            return True
+    return False

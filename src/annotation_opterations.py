@@ -3,10 +3,10 @@ import copy
 
 from PIL import Image
 
-from add_ai import ai_predict, crop_with_padding, get_which_ai_modell_to_use, test_if_ai
-from check_options import test_if_inward, test_if_needs_combine, test_if_no_overlapp, test_if_outward, test_if_split
-from dental_logic import check_if_teeth_left, check_if_two_theeth_are_near_each_other, create_cluster, get_thooth_id_from_cluster
-from geometry_utils import get_new_rectangle, is_overlapping
+from add_ai import ai_predict, get_which_ai_modell_to_use
+from check_options import get_heigt, test_if_ai, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp, test_if_outward, test_if_split
+from dental_logic import check_if_teeth_left, check_if_theeth_top_row, check_if_two_theeth_are_near_each_other, create_cluster, get_thooth_id_from_cluster
+from geometry_utils import crop_with_padding, get_new_rectangle, is_overlapping
 from helper_functions import get_path_from_taskItem, get_user_id_from_TaskItem
 from task_item import InnerAnnotation, TaskItem, Value
 import statistics
@@ -154,6 +154,36 @@ def add_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]])->TaskItem:
         cur_anotation.append(anotation)
     task["predictions"][0]["result"] = cur_anotation
     return task
+
+def add_heigt(task: TaskItem) -> TaskItem:
+    """
+    Adds height information to the task annotations based on the options.
+
+    Args:
+        task (TaskItem): The task to update.
+
+    Returns:
+        TaskItem: The updated task with height information added to the annotations.
+
+    """
+    cur_anotation:list[InnerAnnotation] = []
+    for anotation in task["predictions"][0]["result"]:
+        if  test_if_height(anotation["options"]):
+            try:
+                old_height = anotation["value"]["height"]
+                new_height  = old_height * get_heigt(anotation["options"])
+                anotation["value"]["height"] = new_height
+            except ValueError as e:
+                print(e)
+                cur_anotation.append(anotation)
+                continue
+            if check_if_theeth_top_row(anotation["thoot_id"]):
+                anotation["value"]["y"] = anotation["value"]["y"] - (new_height - old_height)
+        cur_anotation.append(anotation)
+    task["predictions"][0]["result"] = cur_anotation
+    return task
+
+
 def combine_anotations(dict_combinations:dict[str, list[InnerAnnotation]])->list[InnerAnnotation]:
     """Merges grouped annotations into single combined annotations.
 

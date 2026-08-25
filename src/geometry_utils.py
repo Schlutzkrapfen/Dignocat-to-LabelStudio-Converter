@@ -1,5 +1,7 @@
 
 
+from PIL import Image
+
 from dental_logic import convert_thooth_id_to_number, find_tooth_id_around
 from json_maker import get_difference, get_json_cordinates
 from task_item import InnerAnnotation
@@ -89,3 +91,34 @@ async def is_overlapping(thooth_id:str,user_id:int,offset:float=2.0)->bool:
     left_point = min(x_pct1+w_pct1, x_pct2+w_pct2)
     right_point = max(x_pct1, x_pct2)
     return left_point + offset >= right_point
+
+def crop_with_padding(image: Image.Image, x_pct:float, y_pct:float, w_pct:float, h_pct:float, padding_pct:float=5) -> Image.Image:
+    """Crops a region of an image, adding padding around it.
+
+        Args:
+            image (Image.Image): The PIL image to crop.
+            x_pct (float): X coordinate of the region's top-left corner, as % of image width.
+            y_pct (float): Y coordinate of the region's top-left corner, as % of image height.
+            w_pct (float): Width of the region, as % of image width.
+            h_pct (float): Height of the region, as % of image height.
+            padding_pct (float): Padding around the region, as % of the region's own size.
+
+        Returns:
+            Image.Image: The cropped image, clamped to the original image's bounds.
+    """
+    img_w, img_h = image.size
+
+    x = x_pct / 100 * img_w
+    y = y_pct / 100 * img_h
+    w = w_pct / 100 * img_w
+    h = h_pct / 100 * img_h
+
+    pad_x = w * (padding_pct / 100)
+    pad_y = h * (padding_pct / 100)
+
+    left = max(0, x - pad_x)
+    top = max(0, y - pad_y)
+    right = min(img_w, x + w + pad_x)
+    bottom = min(img_h, y + h + pad_y)
+
+    return image.crop((int(left), int(top), int(right), int(bottom)))
