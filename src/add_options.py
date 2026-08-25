@@ -5,14 +5,10 @@ from collections import defaultdict
 
 import copy
 
-from annotation_opterations import add_ai, combine_labels, remove_labels, split_labels
+from annotation_opterations import add_ai, add_heigt, combine_labels, remove_labels, split_labels
 from check_options import test_if_ownjson
 from label_converter import load_label_mapping
 from task_item import InnerAnnotation, TaskItem
-
-
-
-
 
 
 async def check_task_options(tasks:list[TaskItem])->dict[str,list[TaskItem]]:
@@ -44,6 +40,7 @@ async def check_task_options(tasks:list[TaskItem])->dict[str,list[TaskItem]]:
 
     for i, task in enumerate(tasks):
         task = combine_labels(task)
+        task = add_heigt(task)
         task = split_labels(task)
         task = await remove_labels(task)
         task = add_ai(task, labels)

@@ -69,36 +69,7 @@ def ai_predict(ai_path: Path, image: Image.Image) -> tuple[float,str]:
     predicted_class = class_names[predicted_idx]
     return confidence,predicted_class
 
-def crop_with_padding(image: Image.Image, x_pct:float, y_pct:float, w_pct:float, h_pct:float, padding_pct:float=5) -> Image.Image:
-    """Crops a region of an image, adding padding around it.
 
-        Args:
-            image (Image.Image): The PIL image to crop.
-            x_pct (float): X coordinate of the region's top-left corner, as % of image width.
-            y_pct (float): Y coordinate of the region's top-left corner, as % of image height.
-            w_pct (float): Width of the region, as % of image width.
-            h_pct (float): Height of the region, as % of image height.
-            padding_pct (float): Padding around the region, as % of the region's own size.
-
-        Returns:
-            Image.Image: The cropped image, clamped to the original image's bounds.
-    """
-    img_w, img_h = image.size
-
-    x = x_pct / 100 * img_w
-    y = y_pct / 100 * img_h
-    w = w_pct / 100 * img_w
-    h = h_pct / 100 * img_h
-
-    pad_x = w * (padding_pct / 100)
-    pad_y = h * (padding_pct / 100)
-
-    left = max(0, x - pad_x)
-    top = max(0, y - pad_y)
-    right = min(img_w, x + w + pad_x)
-    bottom = min(img_h, y + h + pad_y)
-
-    return image.crop((int(left), int(top), int(right), int(bottom)))
 def get_which_ai_modell_to_use(options:str)-> Path:
     """Resolves the AI model path from an options string.
         Args:
@@ -108,21 +79,11 @@ def get_which_ai_modell_to_use(options:str)-> Path:
         Returns:
             Path: Full path to the model, obtained by joining AI_DIR with
             the value after the colon in `options`.
+            Raises:
+                ValueError: If no AI model is found in the options string.
     """
-    path= Path(AI_DIR /  options.split(":")[1])
-    return path
-def test_if_ai(options:str):
-    """Checks whether an annotation has the option ai
-
-            Args:
-                options (str): Comma-separated list of option flags.
-
-            Returns:
-                bool: True if the annotation has the option ai that
-                     False otherwise.
-    """
-    parts = options.split(",")
-    for part in parts:
-        if part[:2] == "ai" :
-            return True
-    return False
+    for part in options.split(","):
+        if part[:2] == "ai":
+            path= Path(AI_DIR /  options.split(":")[1])
+            return path
+    raise ValueError(f"No AI model found in options: {options}")

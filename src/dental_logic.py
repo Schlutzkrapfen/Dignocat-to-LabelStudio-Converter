@@ -152,6 +152,17 @@ def find_tooth_id_around(tooth_id:str)-> tuple[int,int|None]:
     if tooth1%10 >= 9:
         return tooth0,None
     return tooth0,tooth1
+def check_if_theeth_top_row(tooth_id:str)->bool:
+    """
+        Returns True if the tooth is in the top row (1st, 2nd row).
+
+        Args:
+            tooth_id: FDI tooth id, e.g. "T11", "T48".
+
+        Returns:
+            bool: True if the tooth is in the top row.
+        """
+    return int(tooth_id[1:2]) < 3
 def check_if_teeth_left(tooth_id1:str, tooth_id2:str)->bool:
     """
         Returns True if tooth_id1 is positioned to the left of tooth_id2,
