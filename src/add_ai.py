@@ -3,7 +3,6 @@ from __future__ import annotations
 
 
 import torch
-import statistics
 from pathlib import Path
 from torch import nn
 from typing import cast
@@ -12,49 +11,10 @@ from torchvision import transforms, models
 from PIL import Image
 
 
-from helper_functions import  get_path_from_taskItem
-from task_item import InnerAnnotation, TaskItem
 AI_DIR:Path = Path("AI-Models")
 PADDING_PERCENT:int = 5 #the padding was also used in the training
 
-def add_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]])->TaskItem:
 
-    """Enriches task annotations with AI-predicted labels and scores.
-
-        For each task, opens the associated image and iterates over its
-        prediction results. For annotations flagged for AI processing (per
-        `test_if_ai`), runs the appropriate AI model to predict a label and
-        confidence amount, then updates the annotation's `from_name`,
-        `rectanglelabels`, and `score` (averaged with the existing score)
-        based on the predicted label's mapping.
-
-        Args:
-            task (list[TaskItem]): List of tasks to process. Each task is
-                expected to contain image path info and a
-                `predictions[0]["result"]` list of annotations.
-
-        Returns:
-            list[TaskItem]: The same tasks, with AI-eligible annotations
-            updated in place.
-    """
-    try:
-        image =Image.open( get_path_from_taskItem(task))
-    except FileNotFoundError as e:
-        print(f"Image not found, Ai Prediction skipped: {get_path_from_taskItem(task)}, error: {e}")
-        return task
-    result = task["predictions"][0]["result"]
-    cur_anotation:list[InnerAnnotation] = []
-    for anotation in result:
-        if test_if_ai(anotation["options"]):
-            value = anotation["value"]
-            cur_amount,cur_name = ai_predict(get_which_ai_modell_to_use(anotation["options"]),crop_with_padding(image,value["x"], value["y"], value["width"], value["height"]))
-            anotation["from_name"] = labels[cur_name][0]["label_category"]
-            anotation["value"]["rectanglelabels"] = [str(item["code"]) for item in labels[cur_name]]
-            anotation["score"] =  float(statistics.mean([anotation["score"],cur_amount]))
-
-        cur_anotation.append(anotation)
-    task["predictions"][0]["result"] = cur_anotation
-    return task
 
 
 def ai_predict(ai_path: Path, image: Image.Image) -> tuple[float,str]:

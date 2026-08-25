@@ -20,6 +20,6 @@ Brückenglied	Metal-Bridge	"metal
 Fehlt	Missing/lost Odontom	Odontoms	
 Fehlt 	Gap	Restauration	combine,inward,neighborsconnect
 Brückenglied	Blocking	Restauration	splith
-Brückenglied	Missing/lost Odontom	Odontoms	
+Brückenglied	Missing/lost Odontom	Odontoms	height:2
 Implantat	Implant	Restauration	
 Zahn	Teeth	Abrasion	ownjson
