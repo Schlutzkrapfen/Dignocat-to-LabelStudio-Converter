@@ -118,33 +118,3 @@ def strip_keys(obj, keys_to_remove: set[str]):
         return [strip_keys(item, keys_to_remove) for item in obj]
     else:
         return obj
-
-def convert_thooth_id_to_number(thooth_id:int)->int:
-    """
-        Convert an FDI-style tooth id into a sequential tooth number (1-32).
-
-        Maps each quadrant to its numeric range, with quadrants 1 and 3
-        reversed:
-            - Quadrant 1 (11-18) -> 8 down to 1
-            - Quadrant 2 (21-28) -> 9 up to 16
-            - Quadrant 3 (31-38) -> 24 down to 17
-            - Quadrant 4 (41-48) -> 25 up to 32
-
-        Args:
-            thooth_id (int): FDI-style tooth id (e.g. 11, 26, 38, 47).
-
-        Returns:
-            int: Sequential tooth number in the range 1-32.
-
-        Example:
-            >>> convert_thooth_id_to_number(11)
-            8
-    """
-    if thooth_id <20:
-        return 8 - (thooth_id - 11)
-    elif thooth_id> 20 and thooth_id <30:
-        return thooth_id - 12
-    elif thooth_id > 30 and thooth_id < 40:
-         return 24 - (thooth_id - 31)
-    else:
-        return thooth_id -16

@@ -12,6 +12,21 @@ def test_if_split(options:str) -> bool:
         if part == "splith":
             return True
     return False
+def test_if_height(options:str):
+    """Checks whether an annotation has the option height
+
+        Args:
+            options (str): Comma-separated list of option flags.
+
+        Returns:
+            bool: True if the annotation has the option height,
+                    False otherwise.
+        """
+    parts = options.split(",")
+    for part in parts:
+        if part[:5] == "height" :
+            return True
+    return False
 
 def test_if_no_overlapp(options:str):
     """Checks whether an annotation has the option neighborsconnect

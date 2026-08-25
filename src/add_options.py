@@ -1,182 +1,18 @@
 
 
+
 from collections import defaultdict
 
-from torch.jit.annotations import Tuple
 import copy
 
-from add_ai import add_ai
-from check_options import test_if_inward, test_if_needs_combine, test_if_no_overlapp, test_if_outward, test_if_ownjson, test_if_split
-from helper_functions import convert_thooth_id_to_number, get_user_id_from_TaskItem
-from json_maker import get_difference, get_json_cordinates
+from annotation_opterations import add_ai, combine_labels, remove_labels, split_labels
+from check_options import test_if_ownjson
 from label_converter import load_label_mapping
-from task_item import InnerAnnotation, TaskItem, Value
-from webcrawler import  get_refrence_image, get_theeh_picture, get_thooth_id
+from task_item import InnerAnnotation, TaskItem
 
-async def remove_labels(task:TaskItem)-> TaskItem:
-    """Removes labeled-as-removed annotations from a task.
 
-        Iterates over the annotations contained in the
-        first prediction's result (`predictions[0]["result"]`) and keeps
-        only those for which `check_if_label_removed` returns False,
-        discarding the rest. The task's result list is then replaced with
-        the filtered annotations.
 
-        Args:
-            task (TaskItem): Task to process.
 
-        Returns:
-            TaskItem: The same task passed in, with
-                `predictions[0]["result"]` updated to contain only the
-                annotations that were not removed."""
-    result = task["predictions"][0]["result"]
-    user_id = get_user_id_from_TaskItem(task)
-    cur_anotation:list[InnerAnnotation] = []
-    for anotation in result:
-        if await check_if_label_removed(anotation["options"],anotation["thoot_id"], user_id):
-            continue
-        cur_anotation.append(anotation)
-    task["predictions"][0]["result"] = cur_anotation
-    return task
-
-def combine_labels(task:TaskItem)-> TaskItem:
-    """Combines nearby annotations that share the same label.
-
-        Groups annotations flagged by `test_if_needs_combine` by their
-        rectangle label and merges each group via `combine_anotations`;
-        other annotations are left untouched.
-
-        Args:
-            task (TaskItem): Task to process.
-
-        Returns:
-            TaskItem: The same task, with its result list
-                updated to include the combined annotations.
-
-        """
-    result = task["predictions"][0]["result"]
-    cur_anotation:list[InnerAnnotation] = []
-    combine_annotaion: dict[str,list[ InnerAnnotation]] = {}
-    for anotation in result:
-        if test_if_needs_combine(anotation["options"]):
-
-            key = anotation["value"]["rectanglelabels"]
-
-            combine_annotaion.setdefault(key[0], []).append(anotation)
-            continue
-        cur_anotation.append(anotation)
-    task["predictions"][0]["result"] = cur_anotation+combine_anotations(combine_annotaion)
-    return task
-def split_tasks(tasks: list[TaskItem]) -> dict[str, list[TaskItem]]:
-    """Splits each task's annotations into separate tasks grouped by label.
-
-        Annotations flagged via `test_if_ownjson` are grouped by their
-        rectangle label; all others go under "main". For each group, a deep
-        copy of the task is created containing only that group's annotations.
-
-        Args:
-            tasks (list[TaskItem]): List of tasks to process.
-
-        Returns:
-            dict[str, list[TaskItem]]: Label key -> list of task copies
-                containing only the annotations belonging to that key.
-        """
-    items: dict[str, list[TaskItem]] = defaultdict(list)
-
-    for task in tasks:
-        result = task["predictions"][0]["result"]
-        cur_anotation: dict[str, list[InnerAnnotation]] = defaultdict(list)
-
-        for anotation in result:
-            if test_if_ownjson(anotation["options"]):
-                key = anotation["value"]["rectanglelabels"][0]
-            else:
-                key = "main"
-            cur_anotation[key].append(anotation)
-
-        for key, value in cur_anotation.items():
-            new_task = copy.deepcopy(task)
-            new_task["predictions"][0]["result"] = value
-            items[key].append(new_task)
-
-    return dict(items)
-def split_labels(task: TaskItem , new_width:float = 1) -> TaskItem:
-    """
-        Splits each "splittable" annotation (test_if_split) into two deep-copied
-        annotations of width new_width, positioned at the left and right edges
-        of the original box.
-
-        Args:
-            task: TaskItem with task["predictions"][0]["result"].
-            new_width: width to assign to each split annotation.
-
-        Returns:
-            task with updated result (mutated in-place).
-    """
-    result = task["predictions"][0]["result"]
-    cur_annotations: list[InnerAnnotation] = []
-    half_width = new_width / 2
-    teeth_ids:list[str] =[]
-
-    for annotation in result:
-        already_split = annotation["value"]["width"] == new_width or annotation["id"].endswith(("_left", "_right"))
-        if not test_if_split(annotation["options"]) or already_split:
-            cur_annotations.append(annotation)
-            continue
-        original_width = annotation["value"]["width"]
-        original_x = annotation["value"]["x"]
-
-        left_is_already_annotated = False
-        right_is_already_annotated = False
-        for tooth_id in teeth_ids:
-            if check_if_two_theeth_are_near_each_other(int(tooth_id[1:3]), int(annotation["thoot_id"][1:3])):
-                if check_if_teeth_left(annotation["thoot_id"], tooth_id):
-                    right_is_already_annotated = True
-                else:
-                    left_is_already_annotated = True
-        if  not left_is_already_annotated:
-            left:InnerAnnotation = copy.deepcopy(annotation)
-            left["value"]["width"] = new_width
-            left["value"]["x"] = original_x - half_width
-            cur_annotations.append(left)
-
-        if not right_is_already_annotated:
-            right:InnerAnnotation = copy.deepcopy(annotation)
-            right["value"]["width"] = new_width
-            right["value"]["x"] = original_x - half_width + original_width
-            right["id"] = f"{annotation['id']}_right"
-            cur_annotations.append(right)
-        teeth_ids.append(annotation["thoot_id"])
-
-    task["predictions"][0]["result"] = cur_annotations
-    return task
-def check_if_teeth_left(tooth_id1:str, tooth_id2:str)->bool:
-    """
-       Returns True if tooth_id1 is positioned to the left of tooth_id2,
-       based on FDI quadrant/position (left quadrants 1,4; right quadrants 2,3).
-       Within the same side, lower/higher position determines order;
-       across sides, quadrant alone decides.
-
-       Args:
-           tooth_id1, tooth_id2: FDI tooth ids, e.g. "T11", "T48".
-
-       Returns:
-           bool: True if tooth_id1 is to the left of tooth_id2.
-       """
-    quadrant1 = int(tooth_id1[1:2])
-    position1 = int(tooth_id1[2:3])
-    quadrant2 =  int(tooth_id2[1:2])
-    position2 = int(tooth_id2[2:3])
-    if quadrant1 == 1 or quadrant1 == 4:
-        if quadrant2 == 1 or quadrant2 == 4:
-            return position1 > position2
-        else:
-            return True
-    else:
-        if quadrant2 == 2 or quadrant2 == 3:
-            return position1 < position2
-        else:
-            return False
 
 
 async def check_task_options(tasks:list[TaskItem])->dict[str,list[TaskItem]]:
@@ -216,300 +52,36 @@ async def check_task_options(tasks:list[TaskItem])->dict[str,list[TaskItem]]:
 
     return task_dir
 
+def split_tasks(tasks: list[TaskItem]) -> dict[str, list[TaskItem]]:
+    """Splits each task's annotations into separate tasks grouped by label.
 
-
-
-
-def get_new_rectangle(item:InnerAnnotation,x,y,width,height):
-    """Expands a bounding box to also enclose a new annotation's rectangle.
-
-        Computes the smallest bounding box that contains both the current
-        box (given by `x`, `y`, `width`, `height`) and the rectangle of
-        `item`. A `width`/`height` of 0 is treated as "no box yet", so the
-        result is based solely on `item`'s rectangle in that case.
+        Annotations flagged via `test_if_ownjson` are grouped by their
+        rectangle label; all others go under "main". For each group, a deep
+        copy of the task is created containing only that group's annotations.
 
         Args:
-            item (InnerAnnotation): Annotation whose rectangle should be
-                merged into the current bounding box.
-            x (float): X coordinate of the current bounding box.
-            y (float): Y coordinate of the current bounding box.
-            width (float): Width of the current bounding box.
-            height (float): Height of the current bounding box.
+            tasks (list[TaskItem]): List of tasks to process.
 
         Returns:
-            tuple[float, float, float, float]: The new bounding box as
-                `(x, y, width, height)`.
+            dict[str, list[TaskItem]]: Label key -> list of task copies
+                containing only the annotations belonging to that key.
         """
-    item_x = item["value"]["x"]
-    item_y = item["value"]["y"]
-    item_width = item["value"]["width"]
-    item_height = item["value"]["height"]
+    items: dict[str, list[TaskItem]] = defaultdict(list)
 
-    # Right/bottom edges of the current bounding box (before this item)
-    right = x + width
-    bottom = y + height
+    for task in tasks:
+        result = task["predictions"][0]["result"]
+        cur_anotation: dict[str, list[InnerAnnotation]] = defaultdict(list)
 
-    # Right/bottom edges of the new item
-    item_right = item_x + item_width
-    item_bottom = item_y + item_height
+        for anotation in result:
+            if test_if_ownjson(anotation["options"]):
+                key = anotation["value"]["rectanglelabels"][0]
+            else:
+                key = "main"
+            cur_anotation[key].append(anotation)
 
-    # New bounding box: min of the left/top edges, max of the right/bottom edges
-    new_x = item_x if x == 0 else min(x, item_x)
-    new_y = item_y if y == 0 else min(y, item_y)
-    new_right = max(right, item_right) if width != 0 else item_right
-    new_bottom = max(bottom, item_bottom) if height != 0 else item_bottom
+        for key, value in cur_anotation.items():
+            new_task = copy.deepcopy(task)
+            new_task["predictions"][0]["result"] = value
+            items[key].append(new_task)
 
-    new_width = new_right - new_x
-    new_height = new_bottom - new_y
-
-    return new_x, new_y, new_width, new_height
-
-def create_cluster(annotations: list[InnerAnnotation])->list[list[InnerAnnotation]]:
-    """Groups annotations into clusters of nearby teeth.
-
-        An annotation is added to the first existing cluster where at
-        least one member is "near" it, according to
-        `check_if_two_theeth_are_near_each_other`, based on the tooth
-        number extracted from `thoot_id` (characters at index 1:2). If no
-        matching cluster is found, a new cluster is created for it.
-
-        Args:
-            annotations (list[InnerAnnotation]): Annotations to cluster.
-
-        Returns:
-            list[list[InnerAnnotation]]: List of clusters, where each
-                cluster is a list of annotations considered near each
-                other.
-        """
-
-    clusters: list[list[InnerAnnotation]] = []
-
-    for item in annotations:
-        placed = False
-        for cluster in clusters:
-
-            if any(
-                check_if_two_theeth_are_near_each_other(
-                    (int(item["thoot_id"][1:3])), (int(other["thoot_id"][1:3]))
-                )
-                for other in cluster
-            ):
-                cluster.append(item)
-                placed = True
-                break
-        if not placed:
-            clusters.append([item])
-    return clusters
-
-def get_thooth_id_from_cluster(cluster:list[InnerAnnotation])-> str:
-    """Returns the highest thoot_id in a cluster of annotations.
-
-        Compares annotations by the third character (index 2) of their
-        `thoot_id` — i.e. the tooth's position digit — and returns the
-        full `thoot_id` of the annotation with the highest value at that
-        position. If the cluster is empty, the default `"0000"` is
-        returned.
-
-        Args:
-            cluster (list[InnerAnnotation]): Annotations to compare.
-
-        Returns:
-            str: The `thoot_id` of the annotation with the highest
-                position digit, or `"0000"` if the cluster is empty.
-        """
-    highest_thood_id:str = "0000"
-    for item in cluster:
-        cur_thooth_id = item["thoot_id"]
-        if cur_thooth_id[2] > highest_thood_id[2]:
-            highest_thood_id =  cur_thooth_id
-
-    return highest_thood_id
-
-
-
-def combine_anotations(dict_combinations:dict[str, list[InnerAnnotation]])->list[InnerAnnotation]:
-    """Merges grouped annotations into single combined annotations.
-
-    For each label group, clusters its annotations by tooth proximity
-    via `create_cluster`, then merges each cluster into a single
-    annotation: the bounding box is expanded to enclose all rectangles
-    in the cluster (via `get_new_rectangle`), the tooth id is derived
-    from the cluster (via `get_thooth_id_from_cluster`), and all other
-    fields (label, from_name, to_name, type, id, score, options) are
-    copied from the cluster's first annotation.
-
-    Args:
-        dict_combinations (dict[str, list[InnerAnnotation]]): Mapping
-            from rectangle label to the list of annotations sharing
-            that label, to be clustered and merged.
-
-    Returns:
-        list[InnerAnnotation]: One merged annotation per cluster,
-            across all label groups.
-    """
-    new_annotations: list[InnerAnnotation] =[]
-
-    for annotations in dict_combinations.values():
-        clusters = create_cluster(annotations)
-
-        for cluster in clusters:
-            x: float = 0
-            y: float = 0
-            width: float = 0
-            height: float = 0
-            thoot_id:str = get_thooth_id_from_cluster(cluster)
-
-            for item in cluster:
-                x, y, width, height = get_new_rectangle(item, x, y, width, height)
-
-
-            value = Value({
-                "rotation": 0,
-                "rectanglelabels": cluster[0]["value"]["rectanglelabels"],
-                "x": x,
-                "y": y,
-                "width": width,
-                "height": height,
-            })
-
-            annotation = InnerAnnotation({
-                "from_name": cluster[0]["from_name"],
-                "to_name": cluster[0]["to_name"],
-                "type": cluster[0]["type"],
-                "id": cluster[0]["id"],
-                "value": value,
-                "score": cluster[0]["score"],
-                "options": cluster[0]["options"],
-                "thoot_id": thoot_id,
-            })
-            new_annotations.append(annotation)
-
-    return new_annotations
-
-def check_if_two_theeth_are_near_each_other(number_one:int,number_two:int,distance:int = 1)->bool:
-    """Checks whether two tooth numbers are within a given distance. needs the 11-48 format.
-
-        Args:
-            number_one (int): First tooth number.
-            number_two (int): Second tooth number.
-            distance (int): Maximum allowed difference between the two
-                numbers for them to be considered near each other.
-                Defaults to 1.
-
-        Returns:
-            bool: True if the absolute difference between `number_one` and
-                `number_two` is less than or equal to `distance`, False
-                otherwise.
-        """
-    if min(number_one,number_two) == 11 and max(number_one,number_two) == 21 or  min(number_one,number_two) == 31 and max(number_one,number_two) == 41:
-        return True
-
-    return  abs(number_one -number_two) <= distance
-
-
-
-
-async def check_if_label_removed(options:str,thooth_id:str,user_id:int)->bool:
-    """Checks whether an annotation's label should be considered removed.
-
-        An annotation is treated as removed if it qualifies as either an
-        inward duplicate (`test_if_inward`) or an outward duplicate
-        (`test_if_outward`).
-
-        Args:
-            options (str): Comma-separated list of option flags.
-            thooth_id (str): Identifier of the tooth the annotation
-                belongs to.
-
-        Returns:
-            bool: True if the annotation should be removed, False
-                otherwise.
-        """
-    if test_if_no_overlapp(options)and await is_overlapping(thooth_id,user_id):
-
-         return True
-    return test_if_inward(options,thooth_id) or test_if_outward(options,thooth_id)
-
-async def is_overlapping(thooth_id:str,user_id:int,offset:float=2.0)->bool:
-    """
-        Checks whether the teeth adjacent to `thooth_id` have overlapping
-        bounding boxes on the x-axis, based on diff images against the
-        user's reference image.
-
-        Args:
-            thooth_id: Tooth to find neighbors around.
-            user_id: User whose images to use.
-            offset: Horizontal tolerance when comparing bounding boxes.
-
-        Returns:
-            True if the two teeth's boxes overlap horizontally, else False.
-            Returns False if there's no following tooth.
-        Note:
-            Only the x and width values from `get_json_cordinates` are used;
-            the y and height values are discarded and not considered
-        """
-    thoot1,thoot2 =  find_tooth_id_oround(thooth_id)
-    if thoot2 == None:
-        return False
-    try:
-        thoot1_id = await get_thooth_id(convert_thooth_id_to_number(thoot1))
-
-        thoot2_id = await get_thooth_id(convert_thooth_id_to_number(thoot2))
-        refrence_path = await get_refrence_image(user_id)
-        image_path1 = await get_theeh_picture(thoot1_id, user_id)
-        image_path2 = await get_theeh_picture(thoot2_id, user_id)
-        diff_path1 = await get_difference(refrence_path, image_path1)
-        x_pct1, _y_pct1, w_pct1, _h_pct1 = await get_json_cordinates(diff_path1)
-        diff_path2 = await get_difference(refrence_path, image_path2)
-        x_pct2, _y_pct2, w_pct2, _h_pct2 = await get_json_cordinates(diff_path2)
-    except ValueError as er:
-        print(er)
-        return False
-
-    left_point = min(x_pct1+w_pct1, x_pct2+w_pct2)
-    right_point = max(x_pct1, x_pct2)
-    return left_point + offset >= right_point
-
-
-
-
-def find_tooth_id_oround(tooth_id:str)-> Tuple[int,int|None]:
-    """
-        Get the previous and next tooth numbers within the same quadrant.
-
-        The tooth number is read from `tooth_id[1:3]` (FDI-style notation:
-        first digit = quadrant, second digit = tooth position 1-8).
-
-        Args:
-            tooth_id (str): Tooth identifier, e.g. "T18" -> tooth number 18.
-
-        Returns:
-            Tuple[int, int | None]: (previous_tooth, next_tooth).
-                - previous_tooth wraps to the neighboring quadrant when it
-                  would fall below position 1 (10->21, 20->11, 30->41, 40->31).
-                - next_tooth is None if incrementing would exceed the quadrant
-                  (i.e. its last digit would be >= 9).
-
-        Example:
-            >>> find_tooth_id_oround("T18")
-            (17, None)
-            >>> find_tooth_id_oround("T13")
-            (12, 14)
-            >>> find_tooth_id_oround("T11")
-            (21, 12)
-        """
-    tooth0 =  int(tooth_id[1:3])-1
-    tooth1 =  int(tooth_id[1:3])+1
-    if tooth0 == 10:
-        tooth0 = 21
-    elif tooth0 == 20:
-        tooth0 = 11
-    elif tooth0 == 30:
-        tooth0 = 41
-    elif tooth0 == 40:
-        tooth0 = 31
-
-
-    if tooth1%10 >= 9:
-        return tooth0,None
-    return tooth0,tooth1
+    return dict(items)
