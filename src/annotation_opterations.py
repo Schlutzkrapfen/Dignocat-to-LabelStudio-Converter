@@ -95,14 +95,14 @@ def get_egdes(task:TaskItem,image:Image.Image,new_width:float = 1)-> TaskItem:
         _w,h = image.size
         edges = find_edges(cur_image, h, new_width)
         print(f"edges: {edges}, left_is_already_annotated: {left_is_already_annotated}, right_is_already_annotated: {right_is_already_annotated}")
-        if not left_is_already_annotated:
+        if not left_is_already_annotated and edges[0][3] != 0:
             left:InnerAnnotation = copy.deepcopy(anotation)
             left["value"]["width"] = new_width
             left["value"]["height"] = edges[0][3]
             left["value"]["x"] = original_x+edges[0][0] - half_width
             left["id"] = f"{anotation['id']}_left"
             cur_anotation.append(left)
-        if not right_is_already_annotated:
+        if not right_is_already_annotated and edges[1][3] != 0:
             right:InnerAnnotation = copy.deepcopy(anotation)
             right["value"]["width"] = new_width
             right["value"]["height"] = edges[1][3]
