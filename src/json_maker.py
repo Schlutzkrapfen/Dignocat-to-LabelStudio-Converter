@@ -292,8 +292,8 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int)->Task
             continue
         try:
             x, y, w, h = await get_json_cordinates(difference_path)
-        except ValueError:
-            print("label wasn't found")
+        except ValueError as e:
+            print(f"Something went wrong with label {non_conv_label}: {e}")
             continue
 
         for k, _ in enumerate(labels):
