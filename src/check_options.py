@@ -62,7 +62,8 @@ def test_if_no_overlapp(options:str):
         if part == "neighbors_connect":
             return True
     return False
-def test_if_only_edge(options:str):
+
+def test_if_only_edge(options:str) -> bool:
     """Checks whether an annotation has the option only_edge
 
         Args:

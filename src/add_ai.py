@@ -12,7 +12,6 @@ from PIL import Image
 
 
 AI_DIR:Path = Path("AI-Models")
-PADDING_PERCENT:int = 5 #the padding was also used in the training
 
 
 
