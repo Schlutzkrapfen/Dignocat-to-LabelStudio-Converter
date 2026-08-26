@@ -14,7 +14,7 @@ Sekundäre Karies	Caries	pathology
 Wurzel	Caries	pathology	
 Zeichen von Karies	Caries	pathology	
 Implantat	Metal-Implant	"metal
-"	ai:implatn.pth
+"	ai:implant.pth
 Brückenglied	Metal-Bridge	"metal
 "	
 Fehlt	Missing/lost Odontom	Odontoms	
