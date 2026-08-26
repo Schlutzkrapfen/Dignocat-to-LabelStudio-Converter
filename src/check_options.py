@@ -48,22 +48,22 @@ def get_heigt(options:str) -> float:
     raise ValueError("No height found in options")
 
 def test_if_no_overlapp(options:str):
-    """Checks whether an annotation has the option neighborsconnect
+    """Checks whether an annotation has the option neighbors_connect
 
         Args:
             options (str): Comma-separated list of option flags.
 
         Returns:
-            bool: True if the annotation has the option neighborsconnect,
+            bool: True if the annotation has the option neighbors_connect,
                  False otherwise.
         """
     parts = options.split(",")
     for part in parts:
-        if part == "neighborsconnect":
+        if part == "neighbors_connect":
             return True
     return False
 def test_if_ownjson(options:str):
-    """Checks whether an annotation has the option ownjson
+    """Checks whether an annotation has the option own_json
 
         Args:
             options (str): Comma-separated list of option flags.
@@ -74,7 +74,7 @@ def test_if_ownjson(options:str):
         """
     parts = options.split(",")
     for part in parts:
-        if part == "ownjson":
+        if part == "own_json":
             return True
     return False
 def test_if_outward(options:str,thooth_id:str)->bool:
