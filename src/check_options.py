@@ -62,6 +62,21 @@ def test_if_no_overlapp(options:str):
         if part == "neighbors_connect":
             return True
     return False
+def test_if_only_edge(options:str):
+    """Checks whether an annotation has the option only_edge
+
+        Args:
+            options (str): Comma-separated list of option flags.
+
+        Returns:
+            bool: True if the annotation has the option only_edge,
+                 False otherwise.
+        """
+    parts = options.split(",")
+    for part in parts:
+        if part == "only_edge":
+            return True
+    return False
 def test_if_ownjson(options:str):
     """Checks whether an annotation has the option own_json
 
