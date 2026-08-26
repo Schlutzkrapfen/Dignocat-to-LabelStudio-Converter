@@ -154,7 +154,6 @@ def find_edges(img_gray: Image.Image,image_height:int, default_width: float = 1,
     img_gray = enhance_contrast(img_gray)
 
     w, h = img_gray.size
-    print(f"w, h = {w}, {h}")
     pixels = img_gray.load()
     if pixels is None:
         raise ValueError("Image pixels are None")
