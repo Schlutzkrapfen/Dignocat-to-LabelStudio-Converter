@@ -14,14 +14,14 @@ Sekundäre Karies	Caries	pathology
 Wurzel	Caries	pathology	
 Zeichen von Karies	Caries	pathology	
 Implantat	Metal-Implant	"metal
-"	ai:implatn:pth
+"	ai:implatn.pth
 Brückenglied	Metal-Bridge	"metal
 "	
 Fehlt	Missing/lost Odontom	Odontoms	
-Fehlt 	Gap	Restauration	combine,inward,neighborsconnect
+Fehlt 	Gap	Restauration	combine,inward,neighbors_connect
 Brückenglied	Blocking	Restauration	splith
 Brückenglied	Missing/lost Odontom	Odontoms	height:2
 Implantat	Implant	Restauration	
-Zahn	Teeth	Abrasion	ownjson
+Zahn	Teeth	Abrasion	own_json
 Brückenglied	Bridge	Restauration	
 Zahn	Blocking	Restauration	only_edge
