@@ -54,8 +54,8 @@ async def check_task_options(tasks:list[TaskItem])->dict[str,list[TaskItem]]:
                 tasks[i] = task
                 continue
 
-
-        task = get_egdes(task,image.convert("L"))
+        task = split_labels(task)
+        #task = get_egdes(task,image.convert("L"))
         task = add_ai(task, labels,image)
         tasks[i] = task
     task_dir:dict[str,list[TaskItem]] = split_tasks(tasks)
