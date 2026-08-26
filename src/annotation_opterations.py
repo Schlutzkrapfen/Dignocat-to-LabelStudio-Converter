@@ -1,12 +1,13 @@
 
 import copy
+import re
 
 from PIL import Image
 
 from add_ai import ai_predict, get_which_ai_modell_to_use
-from check_options import get_heigt, test_if_ai, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp, test_if_outward, test_if_split
+from check_options import get_heigt, test_if_ai, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp, test_if_only_edge, test_if_outward, test_if_split
 from dental_logic import check_if_teeth_left, check_if_theeth_top_row, check_if_two_theeth_are_near_each_other, create_cluster, get_thooth_id_from_cluster
-from geometry_utils import crop_with_padding, get_new_rectangle, is_overlapping
+from geometry_utils import crop_with_padding, find_edges, get_new_rectangle, is_overlapping
 from helper_functions import get_path_from_taskItem, get_user_id_from_TaskItem
 from task_item import InnerAnnotation, TaskItem, Value
 import statistics
@@ -36,18 +37,13 @@ def split_labels(task: TaskItem , new_width:float = 1) -> TaskItem:
         original_width = annotation["value"]["width"]
         original_x = annotation["value"]["x"]
 
-        left_is_already_annotated = False
-        right_is_already_annotated = False
-        for tooth_id in teeth_ids:
-            if check_if_two_theeth_are_near_each_other(int(tooth_id[1:3]), int(annotation["thoot_id"][1:3])):
-                if check_if_teeth_left(annotation["thoot_id"], tooth_id):
-                    right_is_already_annotated = True
-                else:
-                    left_is_already_annotated = True
+        left_is_already_annotated, right_is_already_annotated = needs_annotation(annotation, teeth_ids)
+
         if  not left_is_already_annotated:
             left:InnerAnnotation = copy.deepcopy(annotation)
             left["value"]["width"] = new_width
             left["value"]["x"] = original_x - half_width
+            left["id"] = f"{annotation['id']}_left"
             cur_annotations.append(left)
 
         if not right_is_already_annotated:
@@ -59,6 +55,63 @@ def split_labels(task: TaskItem , new_width:float = 1) -> TaskItem:
         teeth_ids.append(annotation["thoot_id"])
 
     task["predictions"][0]["result"] = cur_annotations
+    return task
+
+def needs_annotation(annotation: InnerAnnotation, teeth_ids: list[str]) -> tuple[bool, bool]:
+
+    left_is_already_annotated = False
+    right_is_already_annotated = False
+    for tooth_id in teeth_ids:
+        if check_if_two_theeth_are_near_each_other(int(tooth_id[1:3]), int(annotation["thoot_id"][1:3])):
+            if check_if_teeth_left(annotation["thoot_id"], tooth_id):
+                right_is_already_annotated = True
+            else:
+                left_is_already_annotated = True
+    return left_is_already_annotated, right_is_already_annotated
+
+def get_egdes(task:TaskItem,image:Image.Image,new_width:float = 1)-> TaskItem:
+    """
+
+        Args:
+            task (TaskItem): Task to process.
+
+        Returns:
+            TaskItem: The same task passed in, with
+                `predictions[0]["result"]` updated to contain only the
+                annotations that """
+    result = task["predictions"][0]["result"]
+    cur_anotation:list[InnerAnnotation] = []
+    half_width = new_width / 2
+    teeth_ids:list[str] =[]
+    for anotation in result:
+        edges_already_added = anotation["value"]["width"] == new_width or anotation["id"].endswith(("_left", "_right"))
+        left_is_already_annotated, right_is_already_annotated = needs_annotation(anotation, teeth_ids)
+        if not  test_if_only_edge(anotation["options"]) or edges_already_added or left_is_already_annotated and right_is_already_annotated:
+            cur_anotation.append(anotation)
+            continue
+        original_width = anotation["value"]["width"]
+        original_x = anotation["value"]["x"]
+        cur_image = crop_with_padding(image,original_x,anotation["value"]["y"],original_width,anotation["value"]["height"])
+        _w,h = image.size
+        edges = find_edges(cur_image, h, new_width)
+        print(f"edges: {edges}, left_is_already_annotated: {left_is_already_annotated}, right_is_already_annotated: {right_is_already_annotated}")
+        if not left_is_already_annotated:
+            left:InnerAnnotation = copy.deepcopy(anotation)
+            left["value"]["width"] = new_width
+            left["value"]["height"] = edges[0][3]
+            left["value"]["x"] = original_x+edges[0][0] - half_width
+            left["id"] = f"{anotation['id']}_left"
+            cur_anotation.append(left)
+        if not right_is_already_annotated:
+            right:InnerAnnotation = copy.deepcopy(anotation)
+            right["value"]["width"] = new_width
+            right["value"]["height"] = edges[1][3]
+            right["value"]["x"] = original_x+edges[1][0] - half_width + original_width
+            right["id"] = f"{anotation['id']}_left"
+            cur_anotation.append(right)
+
+
+    task["predictions"][0]["result"] = cur_anotation
     return task
 
 async def remove_labels(task:TaskItem)-> TaskItem:
@@ -116,7 +169,7 @@ def combine_labels(task:TaskItem)-> TaskItem:
     task["predictions"][0]["result"] = cur_anotation+combine_anotations(combine_annotaion)
     return task
 
-def add_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]])->TaskItem:
+def add_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]],image:Image.Image)->TaskItem:
 
     """Enriches task annotations with AI-predicted labels and scores.
 
@@ -136,11 +189,7 @@ def add_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]])->TaskItem:
             list[TaskItem]: The same tasks, with AI-eligible annotations
             updated in place.
     """
-    try:
-        image =Image.open( get_path_from_taskItem(task))
-    except FileNotFoundError as e:
-        print(f"Image not found, Ai Prediction skipped: {get_path_from_taskItem(task)}, error: {e}")
-        return task
+
     result = task["predictions"][0]["result"]
     cur_anotation:list[InnerAnnotation] = []
     for anotation in result:

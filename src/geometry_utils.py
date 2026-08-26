@@ -3,6 +3,7 @@
 from PIL import Image
 
 from dental_logic import convert_thooth_id_to_number, find_tooth_id_around
+
 from json_maker import get_difference, get_json_cordinates
 from task_item import InnerAnnotation
 from webcrawler import get_refrence_image, get_theeh_picture, get_thooth_id
@@ -134,3 +135,63 @@ def enhance_contrast(img_gray: Image.Image, black_point=60, white_point=200) -> 
 
     # point() builds a 256-entry lookup table and applies it to every pixel
     return img_gray.point(stretch)
+
+
+def find_edges(img_gray: Image.Image,image_height:int, default_width: float = 1,
+              strip_width: int = 3, bright_thresh: int = 200
+              ) -> tuple[tuple[float, float, float, float], tuple[float, float, float, float]]:
+    """
+    Finds the bounding box (x, y, width, height) of the bright region
+    (tooth) touching the left edge and the right edge of the image.
+
+    strip_width: how many pixels wide the border strip is, used only to
+                 decide if a bright pixel counts as "touching" that edge.
+    default_heigth: fallback size used for width/height if nothing bright
+                     is found near that edge (so we never return 0).
+
+    Returns: (left_box, right_box), each as (x, y, width, height).
+    """
+    img_gray = enhance_contrast(img_gray)
+
+    w, h = img_gray.size
+    print(f"w, h = {w}, {h}")
+    pixels = img_gray.load()
+    if pixels is None:
+        raise ValueError("Image pixels are None")
+
+    def find_bright_box(is_left: bool):
+        x_check_range = range(0, strip_width) if is_left else range(w - strip_width, w)
+
+
+        touching_rows = [
+            y for y in range(h)
+            if any(pixels[x, y] > bright_thresh for x in x_check_range)
+        ]
+
+        if not touching_rows:
+            x0 = 0 if is_left else w - default_width
+            return (x0, 0, default_width, default_width)
+
+        min_y, max_y = min(touching_rows), max(touching_rows)
+
+        # 2. within those rows, find how far the bright region extends
+        #    horizontally (full width, not just inside the strip)
+        xs = [
+            x for y in range(min_y, max_y + 1)
+            for x in range(w)
+            if pixels[x, y] > bright_thresh
+        ]
+
+        if not xs:
+            x0 = 0 if is_left else w - default_width
+            return (x0, min_y, default_width, max_y - min_y + 1)
+
+        min_x =  min(xs)
+        height = (max_y - min_y + 1)*100/image_height
+
+        return (min_x, min_y, default_width, height)
+
+    left_box = find_bright_box(is_left=True)
+    right_box = find_bright_box(is_left=False)
+
+    return left_box, right_box
