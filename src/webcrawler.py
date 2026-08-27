@@ -447,26 +447,27 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
                await rows[-1].scroll_into_view_if_needed()
 
         try:
-            row_data_json = await rows[user_id].evaluate("""
-            el => {
-                const key = Object.keys(el).find(k => k.startsWith('__reactProps$'));
-                if (!key) return null;
-                const props = el[key];
-                return JSON.stringify(props, (k, v) => typeof v === 'function' ? undefined : v);
-            }
-            """)
+            await rows[user_id].click()
+           # row_data_json = await rows[user_id].evaluate("""
+           # el => {
+           #     const key = Object.keys(el).find(k => k.startsWith('__reactProps$'));
+           #     if (!key) return null;
+           #     const props = el[key];
+           #     return JSON.stringify(props, (k, v) => typeof v === 'function' ? undefined : v);
+           # }
+           # """)
 
-            import json
-            row_data = json.loads(row_data_json)
-            patient_id = row_data["children"]["props"]["row"]["original"]["ID"]
-            patient_url = f"https://app.diagnocat.eu/patients/{patient_id}"
+           # import json
+           # row_data = json.loads(row_data_json)
+           # patient_id = row_data["children"][0]["row"]["original"]["ID"]
+           # patient_url = f"https://app.diagnocat.eu/patients/{patient_id}"
 
-            new_page = await context.new_page()
-            await new_page.goto(patient_url, wait_until="domcontentloaded", timeout=10000)
+           # new_page = await context.new_page()
+           # await new_page.goto(patient_url, wait_until="domcontentloaded", timeout=10000)
 
-            # ... do your work on new_page ...
+           # # ... do your work on new_page ...
 
-            #await new_page.close()
+           # #await new_page.close()
 
         except IndexError as e:
             print(f"User_id: {user_id} the picture wasn't there: {e} ")
