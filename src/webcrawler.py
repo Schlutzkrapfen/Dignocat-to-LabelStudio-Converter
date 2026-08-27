@@ -46,7 +46,10 @@ async def get_tooth_descriptions() -> list[dict[str, str]]:
             A list of dictionaries, where each dictionary contains the "type"
             and "id" of a tooth.
         """
-    divs = await page.locator("div.ConditionTitle-module_container_vpIP9").all()
+    if user_page is None:
+        raise ValueError("user_page is not initialized")
+
+    divs = await user_page.locator("div.ConditionTitle-module_container_vpIP9").all()
     tooth_types: list[dict[str, str]] = []
     for div in divs:
         part = await div.inner_text()
@@ -113,7 +116,9 @@ async def get_thooth_id( thoot_id: int)->str:
         Raises:
                    ValueError: If no section matching the given tooth ID is found.
          """
-    sections = await page.locator("section.WidgetCard-module_container_1PPfu").all()
+    if user_page is None:
+        raise ValueError("user_page is None")
+    sections = await user_page.locator("section.WidgetCard-module_container_1PPfu").all()
     for section in sections:
         div = section.locator("div.ConditionTitle-module_container_vpIP9")
         if await div.count() == 0:
@@ -280,13 +285,14 @@ async def take_screenshot(canvas:ElementHandle,path:Path,max_retries: int = 10 )
             TimeoutError: If the screenshot still fails after exhausting all
                 retry attempts.
         """
-
-    await page.evaluate("""
+    if user_page is None:
+        raise ValueError("user_page is None")
+    await user_page.evaluate("""
           () => new Promise(resolve => {
             requestAnimationFrame(() => requestAnimationFrame(resolve));
           })
         """)
-    await page.wait_for_timeout(500)
+    await user_page.wait_for_timeout(500)
     try:
         _screenshot = await canvas.screenshot(path=str(path))
     except (PlaywrightTimeoutError, PlaywrightError) as e:
@@ -535,6 +541,7 @@ async def get_refrence_image(user_id:int, skip_if_exist: bool = True,)-> Path:
                        or already existing.
     Raises:
         LookupError: Couldn't find the canvas
+        ValueError: user_page is None
     """
 
     picture_path = Path(f"output/{user_id}.png")
