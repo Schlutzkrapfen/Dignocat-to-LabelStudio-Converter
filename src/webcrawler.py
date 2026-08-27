@@ -8,6 +8,7 @@ from controll import find_duplicates_of
 
 
 page:Page
+user_page:Page | None = None
 async def login(page1: Page):
     """
        Ensure the browser session is logged in to Diagnocat.
@@ -82,12 +83,14 @@ async def get_theeh_picture( teeth_id: str, user_id: int) -> Path:
 
     if picture_path.exists():
         return picture_path
+    if user_page is None:
+        raise ValueError("user_page is None")
 
-    section = page.locator(f'section[id$="{teeth_id}"]')
+    section = user_page.locator(f'section[id$="{teeth_id}"]')
     div = section.locator("div.ConditionTitle-module_container_vpIP9")
     await div.hover()
 
-    canvas = await page.wait_for_selector("canvas")
+    canvas = await user_page.wait_for_selector("canvas")
     if canvas is None:
         raise ValueError("Got no Canvas")
     await take_screenshot(canvas,picture_path)
@@ -175,7 +178,10 @@ async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:
 
 
         try:
-            await go_to_patient_report(context, user)
+            global user_page
+            if user_page is not None:
+                await user_page.close()
+            user_page = await go_to_patient_report(context, user)
         except OSError as e:
             print(e)
             raise OSError(e)
@@ -186,7 +192,7 @@ async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:
             continue
         try:
             refrence_image_path = await get_refrence_image(
-                 user_id, skip_if_exist=False
+                 user_id,  skip_if_exist=False,
             )
         except LookupError as e:
             print(f"Error:{e}")
@@ -216,9 +222,11 @@ async def get_user_screenshoots( user_id: int) -> list[Path]:
            List of screenshot file paths, one per condition button.
        """
     # Gets the Buttons
-    buttons = page.locator("button.ConditionButton-module_container_Vda6L")
+    if user_page is None:
+        raise ValueError("user_page is None")
+    buttons = user_page.locator("button.ConditionButton-module_container_Vda6L")
     count = await buttons.count()
-    canvas = await page.query_selector("canvas")
+    canvas = await user_page.query_selector("canvas")
 
     if count == 0 or canvas is None:
         print("something went wrong while Fetching, lets try again.")
@@ -298,11 +306,13 @@ async def deactivated_show_buttons() :
     selector = "button.MaskFilterButton-module_container_EFNpE"
 
     try:
-        await page.wait_for_selector(selector, state="visible")
+        if user_page is None:
+            raise ValueError("user_page is None")
+        await user_page.wait_for_selector(selector, state="visible")
     except PlaywrightTimeoutError:
         raise PlaywrightTimeoutError("waitforselector didn't work")
 
-    buttons = page.locator(selector)
+    buttons =  user_page.locator(selector)
     count = await buttons.count()
 
     for i in range(count):
@@ -389,7 +399,7 @@ async def get_patient_amount()->int:
         return previous_count
 
 
-async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries:int=20):
+async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries:int=20,locked:bool=False)-> Page:
     """Navigates to a specific patient's report page.
 
         Opens the patients list page, scrolls through the infinite-scroll
@@ -411,19 +421,19 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
             ValueError: If no users are left to retry after exhausting
                 `max_retries` on a report-card timeout.
         """
-    print("Opening data page...")
     try:
-
-        _website = await page.goto(
-        "https://app.diagnocat.eu/patients",
-        wait_until="domcontentloaded",
-        timeout=10000,
-        )
+        if page.url.rstrip("/") != "https://app.diagnocat.eu/patients".rstrip("/") or locked == True:
+            print("Opening data page...")
+            _website = await page.goto(
+            "https://app.diagnocat.eu/patients",
+            wait_until="domcontentloaded",
+            timeout=10000,
+            )
         max_patiens = await get_patient_amount()
         if user_id >= max_patiens:
                    print("User ID exceeds patient amount, starting from the first patient")
-                   await go_to_patient_report(context,0, max_retries)
-                   return
+                   return await go_to_patient_report(context,0, max_retries)
+
         row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
 
         _body = await page.wait_for_selector("body", timeout=15000)
@@ -432,8 +442,8 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
         print(f"couldn't find body/row,skipping page: {e}")
         if max_retries <= 0:
             raise OSError("Window is closed or can't be seen")
-        await go_to_patient_report(context,user_id ,max_retries -1)
-        return
+        return await go_to_patient_report(context,user_id ,max_retries -1)
+
     # Scroll until we have enough rows loaded to reach user_id
     # Wait for the next page
     try:
@@ -447,69 +457,72 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
                await rows[-1].scroll_into_view_if_needed()
 
         try:
-            await rows[user_id].click()
-           # row_data_json = await rows[user_id].evaluate("""
-           # el => {
-           #     const key = Object.keys(el).find(k => k.startsWith('__reactProps$'));
-           #     if (!key) return null;
-           #     const props = el[key];
-           #     return JSON.stringify(props, (k, v) => typeof v === 'function' ? undefined : v);
-           # }
-           # """)
+           # await rows[user_id].click()
+            row_data_json = await rows[user_id].evaluate("""
+            el => {
+                const key = Object.keys(el).find(k => k.startsWith('__reactProps$'));
+                if (!key) return null;
+                const props = el[key];
+                return JSON.stringify(props, (k, v) => typeof v === 'function' ? undefined : v);
+            }
+            """)
 
-           # import json
-           # row_data = json.loads(row_data_json)
-           # patient_id = row_data["children"][0]["row"]["original"]["ID"]
-           # patient_url = f"https://app.diagnocat.eu/patients/{patient_id}"
+            import json
+            row_data = json.loads(row_data_json)
+            patient_id = row_data["children"][0]["props"]["children"]["props"]["row"]["original"]["ID"]
+            patient_url = f"https://app.diagnocat.eu/patients/{patient_id}"
 
-           # new_page = await context.new_page()
-           # await new_page.goto(patient_url, wait_until="domcontentloaded", timeout=10000)
+            new_page = await context.new_page()
+            await new_page.goto(patient_url, wait_until="domcontentloaded", timeout=10000)
 
-           # # ... do your work on new_page ...
+            # ... do your work on new_page ...
 
            # #await new_page.close()
 
         except IndexError as e:
             print(f"User_id: {user_id} the picture wasn't there: {e} ")
-            await go_to_patient_report(context, 0,max_retries)
+            return await go_to_patient_report(context, 0,max_retries)
+
 
         print("Clicked first patient row")
 
         print(f"Now on: {page.url}")
-        _div = await page.wait_for_selector("div.ReportCard-module_container_ONmLU")
+        _div = await new_page.wait_for_selector("div.ReportCard-module_container_ONmLU")
 
-        button = await page.query_selector("div.ReportCard-module_container_ONmLU")
+        button = await new_page.query_selector("div.ReportCard-module_container_ONmLU")
         if button is None:
             print("couldn't find button")
             raise ValueError("Button Isn't here")
         await button.click()
     except ValueError as e:
         print(f"User_id: {user_id} the picture wasn't there: {e} ")
+         #await new_page.close()
         # TODO: find a more efficent way to go true the loop if it failed
-        await go_to_patient_report(context, user_id + 1,max_retries)
-        return
+        return await go_to_patient_report(context, user_id + 1,max_retries)
+
     except PlaywrightTimeoutError as e:
         print(f"Something went wrong, skipping: {e}")
         if max_retries <= 0:
             raise ValueError("Max retries exceeded")
-        await go_to_patient_report(context,0,max_retries -1)
-        return
-
-    await remove_overlay()
-    print(f"Now on: {page.url}")
+        return await go_to_patient_report(context,0,max_retries -1)
 
 
-async def remove_overlay():
+    await remove_overlay(new_page)
+    print(f"Now on: {new_page.url}")
+    return new_page
+
+
+async def remove_overlay(new_page:Page):
     """Removes the HubSpot overlay element from the page, if present.
 
         """
-    await page.evaluate("""
+    await new_page.evaluate("""
     const el = document.querySelector('#hs-web-interactives-top-anchor');
     if (el) el.remove();
 """)
 
 
-async def get_refrence_image(user_id:int, skip_if_exist: bool = True)-> Path:
+async def get_refrence_image(user_id:int, skip_if_exist: bool = True,)-> Path:
     """gets a empty Image for refrence
     Args:
             user_id (int): Identifier of the user, used to build the
@@ -523,11 +536,14 @@ async def get_refrence_image(user_id:int, skip_if_exist: bool = True)-> Path:
     Raises:
         LookupError: Couldn't find the canvas
     """
+
     picture_path = Path(f"output/{user_id}.png")
 
     if not os.path.exists(picture_path) or not skip_if_exist:
+        if user_page is None:
+            raise ValueError("user_page is None")
         await deactivated_show_buttons()
-        canvas = await page.wait_for_selector("canvas")
+        canvas = await user_page.wait_for_selector("canvas")
         if canvas is None:
             raise LookupError("Got no Canvas")
         await take_screenshot(canvas,picture_path)
