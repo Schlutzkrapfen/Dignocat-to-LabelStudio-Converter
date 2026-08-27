@@ -226,7 +226,7 @@ def dump_json(task: list[TaskItem],output_path:Path=Path("output.json")):
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as f:
         json.dump(cleaned, f, indent=2)
-    print("saved json to output.json")
+    print(f"saved json to {output_path}")
 
 async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int)->TaskItem :
 
