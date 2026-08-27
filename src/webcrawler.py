@@ -432,7 +432,7 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
         max_patiens = await get_patient_amount()
         if user_id >= max_patiens:
                    print("User ID exceeds patient amount, starting from the first patient")
-                   return await go_to_patient_report(context,0, max_retries)
+                   return await go_to_patient_report(context,0, max_retries, True)
 
         row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
 
@@ -442,7 +442,7 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
         print(f"couldn't find body/row,skipping page: {e}")
         if max_retries <= 0:
             raise OSError("Window is closed or can't be seen")
-        return await go_to_patient_report(context,user_id ,max_retries -1)
+        return await go_to_patient_report(context,user_id ,max_retries -1, True)
 
     # Scroll until we have enough rows loaded to reach user_id
     # Wait for the next page
@@ -498,13 +498,13 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
         print(f"User_id: {user_id} the picture wasn't there: {e} ")
          #await new_page.close()
         # TODO: find a more efficent way to go true the loop if it failed
-        return await go_to_patient_report(context, user_id + 1,max_retries)
+        return await go_to_patient_report(context, user_id + 1,max_retries )
 
     except PlaywrightTimeoutError as e:
         print(f"Something went wrong, skipping: {e}")
         if max_retries <= 0:
             raise ValueError("Max retries exceeded")
-        return await go_to_patient_report(context,0,max_retries -1)
+        return await go_to_patient_report(context,0,max_retries -1, True)
 
 
     await remove_overlay(new_page)
