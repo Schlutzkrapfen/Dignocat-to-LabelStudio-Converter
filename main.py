@@ -6,7 +6,7 @@ from pathlib import Path
 import sys
 from typing import cast
 
-from playwright.async_api import Page, async_playwright
+from playwright.async_api import BrowserContext, Page, async_playwright
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
@@ -92,7 +92,7 @@ async def main():
 
     # Starts the browser
     async with async_playwright() as p:
-        context = await p.chromium.launch_persistent_context(
+        context: BrowserContext = await p.chromium.launch_persistent_context(
             USER_DATA_DIR,
             headless=False,
             # How good the quality of the Screenshots is
@@ -112,7 +112,7 @@ async def main():
             for i in parse_id_range(page_amount):
                 try:
                     print(f"processing {i},page_amount={page_amount}")
-                    user_id = await find_page(i,page_amount,output_dir)
+                    user_id = await find_page(context,i,page_amount,output_dir)
                 except OSError as e:
                     print(f"complete failure:{e}")
                     raise OSError
@@ -131,7 +131,7 @@ async def main():
 
 
                 #When debugging can be deaktivated for faster new runs and shows what screenshots were made
-                delete_screenshot_folders()
+                #delete_screenshot_folders()
 
         finally:
             print("Finished")

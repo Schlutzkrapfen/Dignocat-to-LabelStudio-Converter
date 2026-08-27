@@ -124,7 +124,7 @@ def crop_with_padding(image: Image.Image, x_pct:float, y_pct:float, w_pct:float,
 
     return image.crop((int(left), int(top), int(right), int(bottom)))
 
-def enhance_contrast(img_gray: Image.Image, black_point=60, white_point=200) -> Image.Image:
+def enhance_contrast(img_gray: Image.Image, black_point=199, white_point=200) -> Image.Image:
     """Stretch the histogram: everything below black_point becomes 0,
     everything above white_point becomes 255."""
     scale = 255.0 / (white_point - black_point)
@@ -169,7 +169,7 @@ def find_edges(img_gray: Image.Image,image_height:int, default_width: float = 1,
 
         if not touching_rows:
             x0 = 0 if is_left else w - default_width
-            return (x0, 0, default_width, default_width)
+            return (x0, 0, default_width, 0)
 
         min_y, max_y = min(touching_rows), max(touching_rows)
 
@@ -186,6 +186,7 @@ def find_edges(img_gray: Image.Image,image_height:int, default_width: float = 1,
             return (x0, min_y, default_width, max_y - min_y + 1)
 
         min_x =  min(xs)
+        min_y = min_y * 100 / image_height
         height = (max_y - min_y + 1)*100/image_height
 
         return (min_x, min_y, default_width, height)
