@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from typing import cast
-from playwright.async_api import Error as PlaywrightError, TimeoutError as PlaywrightTimeoutError
+from playwright.async_api import BrowserContext, Error as PlaywrightError, TimeoutError as PlaywrightTimeoutError
 
 from playwright.async_api import ElementHandle,   Page
 from controll import find_duplicates_of
@@ -129,7 +129,7 @@ async def get_thooth_id( thoot_id: int)->str:
     raise ValueError(f"Couldn't find thooth {thoot_id}")
 
 
-async def find_page(i:int,page_amount:int,output_dir:Path)->int:
+async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:Path)->int:
     """Finds a page/user whose reference image has no duplicates left.
 
         Starting from index `i`, checks successive users by generating a
@@ -175,7 +175,7 @@ async def find_page(i:int,page_amount:int,output_dir:Path)->int:
 
 
         try:
-            await go_to_patient_report( user)
+            await go_to_patient_report(context, user)
         except OSError as e:
             print(e)
             raise OSError(e)
@@ -389,7 +389,7 @@ async def get_patient_amount()->int:
         return previous_count
 
 
-async def go_to_patient_report( user_id: int,max_retries:int=20):
+async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries:int=20):
     """Navigates to a specific patient's report page.
 
         Opens the patients list page, scrolls through the infinite-scroll
@@ -422,7 +422,7 @@ async def go_to_patient_report( user_id: int,max_retries:int=20):
         max_patiens = await get_patient_amount()
         if user_id >= max_patiens:
                    print("User ID exceeds patient amount, starting from the first patient")
-                   await go_to_patient_report(0, max_retries)
+                   await go_to_patient_report(context,0, max_retries)
                    return
         row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
 
@@ -432,7 +432,7 @@ async def go_to_patient_report( user_id: int,max_retries:int=20):
         print(f"couldn't find body/row,skipping page: {e}")
         if max_retries <= 0:
             raise OSError("Window is closed or can't be seen")
-        await go_to_patient_report(user_id ,max_retries -1)
+        await go_to_patient_report(context,user_id ,max_retries -1)
         return
     # Scroll until we have enough rows loaded to reach user_id
     # Wait for the next page
@@ -447,10 +447,30 @@ async def go_to_patient_report( user_id: int,max_retries:int=20):
                await rows[-1].scroll_into_view_if_needed()
 
         try:
-            await rows[user_id].click()
+            row_data_json = await rows[user_id].evaluate("""
+            el => {
+                const key = Object.keys(el).find(k => k.startsWith('__reactProps$'));
+                if (!key) return null;
+                const props = el[key];
+                return JSON.stringify(props, (k, v) => typeof v === 'function' ? undefined : v);
+            }
+            """)
+
+            import json
+            row_data = json.loads(row_data_json)
+            patient_id = row_data["children"]["props"]["row"]["original"]["ID"]
+            patient_url = f"https://app.diagnocat.eu/patients/{patient_id}"
+
+            new_page = await context.new_page()
+            await new_page.goto(patient_url, wait_until="domcontentloaded", timeout=10000)
+
+            # ... do your work on new_page ...
+
+            #await new_page.close()
+
         except IndexError as e:
             print(f"User_id: {user_id} the picture wasn't there: {e} ")
-            await go_to_patient_report(0,max_retries)
+            await go_to_patient_report(context, 0,max_retries)
 
         print("Clicked first patient row")
 
@@ -465,13 +485,13 @@ async def go_to_patient_report( user_id: int,max_retries:int=20):
     except ValueError as e:
         print(f"User_id: {user_id} the picture wasn't there: {e} ")
         # TODO: find a more efficent way to go true the loop if it failed
-        await go_to_patient_report(user_id + 1,max_retries)
+        await go_to_patient_report(context, user_id + 1,max_retries)
         return
     except PlaywrightTimeoutError as e:
         print(f"Something went wrong, skipping: {e}")
         if max_retries <= 0:
             raise ValueError("Max retries exceeded")
-        await go_to_patient_report(0,max_retries -1)
+        await go_to_patient_report(context,0,max_retries -1)
         return
 
     await remove_overlay()

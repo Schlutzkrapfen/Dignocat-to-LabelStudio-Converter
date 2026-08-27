@@ -93,21 +93,23 @@ def get_egdes(task:TaskItem,image:Image.Image,new_width:float = 1)-> TaskItem:
         original_x = anotation["value"]["x"]
         cur_image = crop_with_padding(image,original_x,anotation["value"]["y"],original_width,anotation["value"]["height"])
         _w,h = image.size
-        edges = find_edges(cur_image, h, new_width)
-        print(f"edges: {edges}, left_is_already_annotated: {left_is_already_annotated}, right_is_already_annotated: {right_is_already_annotated}")
-        if not left_is_already_annotated and edges[0][3] != 0:
+        (x1,y1,_w1,h1),(x2,y2,_w2,h2) = find_edges(cur_image, h, new_width)
+        print(f"edges: {(x1,y1,h1),(x2,y2,h2)}, left_is_already_annotated: {left_is_already_annotated}, right_is_already_annotated: {right_is_already_annotated}")
+        if not left_is_already_annotated and h1 != 0:
             left:InnerAnnotation = copy.deepcopy(anotation)
             left["value"]["width"] = new_width
-            left["value"]["height"] = edges[0][3]
-            left["value"]["x"] = original_x+edges[0][0] - half_width
+            left["value"]["height"] = h1
+            left["value"]["y"] = anotation["value"]["y"] + y1
+            left["value"]["x"] = original_x- half_width
             left["id"] = f"{anotation['id']}_left"
             cur_anotation.append(left)
-        if not right_is_already_annotated and edges[1][3] != 0:
+        if not right_is_already_annotated and h2 != 0:
             right:InnerAnnotation = copy.deepcopy(anotation)
             right["value"]["width"] = new_width
-            right["value"]["height"] = edges[1][3]
-            right["value"]["x"] = original_x+edges[1][0] - half_width + original_width
-            right["id"] = f"{anotation['id']}_left"
+            right["value"]["height"] = h2
+            right["value"]["y"] = anotation["value"]["y"] + y2
+            right["value"]["x"] = original_x - half_width + original_width
+            right["id"] = f"{anotation['id']}_right"
             cur_anotation.append(right)
 
 
