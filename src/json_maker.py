@@ -295,6 +295,8 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
         except ValueError as e:
             tries_until_new_refrence_picture -= 1
             if tries_until_new_refrence_picture == 0:
+                print("Refrence Image is wrong let's try again")
+                delete_screenshot_folders()
                 return await get_task(label_Data, user_id)
             print(f"Something went wrong with label {non_conv_label}: {e}")
             continue
