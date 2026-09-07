@@ -550,9 +550,12 @@ async def get_refrence_image(user_id:int, skip_if_exist: bool = True,)-> Path:
 
     picture_path = Path(f"output/{user_id}.png")
 
+
+
     if not os.path.exists(picture_path) or not skip_if_exist:
         if user_page is None:
             raise ValueError("user_page is None")
+        await user_page.mouse.move(0, 0)
         await deactivated_show_buttons()
         canvas = await user_page.wait_for_selector("canvas")
         if canvas is None:
