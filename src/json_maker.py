@@ -228,7 +228,7 @@ def dump_json(task: list[TaskItem],output_path:Path=Path("output.json")):
         json.dump(cleaned, f, indent=2)
     print(f"saved json to {output_path}")
 
-async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_until_new_refrence_picture:int = 10)->TaskItem :
+async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_until_new_refrence_picture:int = 10,delete_refrence_image:bool = False)->TaskItem :
 
     """
         Builds a labeling task from per-tooth screenshots vs a reference image.
@@ -255,7 +255,7 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
     inner_task:list[ InnerAnnotation] = []
     id_addition:int = 0
     try:
-        refrence_image_path:Path = await get_refrence_image( user_id,False)
+        refrence_image_path:Path = await get_refrence_image( user_id, not delete_refrence_image)
     except LookupError as e:
         print(f"Fatal Error:{e}, tries again")
         return await get_task(label_Data,user_id)
@@ -297,7 +297,7 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
             if tries_until_new_refrence_picture == 0:
                 print("Refrence Image is wrong let's try again")
                 delete_screenshot_folders()
-                return await get_task(label_Data, user_id)
+                return await get_task(label_Data, user_id,delete_refrence_image= True)
             print(f"Something went wrong with label {non_conv_label}: {e}")
             continue
 
