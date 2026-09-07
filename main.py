@@ -129,7 +129,7 @@ async def main():
                         dump_json(value)
                     else:
                         dump_json(value, Path(f"json/{key}.json"))
-                if task_dic.len() == 0:
+                if len(task_dic) == 0:
                     dump_json(task)
 
                 #When debugging can be deaktivated for faster new runs and shows what screenshots were made
