@@ -228,7 +228,7 @@ def dump_json(task: list[TaskItem],output_path:Path=Path("output.json")):
         json.dump(cleaned, f, indent=2)
     print(f"saved json to {output_path}")
 
-async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int)->TaskItem :
+async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_until_new_refrence_picture:int = 10)->TaskItem :
 
     """
         Builds a labeling task from per-tooth screenshots vs a reference image.
@@ -293,6 +293,9 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int)->Task
         try:
             x, y, w, h = await get_json_cordinates(difference_path)
         except ValueError as e:
+            tries_until_new_refrence_picture -= 1
+            if tries_until_new_refrence_picture == 0:
+                return await get_task(label_Data, user_id)
             print(f"Something went wrong with label {non_conv_label}: {e}")
             continue
 
