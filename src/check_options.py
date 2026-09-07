@@ -10,10 +10,9 @@ def test_if_split(options:str) -> bool:
              False otherwise.
     """
     parts = options.split(",")
-    for part in parts:
-        if part == "splith":
-            return True
-    return False
+    return any(part == "splith" for part in parts)
+
+
 def test_if_height(options:str):
     """Checks whether an annotation has the option height
 
@@ -25,10 +24,7 @@ def test_if_height(options:str):
                     False otherwise.
         """
     parts = options.split(",")
-    for part in parts:
-        if part[:6] == "height" :
-            return True
-    return False
+    return any(part[:6] == "height" for part in parts)
 
 def get_heigt(options:str) -> float:
     """Returns the height of the annotation from the options string.
@@ -58,10 +54,7 @@ def test_if_no_overlapp(options:str):
                  False otherwise.
         """
     parts = options.split(",")
-    for part in parts:
-        if part == "neighbors_connect":
-            return True
-    return False
+    return any(part == "neighbors_connect" for part in parts)
 
 def test_if_only_edge(options:str) -> bool:
     """Checks whether an annotation has the option only_edge
@@ -74,10 +67,7 @@ def test_if_only_edge(options:str) -> bool:
                  False otherwise.
         """
     parts = options.split(",")
-    for part in parts:
-        if part == "only_edge":
-            return True
-    return False
+    return any(part == "only_edge" for part in parts)
 def test_if_ownjson(options:str):
     """Checks whether an annotation has the option own_json
 
@@ -89,10 +79,7 @@ def test_if_ownjson(options:str):
                  False otherwise.
         """
     parts = options.split(",")
-    for part in parts:
-        if part == "own_json":
-            return True
-    return False
+    return any(part == "own_json" for part in parts)
 def test_if_outward(options:str,thooth_id:str)->bool:
     """Checks whether an annotation should be removed as an outward duplicate.
 
@@ -126,10 +113,7 @@ def check_if_hole(options:str)->bool:
                      False otherwise.
             """
         parts = options.split(",")
-        for part in parts:
-            if part == "hole" :
-                return True
-        return False
+        return any(part == "hole" for part in parts)
 def test_if_needs_combine(options:str)->bool:
     """Checks whether an annotation is flagged for combination.
 
@@ -140,10 +124,7 @@ def test_if_needs_combine(options:str)->bool:
             bool: True if the "combine" flag is present, False otherwise.
         """
     parts = options.split(",")
-    for part in parts:
-        if part == "combine":
-            return True
-    return False
+    return any(part == "combine" for part in parts)
 def test_if_inward(options:str,thooth_id:str)->bool:
     """Checks whether an annotation should be removed as an inward duplicate.
 
@@ -195,7 +176,4 @@ def test_if_ai(options:str):
                      False otherwise.
     """
     parts = options.split(",")
-    for part in parts:
-        if part[:2] == "ai" :
-            return True
-    return False
+    return any(part[:2] == "ai" for part in parts)
