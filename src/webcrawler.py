@@ -452,6 +452,7 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
 
     # Scroll until we have enough rows loaded to reach user_id
     # Wait for the next page
+    new_page = await context.new_page()
     try:
         while True:
                rows = await page.query_selector_all(row_selector)
@@ -461,6 +462,7 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
 
                # Not enough rows yet — scroll down to load more
                await rows[-1].scroll_into_view_if_needed()
+
 
         try:
            # await rows[user_id].click()
@@ -478,7 +480,6 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
             patient_id = row_data["children"][0]["props"]["children"]["props"]["row"]["original"]["ID"]
             patient_url = f"https://app.diagnocat.eu/patients/{patient_id}"
 
-            new_page = await context.new_page()
             await new_page.goto(patient_url, wait_until="domcontentloaded", timeout=10000)
 
             # ... do your work on new_page ...
@@ -487,6 +488,7 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
 
         except IndexError as e:
             print(f"User_id: {user_id} the picture wasn't there: {e} ")
+            await new_page.close()
             return await go_to_patient_report(context, 0,max_retries)
 
 
@@ -504,12 +506,14 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
         print(f"User_id: {user_id} the picture wasn't there: {e} ")
          #await new_page.close()
         # TODO: find a more efficent way to go true the loop if it failed
+        await new_page.close()
         return await go_to_patient_report(context, user_id + 1,max_retries )
 
     except PlaywrightTimeoutError as e:
         print(f"Something went wrong, skipping: {e}")
         if max_retries <= 0:
             raise ValueError("Max retries exceeded")
+        await new_page.close()
         return await go_to_patient_report(context,0,max_retries -1, True)
 
 
