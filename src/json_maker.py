@@ -255,7 +255,7 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
     inner_task:list[ InnerAnnotation] = []
     id_addition:int = 0
     try:
-        refrence_image_path:Path = await get_refrence_image( user_id)
+        refrence_image_path:Path = await get_refrence_image( user_id,False)
     except LookupError as e:
         print(f"Fatal Error:{e}, tries again")
         return await get_task(label_Data,user_id)
