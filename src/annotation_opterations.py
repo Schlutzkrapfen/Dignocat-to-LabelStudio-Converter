@@ -4,13 +4,13 @@ import copy
 from PIL import Image
 
 from add_ai import ai_predict, get_which_ai_modell_to_use
-from check_options import get_heigt, test_if_ai, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp, test_if_outward, test_if_split
+from check_options import  test_if_ai, test_if_connections, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp,  test_if_outward
 from dental_logic import check_if_teeth_left, check_if_theeth_top_row, check_if_two_theeth_are_near_each_other, create_cluster, get_thooth_id_from_cluster
-from geometry_utils import crop_with_padding, get_new_rectangle, is_overlapping
-from helper_functions import get_path_from_taskItem, get_user_id_from_TaskItem
+from geometry_utils import crop_with_padding, enhance_contrast,  get_new_rectangle, is_overlapping
+from helper_functions import  get_user_id_from_TaskItem
 from task_item import InnerAnnotation, TaskItem, Value
 import statistics
-def split_labels(task: TaskItem , new_width:float = 1) -> TaskItem:
+def split_labels(task: TaskItem , image:Image.Image,new_width:float = 1) -> TaskItem:
     """
         Splits each "splittable" annotation (test_if_split) into two deep-copied
         annotations of width new_width, positioned at the left and right edges
@@ -30,36 +30,77 @@ def split_labels(task: TaskItem , new_width:float = 1) -> TaskItem:
 
     for annotation in result:
         already_split = annotation["value"]["width"] == new_width or annotation["id"].endswith(("_left", "_right"))
-        if not test_if_split(annotation["options"]) or already_split:
+        if not test_if_connections(annotation["options"]) or already_split:
             cur_annotations.append(annotation)
             continue
         original_width = annotation["value"]["width"]
         original_x = annotation["value"]["x"]
 
-        left_is_already_annotated = False
-        right_is_already_annotated = False
-        for tooth_id in teeth_ids:
-            if check_if_two_theeth_are_near_each_other(int(tooth_id[1:3]), int(annotation["thoot_id"][1:3])):
-                if check_if_teeth_left(annotation["thoot_id"], tooth_id):
-                    right_is_already_annotated = True
-                else:
-                    left_is_already_annotated = True
+        left_is_already_annotated, right_is_already_annotated = needs_annotation(annotation, teeth_ids)
+
         if  not left_is_already_annotated:
             left:InnerAnnotation = copy.deepcopy(annotation)
             left["value"]["width"] = new_width
             left["value"]["x"] = original_x - half_width
-            cur_annotations.append(left)
+            left["id"] = f"{annotation['id']}_left"
+            cur_image = crop_with_padding(image,left["value"]["x"], left["value"]["y"], new_width, left["value"]["height"])
+            is_connected, reason = check_if_connected(cur_image)
+            if  is_connected:
+                cur_annotations.append(left)
+            else:
+                print(f"left not connected: {reason} with id: {left['id']}")
 
         if not right_is_already_annotated:
             right:InnerAnnotation = copy.deepcopy(annotation)
             right["value"]["width"] = new_width
             right["value"]["x"] = original_x - half_width + original_width
             right["id"] = f"{annotation['id']}_right"
-            cur_annotations.append(right)
+            cur_image = crop_with_padding(image, right["value"]["x"], right["value"]["y"], new_width, right["value"]["height"])
+            is_connected, reason = check_if_connected(cur_image)
+            if  is_connected:
+                cur_annotations.append(right)
+            else:
+                print(f"left not connected: {reason} with id: {right['id']}")
         teeth_ids.append(annotation["thoot_id"])
 
     task["predictions"][0]["result"] = cur_annotations
+
     return task
+
+def needs_annotation(annotation: InnerAnnotation, teeth_ids: list[str]) -> tuple[bool, bool]:
+
+    left_is_already_annotated = False
+    right_is_already_annotated = False
+    for tooth_id in teeth_ids:
+        if check_if_two_theeth_are_near_each_other(int(tooth_id[1:3]), int(annotation["thoot_id"][1:3])):
+            if check_if_teeth_left(annotation["thoot_id"], tooth_id):
+                right_is_already_annotated = True
+            else:
+                left_is_already_annotated = True
+    return left_is_already_annotated, right_is_already_annotated
+
+def check_if_connected(img: Image.Image) -> tuple[bool, str]:
+    width, height = img.size
+    img = enhance_contrast(img)
+    pixels = img.load()
+    if not pixels:
+        return False, "no white pixels found"
+
+    for y in range(height):          # go through each line (row)
+        try:
+            for x in range(width):       # go through each pixel in that row
+                if pixels[x, y] > 0:     # 0 = black, 255 = white (adjust condition as needed)
+                    if x == width-1:
+                        return True, f"connected via component on line {y}"
+                else:
+                    raise ValueError("pixel is black")
+        except ValueError:
+            continue
+
+        return False, "no connection found"
+    return False, "no connection found"
+
+
 
 async def remove_labels(task:TaskItem)-> TaskItem:
     """Removes labeled-as-removed annotations from a task.
@@ -116,7 +157,7 @@ def combine_labels(task:TaskItem)-> TaskItem:
     task["predictions"][0]["result"] = cur_anotation+combine_anotations(combine_annotaion)
     return task
 
-def add_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]])->TaskItem:
+def add_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]],image:Image.Image)->TaskItem:
 
     """Enriches task annotations with AI-predicted labels and scores.
 
@@ -136,11 +177,7 @@ def add_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]])->TaskItem:
             list[TaskItem]: The same tasks, with AI-eligible annotations
             updated in place.
     """
-    try:
-        image =Image.open( get_path_from_taskItem(task))
-    except FileNotFoundError as e:
-        print(f"Image not found, Ai Prediction skipped: {get_path_from_taskItem(task)}, error: {e}")
-        return task
+
     result = task["predictions"][0]["result"]
     cur_anotation:list[InnerAnnotation] = []
     for anotation in result:
@@ -157,7 +194,7 @@ def add_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]])->TaskItem:
 
 def add_heigt(task: TaskItem) -> TaskItem:
     """
-    Adds height information to the task annotations based on the options.
+    change height information to the task annotations based on the neighbors.
 
     Args:
         task (TaskItem): The task to update.
@@ -167,18 +204,20 @@ def add_heigt(task: TaskItem) -> TaskItem:
 
     """
     cur_anotation:list[InnerAnnotation] = []
+    neigbor_height = 0
     for anotation in task["predictions"][0]["result"]:
         if  test_if_height(anotation["options"]):
             try:
                 old_height = anotation["value"]["height"]
-                new_height  = old_height * get_heigt(anotation["options"])
-                anotation["value"]["height"] = new_height
+                anotation["value"]["height"] = neigbor_height
             except ValueError as e:
                 print(e)
                 cur_anotation.append(anotation)
                 continue
             if check_if_theeth_top_row(anotation["thoot_id"]):
-                anotation["value"]["y"] = anotation["value"]["y"] - (new_height - old_height)
+                anotation["value"]["y"] = anotation["value"]["y"] - (neigbor_height - old_height)
+        else :
+            neigbor_height = anotation["value"]["height"]
         cur_anotation.append(anotation)
     task["predictions"][0]["result"] = cur_anotation
     return task

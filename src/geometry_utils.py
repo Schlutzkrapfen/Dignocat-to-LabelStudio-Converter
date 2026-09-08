@@ -3,6 +3,7 @@
 from PIL import Image
 
 from dental_logic import convert_thooth_id_to_number, find_tooth_id_around
+
 from json_maker import get_difference, get_json_cordinates
 from task_item import InnerAnnotation
 from webcrawler import get_refrence_image, get_theeh_picture, get_thooth_id
@@ -122,3 +123,15 @@ def crop_with_padding(image: Image.Image, x_pct:float, y_pct:float, w_pct:float,
     bottom = min(img_h, y + h + pad_y)
 
     return image.crop((int(left), int(top), int(right), int(bottom)))
+
+def enhance_contrast(img_gray: Image.Image, black_point=190, white_point=191) -> Image.Image:
+    """Stretch the histogram: everything below black_point becomes 0,
+    everything above white_point becomes 255."""
+    scale = 255.0 / (white_point - black_point)
+
+    def stretch(p):
+        val = (p - black_point) * scale
+        return int(max(0, min(255, val)))
+
+    # point() builds a 256-entry lookup table and applies it to every pixel
+    return img_gray.point(stretch)

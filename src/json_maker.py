@@ -1,6 +1,8 @@
 import json
 import os
+import asyncio
 import logging
+
 from pathlib import Path
 
 import numpy as np
@@ -65,7 +67,7 @@ async def get_difference(refrence_path:Path, image_path:Path)-> str:
    # if img1.size != img2.size:
    #     img2 = img2.resize(img1.size, Image.Resampling.LANCZOS)
     diff = ImageChops.difference(img1, img2)
-    base_dir = os.path.dirname(os.path.abspath(__file__))
+    base_dir = os.path.dirname(await asyncio.to_thread(os.path.abspath,__file__))
     output_dir = os.path.join(base_dir, "../output")
     save_path = os.path.join(output_dir, "diff.png")
 
@@ -226,9 +228,9 @@ def dump_json(task: list[TaskItem],output_path:Path=Path("output.json")):
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as f:
         json.dump(cleaned, f, indent=2)
-    print("saved json to output.json")
+    print(f"saved json to {output_path}")
 
-async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int)->TaskItem :
+async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_until_new_refrence_picture:int = 10,delete_refrence_image:bool = False)->TaskItem :
 
     """
         Builds a labeling task from per-tooth screenshots vs a reference image.
@@ -255,7 +257,7 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int)->Task
     inner_task:list[ InnerAnnotation] = []
     id_addition:int = 0
     try:
-        refrence_image_path:Path = await get_refrence_image( user_id)
+        refrence_image_path:Path = await get_refrence_image( user_id, not delete_refrence_image)
     except LookupError as e:
         print(f"Fatal Error:{e}, tries again")
         return await get_task(label_Data,user_id)
@@ -292,8 +294,13 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int)->Task
             continue
         try:
             x, y, w, h = await get_json_cordinates(difference_path)
-        except ValueError:
-            print("label wasn't found")
+        except ValueError as e:
+            tries_until_new_refrence_picture -= 1
+            if tries_until_new_refrence_picture == 0:
+                print("Refrence Image is wrong let's try again")
+                delete_screenshot_folders()
+                return await get_task(label_Data, user_id,delete_refrence_image= True)
+            print(f"Something went wrong with label {non_conv_label}: {e}")
             continue
 
         for k, _ in enumerate(labels):
