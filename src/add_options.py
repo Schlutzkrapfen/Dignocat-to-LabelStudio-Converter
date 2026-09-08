@@ -7,7 +7,7 @@ import copy
 
 from PIL import Image
 
-from annotation_opterations import add_ai, add_heigt, combine_labels,  remove_labels, split_labels
+from annotation_opterations import add_ai, add_heigt, combine_labels, get_egdes,  remove_labels, split_labels
 from check_options import test_if_ownjson
 from helper_functions import get_path_from_taskItem
 from label_converter import load_label_mapping
@@ -53,8 +53,7 @@ async def check_task_options(tasks:list[TaskItem])->dict[str,list[TaskItem]]:
                 tasks[i] = task
                 continue
 
-        task = split_labels(task)
-        #task = get_egdes(task,image.convert("L"))
+        task = split_labels(task, image.convert("L"))
         task = add_ai(task, labels,image)
         tasks[i] = task
     task_dir:dict[str,list[TaskItem]] = split_tasks(tasks)
