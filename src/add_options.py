@@ -7,7 +7,7 @@ import copy
 
 from PIL import Image
 
-from annotation_opterations import add_ai, add_heigt, combine_labels, get_egdes,  remove_labels, split_labels
+from annotation_opterations import add_ai, add_heigt, combine_labels,   remove_labels, split_labels
 from check_options import test_if_ownjson
 from helper_functions import get_path_from_taskItem
 from label_converter import load_label_mapping

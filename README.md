@@ -70,7 +70,8 @@ The CSV file contains four columns: `diagnocat_label`, `code`, `label_category`,
 - **`inward`**: Uses all labels except the furthest outer teeth (wisdom teeth).
 - **`outward`**: Uses only the furthest outer teeth (wisdom teeth).
 - **`combine`**: If two teeth share the same label and are adjacent to each other, it combines them into a single label.
-- **`splith`**:  Splits the label into two parts horizontally on each edge with a width of 1.
+- **`connections`**:  Splits the label into two parts horizontally and checks if the connections between them are valid and makes it with a widht of 1
+
 - **`hole`**: gets the hole theeth instead of just a part of the thoot
 - **`height:<float>`**: Multiplier applied to the annotation's height, always growing in the direction of the jaw.
 - **`own_json`**: the task uses its own dedicated JSON file instead of the shared one. 

@@ -5,7 +5,7 @@ import copy
 from PIL import Image
 
 from add_ai import ai_predict, get_which_ai_modell_to_use
-from check_options import get_heigt, test_if_ai, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp, test_if_only_edge, test_if_outward, test_if_split
+from check_options import get_heigt, test_if_ai, test_if_connections, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp, test_if_only_edge, test_if_outward
 from dental_logic import check_if_teeth_left, check_if_theeth_top_row, check_if_two_theeth_are_near_each_other, create_cluster, get_thooth_id_from_cluster
 from geometry_utils import crop_with_padding, enhance_contrast, find_edges, get_new_rectangle, is_overlapping
 from helper_functions import  get_user_id_from_TaskItem
@@ -31,7 +31,7 @@ def split_labels(task: TaskItem , image:Image.Image,new_width:float = 1) -> Task
 
     for annotation in result:
         already_split = annotation["value"]["width"] == new_width or annotation["id"].endswith(("_left", "_right"))
-        if not test_if_split(annotation["options"]) or already_split:
+        if not test_if_connections(annotation["options"]) or already_split:
             cur_annotations.append(annotation)
             continue
         original_width = annotation["value"]["width"]
@@ -101,52 +101,7 @@ def check_if_connected(img: Image.Image) -> tuple[bool, str]:
         return False, "no connection found"
     return False, "no connection found"
 
-def get_egdes(task:TaskItem,image:Image.Image,new_width:float = 1)-> TaskItem:
-    """
 
-        Args:
-            task (TaskItem): Task to process.
-
-        Returns:
-            TaskItem: The same task passed in, with
-                `predictions[0]["result"]` updated to contain only the
-                annotations that """
-    result = task["predictions"][0]["result"]
-    cur_anotation:list[InnerAnnotation] = []
-    half_width = new_width / 2
-    teeth_ids:list[str] =[]
-    for anotation in result:
-        edges_already_added = anotation["value"]["width"] == new_width or anotation["id"].endswith(("_left", "_right"))
-        left_is_already_annotated, right_is_already_annotated = needs_annotation(anotation, teeth_ids)
-        if not  test_if_only_edge(anotation["options"]) or edges_already_added or left_is_already_annotated and right_is_already_annotated:
-            cur_anotation.append(anotation)
-            continue
-        original_width = anotation["value"]["width"]
-        original_x = anotation["value"]["x"]
-        cur_image = crop_with_padding(image,original_x,anotation["value"]["y"],original_width,anotation["value"]["height"])
-        _w,h = image.size
-        (x1,y1,_w1,h1),(x2,y2,_w2,h2) = find_edges(cur_image, h, new_width)
-        print(f"edges: {(x1,y1,h1),(x2,y2,h2)}, left_is_already_annotated: {left_is_already_annotated}, right_is_already_annotated: {right_is_already_annotated}")
-        if not left_is_already_annotated and h1 != 0:
-            left:InnerAnnotation = copy.deepcopy(anotation)
-            left["value"]["width"] = new_width
-            left["value"]["height"] = h1
-            left["value"]["y"] = anotation["value"]["y"] + y1
-            left["value"]["x"] = original_x- half_width
-            left["id"] = f"{anotation['id']}_left"
-            cur_anotation.append(left)
-        if not right_is_already_annotated and h2 != 0:
-            right:InnerAnnotation = copy.deepcopy(anotation)
-            right["value"]["width"] = new_width
-            right["value"]["height"] = h2
-            right["value"]["y"] = anotation["value"]["y"] + y2
-            right["value"]["x"] = original_x - half_width + original_width
-            right["id"] = f"{anotation['id']}_right"
-            cur_anotation.append(right)
-
-
-    task["predictions"][0]["result"] = cur_anotation
-    return task
 
 async def remove_labels(task:TaskItem)-> TaskItem:
     """Removes labeled-as-removed annotations from a task.
