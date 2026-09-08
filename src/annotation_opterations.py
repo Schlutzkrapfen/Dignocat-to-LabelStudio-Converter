@@ -1,17 +1,17 @@
 
+from ast import Tuple
 import copy
-import re
 
 from PIL import Image
 
 from add_ai import ai_predict, get_which_ai_modell_to_use
 from check_options import get_heigt, test_if_ai, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp, test_if_only_edge, test_if_outward, test_if_split
 from dental_logic import check_if_teeth_left, check_if_theeth_top_row, check_if_two_theeth_are_near_each_other, create_cluster, get_thooth_id_from_cluster
-from geometry_utils import crop_with_padding, find_edges, get_new_rectangle, is_overlapping
+from geometry_utils import crop_with_padding, enhance_contrast, find_edges, get_new_rectangle, is_overlapping
 from helper_functions import  get_user_id_from_TaskItem
 from task_item import InnerAnnotation, TaskItem, Value
 import statistics
-def split_labels(task: TaskItem , new_width:float = 1) -> TaskItem:
+def split_labels(task: TaskItem , image:Image.Image,new_width:float = 1) -> TaskItem:
     """
         Splits each "splittable" annotation (test_if_split) into two deep-copied
         annotations of width new_width, positioned at the left and right edges
@@ -44,17 +44,28 @@ def split_labels(task: TaskItem , new_width:float = 1) -> TaskItem:
             left["value"]["width"] = new_width
             left["value"]["x"] = original_x - half_width
             left["id"] = f"{annotation['id']}_left"
-            cur_annotations.append(left)
+            cur_image = crop_with_padding(image,left["value"]["x"], left["value"]["y"], new_width, left["value"]["height"])
+            is_connected, reason = check_if_connected(cur_image)
+            if  is_connected:
+                cur_annotations.append(left)
+            else:
+                print(f"left not connected: {reason} with id: {left['id']}")
 
         if not right_is_already_annotated:
             right:InnerAnnotation = copy.deepcopy(annotation)
             right["value"]["width"] = new_width
             right["value"]["x"] = original_x - half_width + original_width
             right["id"] = f"{annotation['id']}_right"
-            cur_annotations.append(right)
+            cur_image = crop_with_padding(image, right["value"]["x"], right["value"]["y"], new_width, right["value"]["height"])
+            is_connected, reason = check_if_connected(cur_image)
+            if  is_connected:
+                cur_annotations.append(right)
+            else:
+                print(f"left not connected: {reason} with id: {right['id']}")
         teeth_ids.append(annotation["thoot_id"])
 
     task["predictions"][0]["result"] = cur_annotations
+
     return task
 
 def needs_annotation(annotation: InnerAnnotation, teeth_ids: list[str]) -> tuple[bool, bool]:
@@ -68,6 +79,27 @@ def needs_annotation(annotation: InnerAnnotation, teeth_ids: list[str]) -> tuple
             else:
                 left_is_already_annotated = True
     return left_is_already_annotated, right_is_already_annotated
+
+def check_if_connected(img: Image.Image) -> tuple[bool, str]:
+    width, height = img.size
+    img = enhance_contrast(img)
+    pixels = img.load()
+    if not pixels:
+        return False, "no white pixels found"
+
+    for y in range(height):          # go through each line (row)
+        try:
+            for x in range(width):       # go through each pixel in that row
+                if pixels[x, y] > 0:     # 0 = black, 255 = white (adjust condition as needed)
+                    if x == width-1:
+                        return True, f"connected via component on line {y}"
+                else:
+                    raise ValueError("pixel is black")
+        except ValueError:
+            continue
+
+        return False, "no connection found"
+    return False, "no connection found"
 
 def get_egdes(task:TaskItem,image:Image.Image,new_width:float = 1)-> TaskItem:
     """
