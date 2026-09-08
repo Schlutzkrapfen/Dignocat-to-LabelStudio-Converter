@@ -1,7 +1,7 @@
 
 
-def test_if_split(options:str) -> bool:
-    """Checks whether an annotation has the option splith.
+def test_if_connections(options:str) -> bool:
+    """Checks whether an annotation has the option connections.
     Args:
         options (str): Comma-separated list of option flags.
 
@@ -10,10 +10,9 @@ def test_if_split(options:str) -> bool:
              False otherwise.
     """
     parts = options.split(",")
-    for part in parts:
-        if part == "splith":
-            return True
-    return False
+    return any(part == "connections" for part in parts)
+
+
 def test_if_height(options:str):
     """Checks whether an annotation has the option height
 
@@ -25,45 +24,26 @@ def test_if_height(options:str):
                     False otherwise.
         """
     parts = options.split(",")
-    for part in parts:
-        if part[:6] == "height" :
-            return True
-    return False
+    return any(part == "height" for part in parts)
 
-def get_heigt(options:str) -> float:
-    """Returns the height of the annotation from the options string.
 
-        Args:
-            options (str): Comma-separated list of option flags.
-
-        Returns:
-            float: The height of the annotation to multiply with.
-        Raises:
-            ValueError: If no height is found in the options.
-        """
-    parts = options.split(",")
-    for part in parts:
-        if part[:6] == "height" :
-            return float(part.split(":")[1])
-    raise ValueError("No height found in options")
 
 def test_if_no_overlapp(options:str):
-    """Checks whether an annotation has the option neighborsconnect
+    """Checks whether an annotation has the option neighbors_connect
 
         Args:
             options (str): Comma-separated list of option flags.
 
         Returns:
-            bool: True if the annotation has the option neighborsconnect,
+            bool: True if the annotation has the option neighbors_connect,
                  False otherwise.
         """
     parts = options.split(",")
-    for part in parts:
-        if part == "neighborsconnect":
-            return True
-    return False
+    return any(part == "neighbors_connect" for part in parts)
+
+
 def test_if_ownjson(options:str):
-    """Checks whether an annotation has the option ownjson
+    """Checks whether an annotation has the option own_json
 
         Args:
             options (str): Comma-separated list of option flags.
@@ -73,10 +53,7 @@ def test_if_ownjson(options:str):
                  False otherwise.
         """
     parts = options.split(",")
-    for part in parts:
-        if part == "ownjson":
-            return True
-    return False
+    return any(part == "own_json" for part in parts)
 def test_if_outward(options:str,thooth_id:str)->bool:
     """Checks whether an annotation should be removed as an outward duplicate.
 
@@ -110,10 +87,7 @@ def check_if_hole(options:str)->bool:
                      False otherwise.
             """
         parts = options.split(",")
-        for part in parts:
-            if part == "hole" :
-                return True
-        return False
+        return any(part == "hole" for part in parts)
 def test_if_needs_combine(options:str)->bool:
     """Checks whether an annotation is flagged for combination.
 
@@ -124,10 +98,7 @@ def test_if_needs_combine(options:str)->bool:
             bool: True if the "combine" flag is present, False otherwise.
         """
     parts = options.split(",")
-    for part in parts:
-        if part == "combine":
-            return True
-    return False
+    return any(part == "combine" for part in parts)
 def test_if_inward(options:str,thooth_id:str)->bool:
     """Checks whether an annotation should be removed as an inward duplicate.
 
@@ -179,7 +150,4 @@ def test_if_ai(options:str):
                      False otherwise.
     """
     parts = options.split(",")
-    for part in parts:
-        if part[:2] == "ai" :
-            return True
-    return False
+    return any(part[:2] == "ai" for part in parts)
