@@ -1,7 +1,7 @@
 
 
-def test_if_split(options:str) -> bool:
-    """Checks whether an annotation has the option splith.
+def test_if_connections(options:str) -> bool:
+    """Checks whether an annotation has the option connections.
     Args:
         options (str): Comma-separated list of option flags.
 
@@ -10,7 +10,7 @@ def test_if_split(options:str) -> bool:
              False otherwise.
     """
     parts = options.split(",")
-    return any(part == "splith" for part in parts)
+    return any(part == "connections" for part in parts)
 
 
 def test_if_height(options:str):
