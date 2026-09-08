@@ -1,13 +1,12 @@
 
-from ast import Tuple
 import copy
 
 from PIL import Image
 
 from add_ai import ai_predict, get_which_ai_modell_to_use
-from check_options import get_heigt, test_if_ai, test_if_connections, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp, test_if_only_edge, test_if_outward
+from check_options import  test_if_ai, test_if_connections, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp,  test_if_outward
 from dental_logic import check_if_teeth_left, check_if_theeth_top_row, check_if_two_theeth_are_near_each_other, create_cluster, get_thooth_id_from_cluster
-from geometry_utils import crop_with_padding, enhance_contrast, find_edges, get_new_rectangle, is_overlapping
+from geometry_utils import crop_with_padding, enhance_contrast,  get_new_rectangle, is_overlapping
 from helper_functions import  get_user_id_from_TaskItem
 from task_item import InnerAnnotation, TaskItem, Value
 import statistics
@@ -195,7 +194,7 @@ def add_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]],image:Image.Image)
 
 def add_heigt(task: TaskItem) -> TaskItem:
     """
-    Adds height information to the task annotations based on the options.
+    change height information to the task annotations based on the neighbors.
 
     Args:
         task (TaskItem): The task to update.
@@ -205,18 +204,20 @@ def add_heigt(task: TaskItem) -> TaskItem:
 
     """
     cur_anotation:list[InnerAnnotation] = []
+    neigbor_height = 0
     for anotation in task["predictions"][0]["result"]:
         if  test_if_height(anotation["options"]):
             try:
                 old_height = anotation["value"]["height"]
-                new_height  = old_height * get_heigt(anotation["options"])
-                anotation["value"]["height"] = new_height
+                anotation["value"]["height"] = neigbor_height
             except ValueError as e:
                 print(e)
                 cur_anotation.append(anotation)
                 continue
             if check_if_theeth_top_row(anotation["thoot_id"]):
-                anotation["value"]["y"] = anotation["value"]["y"] - (new_height - old_height)
+                anotation["value"]["y"] = anotation["value"]["y"] - (neigbor_height - old_height)
+        else :
+            neigbor_height = anotation["value"]["height"]
         cur_anotation.append(anotation)
     task["predictions"][0]["result"] = cur_anotation
     return task

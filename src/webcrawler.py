@@ -1,4 +1,5 @@
 import os
+import asyncio
 from pathlib import Path
 from typing import cast
 from playwright.async_api import BrowserContext, Error as PlaywrightError, TimeoutError as PlaywrightTimeoutError
@@ -86,6 +87,7 @@ async def get_theeh_picture( teeth_id: str, user_id: int) -> Path:
 
     if picture_path.exists():
         return picture_path
+
     if user_page is None:
         raise ValueError("user_page is None")
 
@@ -552,7 +554,7 @@ async def get_refrence_image(user_id:int, skip_if_exist: bool = True,)-> Path:
 
 
 
-    if not os.path.exists(picture_path) or not skip_if_exist:
+    if not await asyncio.to_thread(os.path.exists, picture_path) or not skip_if_exist:
         if user_page is None:
             raise ValueError("user_page is None")
         await user_page.mouse.move(0, 0)

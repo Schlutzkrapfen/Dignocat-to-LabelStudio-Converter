@@ -73,7 +73,7 @@ The CSV file contains four columns: `diagnocat_label`, `code`, `label_category`,
 - **`connections`**:  Checks whether the left and right borders of the label are connected to the neighboring tooth. If they are, a new label is created with a width of 1.
 
 - **`hole`**: gets the hole theeth instead of just a part of the thoot
-- **`height:<float>`**: Multiplier applied to the annotation's height, always growing in the direction of the jaw.
+- **`height`**: changes the height of the annotation to the height of the neighboring tooth (left first, if it can find than right).
 - **`own_json`**: the task uses its own dedicated JSON file instead of the shared one. 
 - **`neighbors_connect`**: Skips saving the label if the bounding boxes of the left and right neighboring teeth already connect/overlap with each other.
 - **`ai:<model_name>`**: Uses a secondary AI model to split the label into more parts. See the **AI Models** section below.

@@ -44,7 +44,7 @@ async def check_task_options(tasks:list[TaskItem])->dict[str,list[TaskItem]]:
     for i, task in enumerate(tasks):
         task = combine_labels(task)
         task = await remove_labels(task)
-        task = add_heigt(task)
+        task  = add_heigt(task)
         try:
 
             image =Image.open( get_path_from_taskItem(task))
