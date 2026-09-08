@@ -24,24 +24,9 @@ def test_if_height(options:str):
                     False otherwise.
         """
     parts = options.split(",")
-    return any(part[:6] == "height" for part in parts)
+    return any(part == "height" for part in parts)
 
-def get_heigt(options:str) -> float:
-    """Returns the height of the annotation from the options string.
 
-        Args:
-            options (str): Comma-separated list of option flags.
-
-        Returns:
-            float: The height of the annotation to multiply with.
-        Raises:
-            ValueError: If no height is found in the options.
-        """
-    parts = options.split(",")
-    for part in parts:
-        if part[:6] == "height" :
-            return float(part.split(":")[1])
-    raise ValueError("No height found in options")
 
 def test_if_no_overlapp(options:str):
     """Checks whether an annotation has the option neighbors_connect
@@ -56,18 +41,7 @@ def test_if_no_overlapp(options:str):
     parts = options.split(",")
     return any(part == "neighbors_connect" for part in parts)
 
-def test_if_only_edge(options:str) -> bool:
-    """Checks whether an annotation has the option only_edge
 
-        Args:
-            options (str): Comma-separated list of option flags.
-
-        Returns:
-            bool: True if the annotation has the option only_edge,
-                 False otherwise.
-        """
-    parts = options.split(",")
-    return any(part == "only_edge" for part in parts)
 def test_if_ownjson(options:str):
     """Checks whether an annotation has the option own_json
 

@@ -1,6 +1,8 @@
 import json
 import os
+import asyncio
 import logging
+
 from pathlib import Path
 
 import numpy as np
@@ -65,7 +67,7 @@ async def get_difference(refrence_path:Path, image_path:Path)-> str:
    # if img1.size != img2.size:
    #     img2 = img2.resize(img1.size, Image.Resampling.LANCZOS)
     diff = ImageChops.difference(img1, img2)
-    base_dir = os.path.dirname(os.path.abspath(__file__))
+    base_dir = os.path.dirname(await asyncio.to_thread(os.path.abspath,__file__))
     output_dir = os.path.join(base_dir, "../output")
     save_path = os.path.join(output_dir, "diff.png")
 
