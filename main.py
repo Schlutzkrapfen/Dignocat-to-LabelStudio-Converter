@@ -133,7 +133,7 @@ async def main():
                     dump_json(task)
 
                 #When debugging can be deaktivated for faster new runs and shows what screenshots were made
-                #delete_screenshot_folders()
+                delete_screenshot_folders()
 
         finally:
             print("Finished")
