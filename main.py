@@ -78,6 +78,53 @@ def parse_id_range(total: int) -> list[int]:
 
     return [flip(i) for i in raw_indices]
 
+async def process_page_task(i:int, page_amount:int, context, output_dir, label_Data,max_tries=10):
+    """Processes a single page's task and saves the result as JSON.
+
+        Locates the page at index `i`, retrieves its associated task using
+        `label_Data`, resolves any task options, and dumps the result(s) to
+        JSON. If a RecursionError occurs, relaunches a fresh persistent
+        browser context and retries, up to `max_tries` times.
+
+        Args:
+            i: Index of the page to process.
+            page_amount: Total number of pages, used for locating the page.
+            context: Active Playwright browser context.
+            output_dir: Directory where output files are written.
+            label_Data: Label data used to look up the task for this page.
+            max_tries: Maximum number of retry attempts after a
+                RecursionError before giving up. Defaults to 10.
+
+        Returns:
+            list[TaskItem]: The task(s) processed for this page.
+
+        Raises:
+            RecursionError: If `max_tries` is exhausted without success.
+        """
+    try:
+        print(f"processing {i},page_amount={page_amount}")
+        user_id = await find_page(context,i,page_amount,output_dir)
+        task:list[TaskItem] = []
+        refrence_image_path = Path()
+
+        print(refrence_image_path)
+        single_task  = await get_task(label_Data,user_id)
+        task.append(single_task)
+
+    except RecursionError as e:
+        print(f"RecursionError:{e}")
+        if max_tries <= 0:
+            raise RecursionError
+        async with async_playwright() as p:
+            context1: BrowserContext = await p.chromium.launch_persistent_context(
+                USER_DATA_DIR,
+                headless=False,
+                device_scale_factor=screenshot_quality_mulitplayer,
+            )
+            page: Page = await context.new_page()
+            await login(page)
+            return await process_page_task(i, page_amount, context1, output_dir, label_Data,max_tries-1)
+    return task
 
 async def main():
     """Runs the full pipeline: login, iterate patients, and extract task data.
@@ -102,7 +149,7 @@ async def main():
         page: Page = await context.new_page()
         task:list[TaskItem] = []
 
-        refrence_image_path:Path = Path()
+
         try:
             await login(page)
             page_amount = await get_patient_amount()
@@ -111,28 +158,25 @@ async def main():
 
             for i in parse_id_range(page_amount):
                 try:
-                    print(f"processing {i},page_amount={page_amount}")
-                    user_id = await find_page(context,i,page_amount,output_dir)
-                except OSError as e:
+                    task.extend(await process_page_task(i, page_amount, context, output_dir, label_Data))
+
+                    task_dic = await check_task_options(task)
+                    for key,value in task_dic.items():
+                        if key =="main":
+                            dump_json(value)
+                        else:
+                            dump_json(value, Path(f"json/{key}.json"))
+                    if len(task_dic) == 0:
+                        dump_json(task)
+                except (OSError, RecursionError) as e:
                     print(f"complete failure:{e}")
                     raise OSError
                 except ValueError as e:
                     print(f"value error:{e}")
                     raise   ValueError
-                print(refrence_image_path)
-                single_task  = await get_task(label_Data,user_id)
-                task.append(single_task)
-                task_dic = await check_task_options(task)
-                for key,value in task_dic.items():
-                    if key =="main":
-                        dump_json(value)
-                    else:
-                        dump_json(value, Path(f"json/{key}.json"))
-                if len(task_dic) == 0:
-                    dump_json(task)
-
                 #When debugging can be deaktivated for faster new runs and shows what screenshots were made
                 delete_screenshot_folders()
+
 
         finally:
             print("Finished")
