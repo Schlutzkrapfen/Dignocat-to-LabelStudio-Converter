@@ -115,15 +115,10 @@ async def process_page_task(i:int, page_amount:int, context, output_dir, label_D
         print(f"RecursionError:{e}")
         if max_tries <= 0:
             raise RecursionError
-        async with async_playwright() as p:
-            context1: BrowserContext = await p.chromium.launch_persistent_context(
-                USER_DATA_DIR,
-                headless=False,
-                device_scale_factor=screenshot_quality_mulitplayer,
-            )
-            page: Page = await context.new_page()
-            await login(page)
-            return await process_page_task(i, page_amount, context1, output_dir, label_Data,max_tries-1)
+
+        page: Page = await context.new_page()
+        await login(page)
+        return await process_page_task(i, page_amount, context, output_dir, label_Data,max_tries-1)
     return task
 
 async def main():
