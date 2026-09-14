@@ -236,7 +236,8 @@ async def get_user_screenshoots( user_id: int) -> list[Path]:
     canvas = await user_page.query_selector("canvas")
 
     if count == 0 or canvas is None:
-        print("something went wrong while Fetching, lets try again.")
+        print("No Buttons or Canvas found, lets try again.")
+
         return await get_user_screenshoots(user_id)
 
     saved_screenshoots: list[Path] = []
@@ -251,7 +252,7 @@ async def get_user_screenshoots( user_id: int) -> list[Path]:
         percentage = button.locator("span.p3")
 
         if await name.count() == 0 or await percentage.count() == 0:
-            print("something went wrong while Fetching, lets try again.")
+            print("No name or percentage found, lets try again.")
             return await get_user_screenshoots( user_id)
 
         picture_path =Path(f"output/screenshots/{user_id}_{i}_{await name.inner_text()}_{await percentage.inner_text()}_{last_4}.png")

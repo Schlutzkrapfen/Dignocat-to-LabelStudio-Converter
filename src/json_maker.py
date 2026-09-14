@@ -8,6 +8,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageChops
 from check_options import check_if_hole
+from controll import find_duplicates_of
 from task_item import InnerAnnotation,  Prediction, TaskItem, Value
 import shutil
 
@@ -256,11 +257,16 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
 
     inner_task:list[ InnerAnnotation] = []
     id_addition:int = 0
+
     try:
         refrence_image_path:Path = await get_refrence_image( user_id, not delete_refrence_image)
     except LookupError as e:
         print(f"Fatal Error:{e}, tries again")
         return await get_task(label_Data,user_id)
+    if delete_refrence_image:
+        if len(find_duplicates_of(refrence_image_path, Path("output/"))) > 0:
+            print(f"Warning: found duplicates of {refrence_image_path}")
+            raise ValueError(f"found duplicates of {refrence_image_path}")
 
     for i, non_conv_label in enumerate(not_conv_labels):
         labels:list[str]

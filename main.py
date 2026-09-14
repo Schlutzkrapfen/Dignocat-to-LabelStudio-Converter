@@ -110,6 +110,9 @@ async def process_page_task(i:int, page_amount:int, context, output_dir, label_D
         print(refrence_image_path)
         single_task  = await get_task(label_Data,user_id)
         task.append(single_task)
+    except ValueError as e:
+        print(f"Duplicate image found: {e}")
+        return process_page_task(i, page_amount, context, output_dir, label_Data,max_tries)
 
     except RecursionError as e:
         print(f"RecursionError:{e}")
