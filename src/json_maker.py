@@ -264,7 +264,9 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
         print(f"Fatal Error:{e}, tries again")
         return await get_task(label_Data,user_id)
     if delete_refrence_image:
-        if len(find_duplicates_of(refrence_image_path, Path("output/"))) > 0:
+        refrence_image_amount = len(find_duplicates_of(refrence_image_path, Path("output")))
+        print(f"found {refrence_image_amount} duplictes")
+        if refrence_image_amount > 0:
             print(f"Warning: found duplicates of {refrence_image_path}")
             raise ValueError(f"found duplicates of {refrence_image_path}")
 

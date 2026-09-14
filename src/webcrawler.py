@@ -311,6 +311,7 @@ async def deactivated_show_buttons() :
 
     Raises:
         TimeoutError: if the selector can't be selected
+        ValueError: if user_page is None
     """
     selector = "button.MaskFilterButton-module_container_EFNpE"
 
