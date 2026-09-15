@@ -124,9 +124,16 @@ def crop_with_padding(image: Image.Image, x_pct:float, y_pct:float, w_pct:float,
 
     return image.crop((int(left), int(top), int(right), int(bottom)))
 
-def enhance_contrast(img_gray: Image.Image, black_point=190, white_point=191) -> Image.Image:
-    """Stretch the histogram: everything below black_point becomes 0,
-    everything above white_point becomes 255."""
+def enhance_contrast(img_gray: Image.Image, black_point=190, white_point=190) -> Image.Image:
+    """ everything below black_point becomes 0,
+    everything above white_point becomes 255.
+    Args:
+        img_gray: The grayscale image to enhance.
+        black_point: The pixel value below which to map to 0. Defaults to 190.
+        white_point: The pixel value above which to map to 255. Defaults to 191.
+    Returns:
+        Image.Image: The contrast-enhanced image.
+    """
     scale = 255.0 / (white_point - black_point)
 
     def stretch(p):
