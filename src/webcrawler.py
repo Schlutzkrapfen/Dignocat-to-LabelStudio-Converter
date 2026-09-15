@@ -562,8 +562,9 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
 
 async def remove_overlay(new_page:Page):
     """Removes the HubSpot overlay element from the page, if present.
-
-        """
+    Args:
+        new_page (Page): The page to remove the overlay from.
+    """
     await new_page.evaluate("""
     const el = document.querySelector('#hs-web-interactives-top-anchor');
     if (el) el.remove();
