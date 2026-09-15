@@ -80,26 +80,33 @@ def needs_annotation(annotation: InnerAnnotation, teeth_ids: list[str]) -> tuple
     return left_is_already_annotated, right_is_already_annotated
 
 def check_if_connected(img: Image.Image) -> tuple[bool, str]:
+    """Checks whether the image has a row that is fully connected (non-black) across its width.
+
+        Enhances contrast, then scans rows top to bottom. A row counts as
+        connected if every pixel in it is non-black (> 0) from the first to the
+        last column. The first black pixel found in a row skips to the next row.
+
+        Args:
+            img: Input PIL Image. Expected to be grayscale-like, since pixel
+                values are compared directly against 0.
+
+        Returns:
+            A tuple of:
+                - is_connected (bool): True if a fully connected row was found.
+                - message (str): Description of the result, including the row
+                  index if connected.
+        """
     width, height = img.size
     img = enhance_contrast(img)
     pixels = img.load()
     if not pixels:
-        return False, "no white pixels found"
+            return False, "no white pixels found"
 
-    for y in range(height):          # go through each line (row)
-        try:
-            for x in range(width):       # go through each pixel in that row
-                if pixels[x, y] > 0:     # 0 = black, 255 = white (adjust condition as needed)
-                    if x == width-1:
-                        return True, f"connected via component on line {y}"
-                else:
-                    raise ValueError("pixel is black")
-        except ValueError:
-            continue
+    for y in range(height):
+        if all(pixels[x, y] > 0 for x in range(width)):
+            return True, f"connected via component on line {y}"
 
-        return False, "no connection found"
     return False, "no connection found"
-
 
 
 async def remove_labels(task:TaskItem)-> TaskItem:
