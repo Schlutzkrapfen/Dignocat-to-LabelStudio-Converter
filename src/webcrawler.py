@@ -10,6 +10,8 @@ from controll import find_duplicates_of
 
 page:Page
 user_page:Page | None = None
+
+
 async def login(page1: Page):
     """
        Ensure the browser session is logged in to Diagnocat.
@@ -37,7 +39,10 @@ async def login(page1: Page):
         await page.wait_for_url("**/patients**", timeout=0)
         # Crucial: Wait a moment for cookies to sync to the 'user_data' folder
         print("Login successful!")
-
+async def reset_starting_page(page1: Page):
+    global page
+    await page.close()
+    page = page1
 
 async def get_tooth_descriptions() -> list[dict[str, str]]:
     """Extracts tooth names and identifiers from the page.

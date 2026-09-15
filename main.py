@@ -24,6 +24,7 @@ from webcrawler import (
     find_page,
     get_patient_amount,
     login,
+    reset_starting_page,
 )
 logger = logging.getLogger(__name__)
 
@@ -118,7 +119,7 @@ async def process_page_task(i:int, page_amount:int, context, output_dir, label_D
             raise RecursionError
 
         page: Page = await context.new_page()
-        await login(page)
+        await reset_starting_page(page)
         return await process_page_task(i, page_amount, context, output_dir, label_Data,max_tries-1)
     task.append(single_task)
 
