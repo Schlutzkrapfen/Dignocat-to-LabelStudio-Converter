@@ -40,6 +40,16 @@ async def login(page1: Page):
         # Crucial: Wait a moment for cookies to sync to the 'user_data' folder
         print("Login successful!")
 async def reset_starting_page(page1: Page):
+    """Resets the global starting page after a failure, closing the old one.
+
+        Called as a last resort when nothing else works and a fresh page has
+        already been opened in `main`. Closes the current global `page` and
+        replaces it with the newly opened `page1`.
+
+        Args:
+            page1: The new page instance (already opened in `main`) that will
+                replace the current global `page`.
+                """
     global page
     await page.close()
     page = page1
@@ -47,11 +57,16 @@ async def reset_starting_page(page1: Page):
 async def get_tooth_descriptions() -> list[dict[str, str]]:
     """Extracts tooth names and identifiers from the page.
 
+        Locates all tooth condition title elements on `user_page` and splits
+        each one's text into a type and an id.
 
         Returns:
             A list of dictionaries, where each dictionary contains the "type"
             and "id" of a tooth.
-        """
+
+        Raises:
+            ValueError: If `user_page` is not initialized.
+    """
     if user_page is None:
         raise ValueError("user_page is not initialized")
 
@@ -90,7 +105,7 @@ async def get_theeh_picture( teeth_id: str, user_id: int) -> Path:
         """
     picture_path = Path(f"output/teeth-screenshoots/{user_id}-{teeth_id}.png")
 
-    if picture_path.exists():
+    if await asyncio.to_thread(picture_path.exists):
         return picture_path
 
     if user_page is None:
@@ -222,17 +237,23 @@ async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:
 
 
 async def get_user_screenshoots( user_id: int) -> list[Path]:
-    """
-       Screenshot each condition button's canvas view for a user.
-       For every condition button on the page: hovers it, reads its name,
-       percentage, and enclosing section id, then screenshots the shared
-       <canvas> to `output/screenshots/{user_id}_{i}_{name}_{percentage}_{section_suffix}.png`.
-       Skips screenshots that already exist on disk.
-       Args:
-           user_id: Used to namespace output filenames.
-       Returns:
-           List of screenshot file paths, one per condition button.
-       """
+    """Screenshots each condition button's canvas view for a user.
+
+        For every condition button: hovers it, reads its name, percentage,
+        and section id, then screenshots the shared <canvas> to
+        `output/screenshots/{user_id}_{i}_{name}_{percentage}_{section_suffix}.png`.
+        Existing screenshots are skipped. Retries recursively if no buttons/canvas
+        are found, or if a button lacks name/percentage text.
+
+        Args:
+            user_id: Used to namespace output filenames.
+
+        Returns:
+            List of screenshot file paths, one per condition button.
+
+        Raises:
+            ValueError: If `user_page` is not initialized.
+        """
     # Gets the Buttons
     if user_page is None:
         raise ValueError("user_page is None")
@@ -262,7 +283,7 @@ async def get_user_screenshoots( user_id: int) -> list[Path]:
 
         picture_path =Path(f"output/screenshots/{user_id}_{i}_{await name.inner_text()}_{await percentage.inner_text()}_{last_4}.png")
 
-        if os.path.exists(picture_path):
+        if await asyncio.to_thread(os.path.exists, picture_path):
             print(f"Skipping {picture_path}, already exists")
             saved_screenshoots.append(picture_path)
             continue
@@ -290,6 +311,7 @@ async def take_screenshot(canvas:ElementHandle,path:Path,max_retries: int = 10 )
             max_retries: Maximum number of retry attempts if the screenshot
                 times out. Defaults to 10.
         Raises:
+            ValueError: If `user_page` is not initialized.
             TimeoutError: If the screenshot still fails after exhausting all
                 retry attempts.
         """
@@ -417,25 +439,32 @@ async def get_patient_amount()->int:
 async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries:int=20,locked:bool=False)-> Page:
     """Navigates to a specific patient's report page.
 
-        Opens the patients list page, scrolls through the infinite-scroll
-        table until the row for `user_id` is loaded, clicks it to open the
-        patient, and then opens the report card. Retries on timeouts/errors
-        (reloading the patients page) up to `max_retries` times, and on a
-        missing report card, retries with the next `user_id`.
+     Opens the patients list page (or reloads if `locked`), scrolls the
+     infinite-scroll table until `user_id`'s row loads, opens that patient
+     in a new page, and opens their report card. Retries recursively on
+     failure: page/row timeouts reload and retry (decrementing
+     `max_retries`); an out-of-range `user_id` restarts from 0; unresolved
+     row data restarts from 0; a missing report card retries with
+     `user_id + 1`; a report-card timeout reloads and retries from 0.
 
-        Args:
+     Args:
+         context: Browser context used to open the new patient page.
+         user_id: Index of the patient row to open in the table.
+         max_retries: Max retry attempts on page load/timeout errors.
+             Defaults to 20.
+         locked: If True, forces a reload of the patients page. Defaults
+             to False.
 
-            user_id (int): Index of the patient row to open in the table.
-            max_retries (int): Maximum number of retry attempts on page
-                load/timeout errors. Defaults to 20.
+     Returns:
+         Page: The new page, navigated to the patient's report.
 
+     Raises:
+         OSError: If the patients page/row can't be found after exhausting
+             `max_retries`.
+         ValueError: If the report card can't be loaded after exhausting
+             `max_retries`.
 
-        Raises:
-            OSError: If the page can't be loaded/seen after exhausting
-                `max_retries`.
-            ValueError: If no users are left to retry after exhausting
-                `max_retries` on a report-card timeout.
-        """
+     """
     try:
         if page.url.rstrip("/") != "https://app.diagnocat.eu/patients".rstrip("/") or locked == True:
             print("Opening data page...")

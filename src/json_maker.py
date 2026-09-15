@@ -232,27 +232,35 @@ def dump_json(task: list[TaskItem],output_path:Path=Path("output.json")):
     print(f"saved json to {output_path}")
 
 async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_until_new_refrence_picture:int = 10,delete_refrence_image:bool = False)->TaskItem :
+    """Builds a labeling task from per-tooth screenshots vs a reference image.
 
-    """
-        Builds a labeling task from per-tooth screenshots vs a reference image.
+       For each tooth description, maps its type to labels, resolves its
+       tooth id, captures its screenshot, and diffs it against the reference
+       image to derive bounding box coordinates. Failing entries are skipped
+       with a warning.
 
-    For each tooth description on the page, maps its type to labels,
-    resolves its tooth id, captures its screenshot, and diffs it
-    against the reference image to derive bounding box coordinates.
-    Annotations are built from the results and collected into a task.
-    Entries that fail any step are skipped with a warning.
+       Retries recursively if the reference image can't be resolved, or if
+       coordinate extraction fails repeatedly (up to
+       `tries_until_new_refrence_picture` times) — the latter regenerates the
+       reference image after deleting existing screenshot folders.
 
-    Args:
-        label_Data (dict[str, list[dict[str, str]]]): Mapping used by
-            `map_label` to resolve a label's categories and options.
-        user_id (int): Identifier of the user, used to build image
-            file paths.
+       Args:
+           label_Data: Mapping used by `map_label` to resolve a label's
+               categories and options.
+           user_id: User identifier, used to build image file paths.
+           tries_until_new_refrence_picture: Failures allowed before
+               regenerating the reference image. Defaults to 10.
+           delete_refrence_image: If True, forces reference image
+               regeneration and checks for duplicates in "output".
+               Defaults to False.
 
+       Returns:
+           TaskItem: The generated task.
 
-    Returns:
-        TaskItem: The generated task
-
-    """
+       Raises:
+           ValueError: If `delete_refrence_image` is True and duplicate
+               reference images are found in "output".
+       """
     not_conv_labels = await get_tooth_descriptions()
 
     inner_task:list[ InnerAnnotation] = []

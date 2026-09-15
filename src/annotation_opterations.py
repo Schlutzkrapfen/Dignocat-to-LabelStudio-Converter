@@ -68,6 +68,19 @@ def split_labels(task: TaskItem , image:Image.Image,new_width:float = 1) -> Task
     return task
 
 def needs_annotation(annotation: InnerAnnotation, teeth_ids: list[str]) -> tuple[bool, bool]:
+    """Checks whether the left and/or right neighbors of a tooth are already annotated.
+
+        Compares the annotation's tooth against each id in `teeth_ids`. For any
+        tooth that is near it, marks the corresponding side as annotated.
+
+        Args:
+            annotation: Annotation containing the reference tooth
+                (`annotation["thoot_id"]`).
+            teeth_ids: Tooth id strings to compare against.
+
+        Returns:
+            Tuple of (left_is_already_annotated, right_is_already_annotated).
+        """
 
     left_is_already_annotated = False
     right_is_already_annotated = False
