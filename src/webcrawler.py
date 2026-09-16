@@ -533,9 +533,9 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
         print("Clicked first patient row")
 
         print(f"Now on: {page.url}")
-        _div = await new_page.wait_for_selector("div.ReportCard-module_container_ONmLU")
+        _div = await new_page.wait_for_selector("div.ReportCardLayout-module_container_tPN-J")
 
-        button = await new_page.query_selector("div.ReportCard-module_container_ONmLU")
+        button = await new_page.query_selector("div.ReportCardLayout-module_container_tPN-J")
         if button is None:
             print("couldn't find button")
             raise ValueError("Button Isn't here")
