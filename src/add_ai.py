@@ -18,9 +18,8 @@ from ultralytics.models.yolo import YOLO
 from annotation_opterations import add_annotation_to_task
 from check_options import test_if_local_ai
 from helper_functions import get_path_from_taskItem
-from json_maker import inner_json, outer_json
+from json_maker import inner_json
 from task_item import InnerAnnotation, TaskItem
-import task_item
 
 
 AI_DIR:Path = Path("AI-Models")
@@ -45,7 +44,7 @@ def add_local_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]]):
 
             if ai_path is not None:
                 inner = ai_make_predtioction(ai_path,task,label_category,label_name)
-                add_annotation_to_task(task,inner)
+                task = add_annotation_to_task(task,inner)
 
             ai_path = None
 

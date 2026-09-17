@@ -14,8 +14,12 @@ import statistics
 import task_item
 
 
-def add_annotation_to_task(task:TaskItem, inneranotation ):
-    pass
+def add_annotation_to_task(task:TaskItem, inneranotation:InnerAnnotation )-> TaskItem:
+    result = task["predictions"][0]["result"]
+    result.append(inneranotation)
+    task["predictions"][0]["result"] = result
+    return task
+
 def split_labels(task: TaskItem , image:Image.Image,new_width:float = 1) -> TaskItem:
     """
         Splits each "splittable" annotation (test_if_split) into two deep-copied
