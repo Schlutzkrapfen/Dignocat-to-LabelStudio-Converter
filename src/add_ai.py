@@ -15,15 +15,18 @@ from torchvision import transforms, models
 from PIL import Image
 from ultralytics.models.yolo import YOLO
 
-from annotation_opterations import add_annotation_to_task
-from check_options import test_if_local_ai
+from check_options import get_which_ai_modell_to_use, test_if_local_ai
 from helper_functions import get_path_from_taskItem
 from json_maker import inner_json
 from task_item import InnerAnnotation, TaskItem
 
 
-AI_DIR:Path = Path("AI-Models")
 
+def add_annotation_to_task(task:TaskItem, inneranotation:InnerAnnotation )-> TaskItem:
+    result = task["predictions"][0]["result"]
+    result.append(inneranotation)
+    task["predictions"][0]["result"] = result
+    return task
 def add_local_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]]):
     for list in labels.values():
         print(f"DRUGS:{list}")
@@ -145,22 +148,3 @@ def ai_predict(ai_path: Path, image: Image.Image) -> tuple[float,str]:
     confidence = probs[predicted_idx].item()
     predicted_class = class_names[predicted_idx]
     return confidence,predicted_class
-
-
-def get_which_ai_modell_to_use(options:str)-> Path:
-    """Resolves the AI model path from an options string.
-        Args:
-            options (str): A string containing the model identifier in the
-                format "ai:model_name" (e.g. "ai:gpt4"). The part
-                after the colon is used as the model's filename/subpath.
-        Returns:
-            Path: Full path to the model, obtained by joining AI_DIR with
-            the value after the colon in `options`.
-            Raises:
-                ValueError: If no AI model is found in the options string.
-    """
-    for part in options.split(","):
-        if part[:2] == "ai":
-            path= Path(AI_DIR /  options.split(":")[1])
-            return path
-    raise ValueError(f"No AI model found in options: {options}")
