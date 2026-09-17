@@ -1,4 +1,19 @@
 
+def test_if_local_ai(options:str) -> bool:
+    """
+    Checks whether an annotation has the option local_ai.
+        Args:
+            options (str): Comma-separated list of option flags.
+
+        Returns:
+            bool: True if the annotation has the option splith,
+                 False otherwise
+    Note:
+        the option is in the ai csv and not in the big csv
+    """
+    parts = options.split(",")
+    return any(part[:9] == "local_ai" for part in parts)
+
 
 def test_if_connections(options:str) -> bool:
     """Checks whether an annotation has the option connections.

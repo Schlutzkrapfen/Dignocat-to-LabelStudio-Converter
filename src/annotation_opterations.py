@@ -10,6 +10,12 @@ from geometry_utils import crop_with_padding, enhance_contrast,  get_new_rectang
 from helper_functions import  get_user_id_from_TaskItem
 from task_item import InnerAnnotation, TaskItem, Value
 import statistics
+
+import task_item
+
+
+def add_annotation_to_task(task:TaskItem, inneranotation ):
+    pass
 def split_labels(task: TaskItem , image:Image.Image,new_width:float = 1) -> TaskItem:
     """
         Splits each "splittable" annotation (test_if_split) into two deep-copied
@@ -197,6 +203,7 @@ def add_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]],image:Image.Image)
             list[TaskItem]: The same tasks, with AI-eligible annotations
             updated in place.
     """
+
 
     result = task["predictions"][0]["result"]
     cur_anotation:list[InnerAnnotation] = []
