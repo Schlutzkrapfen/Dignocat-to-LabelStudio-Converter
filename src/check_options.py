@@ -1,4 +1,22 @@
 
+from pathlib import Path
+
+
+def test_if_local_ai(options:str) -> bool:
+    """
+    Checks whether an annotation has the option local_ai.
+        Args:
+            options (str): Comma-separated list of option flags.
+
+        Returns:
+            bool: True if the annotation has the option splith,
+                 False otherwise
+    Note:
+        the option is in the ai csv and not in the big csv
+    """
+    parts = options.split(",")
+    return any(part[:8] == "local_ai" for part in parts)
+
 
 def test_if_connections(options:str) -> bool:
     """Checks whether an annotation has the option connections.
@@ -151,3 +169,23 @@ def test_if_ai(options:str):
     """
     parts = options.split(",")
     return any(part[:2] == "ai" for part in parts)
+
+AI_DIR:Path = Path("AI-Models")
+
+def get_which_ai_modell_to_use(options:str)-> Path:
+    """Resolves the AI model path from an options string.
+        Args:
+            options (str): A string containing the model identifier in the
+                format "ai:model_name" (e.g. "ai:gpt4"). The part
+                after the colon is used as the model's filename/subpath.
+        Returns:
+            Path: Full path to the model, obtained by joining AI_DIR with
+            the value after the colon in `options`.
+            Raises:
+                ValueError: If no AI model is found in the options string.
+    """
+    for part in options.split(","):
+        if part[:2] == "ai" or part[:8] == "local_ai":
+            path= Path(AI_DIR /  options.split(":")[1])
+            return path
+    raise ValueError(f"No AI model found in options: {options}")

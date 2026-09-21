@@ -3,13 +3,17 @@ import copy
 
 from PIL import Image
 
-from add_ai import ai_predict, get_which_ai_modell_to_use
-from check_options import  test_if_ai, test_if_connections, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp,  test_if_outward
+from add_ai import ai_predict
+from check_options import  get_which_ai_modell_to_use, test_if_ai, test_if_connections, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp,  test_if_outward
 from dental_logic import check_if_teeth_left, check_if_theeth_top_row, check_if_two_theeth_are_near_each_other, create_cluster, get_thooth_id_from_cluster
 from geometry_utils import crop_with_padding, enhance_contrast,  get_new_rectangle, is_overlapping
 from helper_functions import  get_user_id_from_TaskItem
 from task_item import InnerAnnotation, TaskItem, Value
 import statistics
+
+
+
+
 def split_labels(task: TaskItem , image:Image.Image,new_width:float = 1) -> TaskItem:
     """
         Splits each "splittable" annotation (test_if_split) into two deep-copied
@@ -197,6 +201,7 @@ def add_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]],image:Image.Image)
             list[TaskItem]: The same tasks, with AI-eligible annotations
             updated in place.
     """
+
 
     result = task["predictions"][0]["result"]
     cur_anotation:list[InnerAnnotation] = []

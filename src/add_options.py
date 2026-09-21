@@ -4,6 +4,7 @@ import copy
 
 from PIL import Image
 
+from add_ai import add_local_ai
 from annotation_opterations import add_ai, add_heigt, combine_labels,   remove_labels, split_labels
 from check_options import test_if_ownjson
 from helper_functions import get_path_from_taskItem
@@ -52,6 +53,10 @@ async def check_task_options(tasks:list[TaskItem])->dict[str,list[TaskItem]]:
 
         task = split_labels(task, image.convert("L"))
         task = add_ai(task, labels,image)
+        try:
+            task = add_local_ai(task,labels)
+        except ValueError as e :
+            print(e)
         tasks[i] = task
     task_dir:dict[str,list[TaskItem]] = split_tasks(tasks)
 

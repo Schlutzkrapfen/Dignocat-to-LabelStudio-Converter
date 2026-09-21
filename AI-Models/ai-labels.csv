@@ -1,4 +1,4 @@
-ai_label	code	label_category	
+ai_label	code	label_category	option
 Ceramic-Crown	Ceramic-Crown	ceramic	
 Composit-Crown	Plastic/Composit-Crown	plastic	
 Metal-Crown	Metal-Crown	metal	"
@@ -10,3 +10,4 @@ Zement-Filling	Zement-Filling	Zement/Guttapercha
 Metal-Implant	Metal-Implant	"metal
 "	
 Ceramic-Implant	Ceramic-Implant	ceramic	
+Asymmetry Caput	Asymmetry Caput	TMJ	local_ai:caput.pt
