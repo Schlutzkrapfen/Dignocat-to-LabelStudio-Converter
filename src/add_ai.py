@@ -20,44 +20,40 @@ from helper_functions import get_path_from_taskItem
 from json_maker import inner_json
 from task_item import InnerAnnotation, TaskItem
 
-
-
-def add_annotation_to_task(task:TaskItem, inneranotation:InnerAnnotation )-> TaskItem:
+def add_annotations_to_task(task:TaskItem, inneranotation:list[InnerAnnotation])-> TaskItem:
     result = task["predictions"][0]["result"]
-    result.append(inneranotation)
+    result.extend(inneranotation)
     task["predictions"][0]["result"] = result
     return task
+
+
 def add_local_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]]):
     for list in labels.values():
-        print(f"DRUGS:{list}")
-        for option in list:
-            ai_path:Path |None = None
-            label_category:str = ""
-            label_name:str = ""
+
+        ai_path:Path |None = None
+        label_category:str = ""
+        label_name:str = ""
 
 
-            for key,value in option.items():
-                if key == "options" and test_if_local_ai(value):
-                    ai_path = get_which_ai_modell_to_use(value)
-                elif key == "label_category" :
-                    label_category = value
-                elif key == "code":
-                    label_name = value
+        for key,value in list[0].items():
+            if key == "option" and test_if_local_ai(value):
+                ai_path = get_which_ai_modell_to_use(value)
+            elif key == "label_category" :
+                label_category = value
+            elif key == "code":
+                label_name = value
+
 
 
             if ai_path is not None:
-                inner = ai_make_predtioction(ai_path,task,label_category,label_name)
-                task = add_annotation_to_task(task,inner)
+                inner = ai_make_predtioction(ai_path,task,value,label_category,label_name)
+                task = add_annotations_to_task(task,inner)
 
-            ai_path = None
-
-
-
-
+        ai_path = None
     return task
 
 
-def ai_make_predtioction(ai_path:Path,task:TaskItem,label_cotegory:str,name:str)-> InnerAnnotation:
+def ai_make_predtioction(ai_path: Path, task: TaskItem,class_name:str , label_cotegory: str, name: str) -> list[InnerAnnotation]:
     image_path = get_path_from_taskItem(task)
 
     model = YOLO(ai_path)
@@ -65,34 +61,32 @@ def ai_make_predtioction(ai_path:Path,task:TaskItem,label_cotegory:str,name:str)
     if img is None:
         raise ValueError(f"Failed to read image: {image_path}")
 
-
     img_h, img_w = img.shape[:2]
 
-    results =model.predict(source=image_path, conf=0.05, iou=0.5)
+    results = model.predict(source=image_path, conf=0.05, iou=0.5)
 
     boxes = results[0].boxes
     if not boxes or len(boxes) == 0:
         raise ValueError(f"No boxes found in image: {image_path}")
 
-
-    mask = boxes.cls == model.cap_class_id
+    cap_class_id = 0
+    mask = boxes.cls == cap_class_id
     cap_boxes = boxes[mask]
     sorted_idx = (-cap_boxes.conf).argsort()
     top_k_boxes = cap_boxes[sorted_idx][:2]
 
-    result_item :InnerAnnotation | None = None
+    result_item: list[InnerAnnotation] = []
     for box in top_k_boxes:
         x1, y1, x2, y2 = box.xyxy[0].tolist()
         conf = float(box.conf[0])
         x = x1 / img_w * 100
         y = y1 / img_h * 100
-        width = (y2 - y1) / img_h * 100
+        width = (x2 - x1) / img_w * 100
         height = (y2 - y1) / img_h * 100
-        result_item = inner_json(name,x,y,width,height,222,str(f"{conf*100}%"),label_cotegory,"",thoot_id="0000")
+        result_item.append( inner_json(name, x, y, width, height, 222, str(f"{conf*100}%"), label_cotegory, "", thoot_id="0000"))
 
-    if result_item is None:
+    if len(result_item) == 0:
         raise ValueError("resultItem is null")
-
 
     return result_item
 

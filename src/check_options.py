@@ -15,7 +15,7 @@ def test_if_local_ai(options:str) -> bool:
         the option is in the ai csv and not in the big csv
     """
     parts = options.split(",")
-    return any(part[:9] == "local_ai" for part in parts)
+    return any(part[:8] == "local_ai" for part in parts)
 
 
 def test_if_connections(options:str) -> bool:
@@ -185,7 +185,7 @@ def get_which_ai_modell_to_use(options:str)-> Path:
                 ValueError: If no AI model is found in the options string.
     """
     for part in options.split(","):
-        if part[:2] == "ai":
+        if part[:2] == "ai" or part[:8] == "local_ai":
             path= Path(AI_DIR /  options.split(":")[1])
             return path
     raise ValueError(f"No AI model found in options: {options}")

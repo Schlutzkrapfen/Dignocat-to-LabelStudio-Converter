@@ -10,4 +10,4 @@ Zement-Filling	Zement-Filling	Zement/Guttapercha
 Metal-Implant	Metal-Implant	"metal
 "	
 Ceramic-Implant	Ceramic-Implant	ceramic	
-caput	Asymmetry Caput	TMJ	local_ai:caput.py
+Asymmetry Caput	Asymmetry Caput	TMJ	local_ai:caput.pt
