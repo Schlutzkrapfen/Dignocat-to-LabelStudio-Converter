@@ -76,15 +76,16 @@ def ai_make_predtioction(ai_path: Path, task: TaskItem,class_name:str , label_co
     top_k_boxes = cap_boxes[sorted_idx][:2]
 
     result_item: list[InnerAnnotation] = []
-    for box in top_k_boxes:
+    i =0
+    for  box in top_k_boxes:
         x1, y1, x2, y2 = box.xyxy[0].tolist()
         conf = float(box.conf[0])
         x = x1 / img_w * 100
         y = y1 / img_h * 100
         width = (x2 - x1) / img_w * 100
         height = (y2 - y1) / img_h * 100
-        result_item.append( inner_json(name, x, y, width, height, 222, str(f"{conf*100}%"), label_cotegory, "", thoot_id="0000"))
-
+        result_item.append( inner_json(name, x, y, width, height, 10000 +i , str(f"{conf*100}%"), label_cotegory, "", thoot_id="0000"))
+        i += 1
     if len(result_item) == 0:
         raise ValueError("resultItem is null")
 
