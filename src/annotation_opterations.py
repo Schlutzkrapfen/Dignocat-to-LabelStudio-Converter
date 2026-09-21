@@ -2,7 +2,6 @@
 import copy
 
 from PIL import Image
-from cv2 import find4QuadCornerSubpix
 
 from add_ai import ai_predict
 from check_options import  get_which_ai_modell_to_use, test_if_ai, test_if_connections, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp,  test_if_outward

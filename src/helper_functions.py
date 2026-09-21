@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 from PIL import Image
-from numpy import ma
 
 from task_item import InnerAnnotation, TaskItem
 
