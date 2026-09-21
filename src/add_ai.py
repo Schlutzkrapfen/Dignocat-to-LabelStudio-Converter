@@ -21,6 +21,21 @@ from json_maker import inner_json
 from task_item import InnerAnnotation, TaskItem
 
 def add_annotations_to_task(task:TaskItem, inneranotation:list[InnerAnnotation])-> TaskItem:
+    """Appends new annotations to a task's first prediction result.
+
+        Extends the ``result`` list inside ``task["predictions"][0]`` with the
+        provided annotations and writes it back to the task.
+
+        Args:
+            task: The task item to update. Must contain at least one entry in
+                ``task["predictions"]``, with a ``"result"`` key holding a list.
+            inneranotation: The list of annotations to append to the task's
+                existing result list.
+
+        Returns:
+            The same ``task`` object, with its first prediction's ``result``
+            list extended in place.
+    """
     result = task["predictions"][0]["result"]
     result.extend(inneranotation)
     task["predictions"][0]["result"] = result
@@ -28,6 +43,19 @@ def add_annotations_to_task(task:TaskItem, inneranotation:list[InnerAnnotation])
 
 
 def add_local_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]]):
+    """Runs local AI models on a task for applicable labels and merges results.
+
+        For each label group, checks if a local AI model applies, runs
+        prediction if so, and adds the resulting annotations to the task.
+
+        Args:
+            task: Task item to annotate.
+            labels: Mapping of label group names to lists of label dicts,
+                each possibly containing "option", "label_category", "code".
+
+        Returns:
+            The updated task item.
+        """
     for list in labels.values():
 
         ai_path:Path |None = None
@@ -53,7 +81,23 @@ def add_local_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]]):
     return task
 
 
-def ai_make_predtioction(ai_path: Path, task: TaskItem,class_name:str , label_cotegory: str, name: str) -> list[InnerAnnotation]:
+def ai_make_predtioction(ai_path: Path, task: TaskItem, label_cotegory: str, name: str) -> list[InnerAnnotation]:
+    """Runs YOLO on a task's image and builds annotations from the top detections.
+
+        Args:
+            ai_path: Path to the YOLO model weights.
+            task: Task item whose image will be used for prediction.
+            label_cotegory: Label category for the annotations.
+            name: Annotation name/code.
+
+        Returns:
+            Up to 2 annotations for the highest-confidence class-0 detections,
+            with coordinates as percentages of image size.
+
+        Raises:
+            ValueError: If the image can't be read, no boxes are detected,
+                or no annotations could be built.
+        """
     image_path = get_path_from_taskItem(task)
 
     model = YOLO(ai_path)
