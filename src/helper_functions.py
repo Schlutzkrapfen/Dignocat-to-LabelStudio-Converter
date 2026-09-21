@@ -1,8 +1,25 @@
 import os
 from pathlib import Path
 from PIL import Image
+from numpy import ma
 
-from task_item import TaskItem
+from task_item import InnerAnnotation, TaskItem
+
+def find_heighest_height(annotations: list[InnerAnnotation]) -> float:
+    """Finds the heighest height in the annotations.
+
+    Args:
+        annotations (list[InnerAnnotation]): List of annotations to search.
+
+    Returns:
+        float: The heighest height found in the annotations.
+    """
+
+    max_height = 0
+    for annotation in annotations:
+        max_height = max(max_height, annotation["value"]["height"])
+    return max_height
+
 def get_info(filename: str)-> tuple[int,int,str,str,str]:
     """Gets the info out of the filename.
 
