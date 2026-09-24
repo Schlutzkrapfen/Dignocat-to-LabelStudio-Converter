@@ -15,8 +15,6 @@ from json_maker import (
     delete_screenshot_folders,
     dump_json,
     get_task
-
-
 )
 from label_converter import load_label_mapping
 from task_item import  TaskItem
