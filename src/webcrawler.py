@@ -534,7 +534,7 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
         except IndexError as e:
             print(f"User_id: {user_id} the picture wasn't there: {e} ")
             await new_page.close()
-            return await go_to_patient_report(context, 0,max_retries)
+            return await go_to_patient_report(context, user_id + 1, max_retries)
 
 
         print("Clicked first patient row")
@@ -559,7 +559,7 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
         if max_retries <= 0:
             raise ValueError("Max retries exceeded")
         await new_page.close()
-        return await go_to_patient_report(context,0,max_retries -1, True)
+        return await go_to_patient_report(context, user_id + 1, max_retries - 1, True)
 
 
     await remove_overlay(new_page)
