@@ -24,4 +24,4 @@ Implantat	Implant	Restauration
 Zahn	Teeth	Abrasion	own_json
 Brückenglied	Bridge	Restauration	
 Künstliche Zahnkrone	Blocking	Restauration	connections
-Fehlt	Unharmonic Line to Articulated line inclination	Spee curve	inward,combine
+Fehlt	Unharmonic Line to Articulated line inclination	Spee curve	inward,single

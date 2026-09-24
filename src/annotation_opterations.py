@@ -4,9 +4,9 @@ import copy
 from PIL import Image
 
 from add_ai import ai_predict
-from check_options import  get_which_ai_modell_to_use, test_if_ai, test_if_connections, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp,  test_if_outward
+from check_options import  get_which_ai_modell_to_use, test_if_ai, test_if_connections, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp,  test_if_outward, test_if_single
 from dental_logic import check_if_teeth_left, check_if_theeth_top_row, check_if_two_theeth_are_near_each_other, create_cluster, get_thooth_id_from_cluster
-from geometry_utils import crop_with_padding, enhance_contrast,  get_new_rectangle, is_overlapping
+from geometry_utils import crop_with_padding, enhance_contrast, find_left_top_corner, find_right_bottom_corner,  get_new_rectangle, is_overlapping
 from helper_functions import  find_heighest_height, get_user_id_from_TaskItem
 from task_item import InnerAnnotation, TaskItem, Value
 import statistics
@@ -125,6 +125,28 @@ def check_if_connected(img: Image.Image) -> tuple[bool, str]:
 
     return False, "no connection found"
 
+def add_single(task:TaskItem)-> TaskItem:
+
+    result = task["predictions"][0]["result"]
+    cur_anotation:list[InnerAnnotation] = []
+    already_combined:bool = False
+    for anotation in result:
+        if test_if_single(anotation["options"]):
+            if already_combined:
+                continue
+            x,y = find_left_top_corner(result)
+            x1,y1 = find_right_bottom_corner(result)
+
+
+            anotation["value"]["x"] = x
+            anotation["value"]["y"] = y
+            anotation["value"]["width"] = x1 -x
+            anotation["value"]["height"] = y1 -y
+            already_combined = True
+
+        cur_anotation.append(anotation)
+    task["predictions"][0]["result"] = cur_anotation
+    return task
 
 async def remove_labels(task:TaskItem)-> TaskItem:
     """Removes labeled-as-removed annotations from a task.

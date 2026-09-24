@@ -171,8 +171,8 @@ async def main():
             except ValueError as e:
                 print(f"value error:{e}")
                 raise   ValueError
-                #When debugging can be deaktivated for faster new runs and shows what screenshots were made
-                delete_screenshot_folders()
+            #When debugging can be deaktivated for faster new runs and shows what screenshots were made
+            delete_screenshot_folders()
 
 
         finally:

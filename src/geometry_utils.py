@@ -5,7 +5,7 @@ from PIL import Image
 from dental_logic import convert_thooth_id_to_number, find_tooth_id_around
 
 from json_maker import get_difference, get_json_cordinates
-from task_item import InnerAnnotation
+from task_item import InnerAnnotation, TaskItem
 from webcrawler import get_refrence_image, get_theeh_picture, get_thooth_id
 
 
@@ -142,3 +142,21 @@ def enhance_contrast(img_gray: Image.Image, black_point=190, white_point=191) ->
 
     # point() builds a 256-entry lookup table and applies it to every pixel
     return img_gray.point(stretch)
+
+def find_left_top_corner(annotions:list[InnerAnnotation]) -> tuple[float,float]:
+
+    min_x:float = float('inf')
+    min_y:float = float('inf')
+
+    for annotation in annotions:
+        min_x = min(min_x, annotation["value"]["x"])
+        min_y = min(min_y, annotation["value"]["y"])
+    return min_x, min_y
+
+def find_right_bottom_corner(annotions:list[InnerAnnotation]) -> tuple[float,float]:
+    max_x:float = 0
+    max_y:float = 0
+    for annotation in annotions:
+        max_x = max(max_x, annotation["value"]["x"] + annotation["value"]["width"])
+        max_y = max(max_y, annotation["value"]["y"] + annotation["value"]["height"])
+    return max_x, max_y
