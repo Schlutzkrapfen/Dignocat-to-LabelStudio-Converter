@@ -17,6 +17,19 @@ def test_if_local_ai(options:str) -> bool:
     parts = options.split(",")
     return any(part[:8] == "local_ai" for part in parts)
 
+def test_if_single(options:str) -> bool:
+    """
+    Checks whether an annotation has the option single.
+
+    Args:
+        options (str): Comma-separated list of option flags.
+
+    Returns:
+        bool: True if the annotation has the option single,
+             False otherwise.
+    """
+    parts = options.split(",")
+    return any(part == "single" for part in parts)
 
 def test_if_connections(options:str) -> bool:
     """Checks whether an annotation has the option connections.
