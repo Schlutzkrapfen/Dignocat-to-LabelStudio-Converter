@@ -367,14 +367,15 @@ async def deactivated_show_buttons() :
             await button.click()
 
 
-async def get_patient_amount()->int:
+async def get_patient_amount(tries_unitl_retry: int = 3) -> int:
     """Gets the total patient count from Diagnocat.
 
        Tries to read the count directly from the active filter badge first.
        If that element isn't found (or raises a Playwright `Error`), falls
        back to scrolling the patient table until no new rows load for
        `max_stable_checks` consecutive polls, then returns the row count.
-
+       Args:
+           tries_unitl_retry (int): The number of times to retry before finding the amount with scrolling.
 
        Returns:
            int: The total number of patients.
@@ -392,8 +393,14 @@ async def get_patient_amount()->int:
             amount_text = (await amount_el.inner_text()).strip()
             amount = int(amount_text)
             print(f"Active filter amount: {amount}")
-            if amount == 0:
-                raise LookupError("amount of 0")
+            if amount == 0 :
+                if tries_unitl_retry > 0:
+                    raise LookupError("amount of 0")
+                tries_unitl_retry -= 1
+                await page.wait_for_timeout(500)
+                return await get_patient_amount(tries_unitl_retry)
+
+
             return(amount)
         else:
             amount = None
