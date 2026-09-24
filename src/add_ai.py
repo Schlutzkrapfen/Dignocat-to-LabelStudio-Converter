@@ -54,11 +54,12 @@ def add_local_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]]):
         Returns:
             The updated task item.
         """
+    inner:list[InnerAnnotation] = []
+    ai_path:Path |None = None
+    label_category:str = ""
+    label_name:str = ""
     for list in labels.values():
 
-        ai_path:Path |None = None
-        label_category:str = ""
-        label_name:str = ""
 
 
         for key,value in list[0].items():
@@ -71,11 +72,12 @@ def add_local_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]]):
 
 
 
-            if ai_path is not None:
-                inner = ai_make_predtioction(ai_path,task,label_category,label_name)
-                task = add_annotations_to_task(task,inner)
-
+    if ai_path is not None:
+        inner = ai_make_predtioction(ai_path,task,label_category,label_name)
         ai_path = None
+    task = add_annotations_to_task(task,inner)
+
+
     return task
 
 
@@ -105,7 +107,7 @@ def ai_make_predtioction(ai_path: Path, task: TaskItem, label_cotegory: str, nam
 
     img_h, img_w = img.shape[:2]
 
-    results = model.predict(source=image_path, conf=0.05, iou=0.5)
+    results = model.predict(source=image_path, conf=0.005, iou=0.5)
 
     boxes = results[0].boxes
     if not boxes or len(boxes) == 0:
