@@ -151,11 +151,9 @@ async def main():
             await login(page)
             page_amount = await get_patient_amount()
             print(f"You have {page_amount} patience")
-
-
             for i in parse_id_range(page_amount):
                 task.extend(await process_page_task(i, page_amount, context, output_dir, label_Data))
-
+        finally:
             try:
                 task_dic = await check_task_options(task)
                 for key,value in task_dic.items():
@@ -167,15 +165,12 @@ async def main():
                     dump_json(task)
             except (OSError, RecursionError) as e:
                 print(f"complete failure:{e}")
-                raise OSError
+                raise
             except ValueError as e:
                 print(f"value error:{e}")
-                raise   ValueError
-            #When debugging can be deaktivated for faster new runs and shows what screenshots were made
+                raise
+                   #When debugging can be deaktivated for faster new runs and shows what screenshots were made
             delete_screenshot_folders()
-
-
-        finally:
             print("Finished")
 
 if __name__ == "__main__":
