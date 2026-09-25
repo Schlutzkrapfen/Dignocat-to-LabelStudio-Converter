@@ -126,6 +126,16 @@ def check_if_connected(img: Image.Image) -> tuple[bool, str]:
     return False, "no connection found"
 
 def add_single(task:TaskItem)-> TaskItem:
+    """changes the task by combining all labels with the option "single"
+    and changes the size of the Task to the left top corner of all labels
+    and the right bottom corner of all labels.
+
+    Args:
+        task (TaskItem): The task to update.
+
+    Returns:
+        TaskItem: The updated task.
+    """
 
     result = task["predictions"][0]["result"]
     cur_anotation:list[InnerAnnotation] = []

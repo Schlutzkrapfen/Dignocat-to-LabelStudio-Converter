@@ -128,6 +128,7 @@ async def main():
 
         Raises:
             OSError: If a patient's page can't be found/loaded.
+            RecursionError: If the maximum number of retries is exceeded.
             ValueError: If a patient's page is out of bounds.
         """
     output_dir = Path("output")

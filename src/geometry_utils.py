@@ -5,7 +5,7 @@ from PIL import Image
 from dental_logic import convert_thooth_id_to_number, find_tooth_id_around
 
 from json_maker import get_difference, get_json_cordinates
-from task_item import InnerAnnotation, TaskItem
+from task_item import InnerAnnotation
 from webcrawler import get_refrence_image, get_theeh_picture, get_thooth_id
 
 
@@ -144,6 +144,15 @@ def enhance_contrast(img_gray: Image.Image, black_point=190, white_point=191) ->
     return img_gray.point(stretch)
 
 def find_left_top_corner(annotions:list[InnerAnnotation]) -> tuple[float,float]:
+    """Finds the top-left corner of the bounding box enclosing all annotations.
+    
+        Args:
+            annotions: List of annotations, each with a "value" dict
+                containing "x" and "y".
+    
+        Returns:
+            A tuple (min_x, min_y) for the top-left corner.
+        """
 
     min_x:float = float('inf')
     min_y:float = float('inf')
@@ -154,6 +163,15 @@ def find_left_top_corner(annotions:list[InnerAnnotation]) -> tuple[float,float]:
     return min_x, min_y
 
 def find_right_bottom_corner(annotions:list[InnerAnnotation]) -> tuple[float,float]:
+    """Finds the bottom-right corner of the bounding box enclosing all annotations.
+    
+        Args:
+            annotions: List of annotations, each with a "value" dict
+                containing "x", "y", "width", and "height".
+    
+        Returns:
+            A tuple (max_x, max_y) for the bottom-right corner.
+        """
     max_x:float = 0
     max_y:float = 0
     for annotation in annotions:
