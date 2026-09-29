@@ -318,14 +318,7 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
             print(e)
             continue
         try:
-            rle = None
-            if test_if_brush(options[i]):
-                mask_img = Image.open(difference_path).convert("L")
-                w, h = mask_img.size
-                mask = ((np.array(mask_img) > 127) * 255).astype(np.uint8)  # white = 255
-                # mask = 255 - mask   # uncomment if your colors are the other way round
 
-                rle = brush.mask2rle(mask)
             x, y, w, h = await get_json_cordinates(difference_path)
         except ValueError as e:
             tries_until_new_refrence_picture -= 1
@@ -337,6 +330,14 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
             continue
 
         for k, _ in enumerate(labels):
+            rle = None
+            if test_if_brush(options[i]):
+                mask_img = Image.open(difference_path).convert("L")
+                w, h = mask_img.size
+                mask = ((np.array(mask_img) > 127) * 255).astype(np.uint8)  # white = 255
+                # mask = 255 - mask   # uncomment if your colors are the other way round
+
+                rle = brush.mask2rle(mask)
             inner_task.append( inner_json(
                 labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k],options[k],thooth_id, rle
             ))
