@@ -69,8 +69,6 @@ def test_if_height(options:str):
     parts = options.split(",")
     return any(part == "height" for part in parts)
 
-
-
 def test_if_no_overlapp(options:str):
     """Checks whether an annotation has the option neighbors_connect
 
@@ -97,6 +95,7 @@ def test_if_ownjson(options:str):
         """
     parts = options.split(",")
     return any(part == "own_json" for part in parts)
+
 def test_if_outward(options:str,thooth_id:str)->bool:
     """Checks whether an annotation should be removed as an outward duplicate.
 
@@ -119,6 +118,7 @@ def test_if_outward(options:str,thooth_id:str)->bool:
         if part == "outward" and not is_furthers_out(theet_id=thooth_id):
             return True
     return False
+
 def check_if_hole(options:str)->bool:
         """Checks whether an annotation has the option hole
 
@@ -131,6 +131,7 @@ def check_if_hole(options:str)->bool:
             """
         parts = options.split(",")
         return any(part == "hole" for part in parts)
+
 def test_if_needs_combine(options:str)->bool:
     """Checks whether an annotation is flagged for combination.
 
@@ -142,6 +143,7 @@ def test_if_needs_combine(options:str)->bool:
         """
     parts = options.split(",")
     return any(part == "combine" for part in parts)
+
 def test_if_inward(options:str,thooth_id:str)->bool:
     """Checks whether an annotation should be removed as an inward duplicate.
 
@@ -164,6 +166,7 @@ def test_if_inward(options:str,thooth_id:str)->bool:
         if part == "inward"and is_furthers_out(theet_id=thooth_id):
             return True
     return False
+
 def is_furthers_out(theet_id:str)->bool:
     """Checks whether a tooth is the furthest-out one in its position.
 

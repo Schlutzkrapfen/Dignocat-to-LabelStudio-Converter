@@ -85,7 +85,6 @@ def needs_annotation(annotation: InnerAnnotation, teeth_ids: list[str]) -> tuple
         Returns:
             Tuple of (left_is_already_annotated, right_is_already_annotated).
         """
-
     left_is_already_annotated = False
     right_is_already_annotated = False
     for tooth_id in teeth_ids:
@@ -233,8 +232,6 @@ def add_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]],image:Image.Image)
             list[TaskItem]: The same tasks, with AI-eligible annotations
             updated in place.
     """
-
-
     result = task["predictions"][0]["result"]
     cur_anotation:list[InnerAnnotation] = []
     for anotation in result:
