@@ -7,10 +7,11 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageChops
-from check_options import check_if_hole
+from check_options import check_if_hole, test_if_prush
 from controll import find_duplicates_of
 from task_item import InnerAnnotation,  Prediction, TaskItem, Value
 import shutil
+from label_studio_converter import brush
 
 from helper_functions import get_info, strip_keys, to_percent,get_image_size,to_confidence
 from typing import cast
@@ -170,7 +171,8 @@ def inner_json(
     sub_index:int,
     prozent:str,
     label_catorgie:str,
-    option:str,thoot_id:str
+    option:str,thoot_id:str,
+    rle:list | None,
 )->InnerAnnotation:
     """Creates an individual annotation object for a labeled bounding box.
 
@@ -303,12 +305,20 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
         print(f"Saved {paths}")
 
         try:
-
             difference_path = await get_difference(refrence_image_path, paths)
+
         except (FileNotFoundError,OSError)as e:
             print(e)
             continue
         try:
+            rle = None
+            if test_if_prush(options[i]):
+                mask_img = Image.open(difference_path).convert("L")
+                w, h = mask_img.size
+                mask = ((np.array(mask_img) > 127) * 255).astype(np.uint8)  # white = 255
+                # mask = 255 - mask   # uncomment if your colors are the other way round
+
+                rle = brush.mask2rle(mask)
             x, y, w, h = await get_json_cordinates(difference_path)
         except ValueError as e:
             tries_until_new_refrence_picture -= 1
@@ -321,7 +331,7 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
 
         for k, _ in enumerate(labels):
             inner_task.append( inner_json(
-                labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k],options[k],thooth_id
+                labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k],options[k],thooth_id, rle
             ))
             id_addition +=1
         if refrence_image_path == Path("."):
@@ -365,8 +375,10 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
 
             user_id = patient_id
             id = picture_id + thooth_leng
+            rle = None
             try:
                 difference_path = await get_difference(refrence_image_path, paths)
+
                 x, y, w, h = await get_json_cordinates(difference_path)
             except (ValueError,FileNotFoundError,OSError) as e :
                 print(f"Error: {e}")
@@ -375,6 +387,12 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
             for i,_ in enumerate(label):
                 if check_if_hole(options[i]):
                     hole = True
+                if test_if_prush(options[i]):
+                    mask_img = Image.open(difference_path).convert("L")
+                    w, h = mask_img.size
+                    mask = ((np.array(mask_img) > 127) * 255).astype(np.uint8)  # white = 255
+                    # mask = 255 - mask   # uncomment if your colors are the other way round
+                    rle = brush.mask2rle(mask)
             if w == 0 and h == 0 or hole:
                 if not hole:
                     logger.warning(
@@ -394,7 +412,7 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
             if label_categorie is None:
                 raise ValueError("label Category doesen't exist")
             for i,_ in enumerate(label):
-                task.append(inner_json(label[i], x, y, w, h, id+current_id, prozent, label_categorie[i],options[i],sub_id))
+                task.append(inner_json(label[i], x, y, w, h, id+current_id, prozent, label_categorie[i],options[i],sub_id, rle))
                 id +=1
         return outer_json(user_id, str(id), task)
 

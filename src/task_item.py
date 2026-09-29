@@ -1,6 +1,11 @@
 from typing import TypedDict
 
 
+class BrushValue(TypedDict):
+    brushlabels: list[str]
+    format: str
+    rle: str
+
 class Value(TypedDict):
     rotation: int
     rectanglelabels:  list[str]
@@ -13,7 +18,7 @@ class InnerAnnotation(TypedDict):
         to_name:str
         type:str
         id: str
-        value: Value
+        value: Value | BrushValue
         score: float
         options: str
         thoot_id: str
