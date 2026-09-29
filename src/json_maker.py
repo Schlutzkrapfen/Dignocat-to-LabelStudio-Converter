@@ -193,12 +193,15 @@ def inner_json(
                 ready for Label Studio.
         """
     task:InnerAnnotation
+    rectangles:str = ""
     if rle is not None:
         values:Value | BrushValue = {
            "brushlabels" : [label],
            "format": "rle",
            "rle": rle
         }
+        rectangles = "brushlabels"
+
     else:
         values: Value | BrushValue = {
             "rotation": 0,
@@ -208,11 +211,12 @@ def inner_json(
             "width": w,
             "height": h,
         }
+        rectangles = "rectanglelabels"
     task =  (
         {
             "from_name": str(label_catorgie),
             "to_name": "image",
-            "type": "rectanglelabels",
+            "type": rectangles,
             "id": "ann" + str(sub_index),
             "value": values,
             "score": to_confidence(prozent),
@@ -331,7 +335,7 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
 
         for k, _ in enumerate(labels):
             rle = None
-            if test_if_brush(options[i]):
+            if test_if_brush(options[k]):
                 mask_img = Image.open(difference_path).convert("L")
                 w, h = mask_img.size
                 mask = ((np.array(mask_img) > 127) * 255).astype(np.uint8)  # white = 255

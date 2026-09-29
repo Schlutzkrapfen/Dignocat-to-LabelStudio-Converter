@@ -34,6 +34,7 @@ def split_labels(task: TaskItem , image:Image.Image,new_width:float = 1) -> Task
 
     for annotation in result:
         if not is_rect(annotation["value"]):
+            cur_annotations.append(annotation)
             continue
         already_split = annotation["value"]["width"] == new_width or annotation["id"].endswith(("_left", "_right"))
         if not test_if_connections(annotation["options"]) or already_split:
@@ -148,6 +149,8 @@ def add_single(task:TaskItem)-> TaskItem:
     already_combined:bool = False
     for anotation in result:
         if not is_rect(anotation["value"]):
+            cur_anotation.append(anotation)
+
             continue
         if test_if_single(anotation["options"]):
             if already_combined:
@@ -212,6 +215,7 @@ def combine_labels(task:TaskItem)-> TaskItem:
     combine_annotaion: dict[str,list[ InnerAnnotation]] = {}
     for anotation in result:
         if not is_rect(anotation["value"]):
+            cur_anotation.append(anotation)
             continue
         if test_if_needs_combine(anotation["options"]):
 
@@ -248,6 +252,7 @@ def add_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]],image:Image.Image)
     for anotation in result:
         if test_if_ai(anotation["options"]):
             if not is_rect(anotation["value"]):
+                cur_anotation.append(anotation)
                 continue
             value = anotation["value"]
             cur_amount,cur_name = ai_predict(get_which_ai_modell_to_use(anotation["options"]),crop_with_padding(image,value["x"], value["y"], value["width"], value["height"]))
@@ -275,6 +280,7 @@ def add_heigt(task: TaskItem) -> TaskItem:
     heigest_height = find_heighest_height(task["predictions"][0]["result"])
     for anotation in task["predictions"][0]["result"]:
         if not is_rect(anotation["value"]):
+            cur_anotation.append(anotation)
             continue
         if  test_if_height(anotation["options"]):
             try:

@@ -21,7 +21,7 @@ Fehlt 	Gap	Restauration	combine,inward,neighbors_connect
 Brückenglied	Blocking	Restauration	connections
 Brückenglied	Missing/lost Odontom	Odontoms	height:2
 Implantat	Implant	Restauration	
-Zahn	Teeth	Abrasion	own_json
+Zahn	Teeth	Abrasion	own_json,brush
 Brückenglied	Bridge	Restauration	
 Künstliche Zahnkrone	Blocking	Restauration	connections
 Fehlt	Unharmonic Line to Articulated line inclination	Spee curve	inward,single
