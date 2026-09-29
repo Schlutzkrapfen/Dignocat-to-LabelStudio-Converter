@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image, ImageChops
 from check_options import check_if_hole, test_if_prush
 from controll import find_duplicates_of
-from task_item import InnerAnnotation,  Prediction, TaskItem, Value
+from task_item import BrushValue, InnerAnnotation,  Prediction, TaskItem, Value
 import shutil
 from label_studio_converter import brush
 
@@ -193,14 +193,21 @@ def inner_json(
                 ready for Label Studio.
         """
     task:InnerAnnotation
-    values:Value = {
-        "rotation": 0,
-        "rectanglelabels": [label],
-        "x": x,
-        "y": y,
-        "width": w,
-        "height": h,
-    }
+    if rle is not None:
+        values:Value | BrushValue = {
+           "brushlabels" : [label],
+           "format": "rle",
+           "rle": rle
+        }
+    else:
+        values: Value | BrushValue = {
+            "rotation": 0,
+            "rectanglelabels": [label],
+            "x": x,
+            "y": y,
+            "width": w,
+            "height": h,
+        }
     task =  (
         {
             "from_name": str(label_catorgie),

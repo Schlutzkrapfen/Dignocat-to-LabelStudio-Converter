@@ -1,10 +1,12 @@
 from typing import TypedDict
 
 
+
 class BrushValue(TypedDict):
     brushlabels: list[str]
     format: str
-    rle: str
+    rle: list[float]
+
 
 class Value(TypedDict):
     rotation: int
