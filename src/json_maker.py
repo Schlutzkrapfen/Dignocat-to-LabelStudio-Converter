@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageChops
-from check_options import check_if_hole, test_if_prush
+from check_options import check_if_hole, test_if_brush
 from controll import find_duplicates_of
 from task_item import BrushValue, InnerAnnotation,  Prediction, TaskItem, Value
 import shutil
@@ -319,7 +319,7 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
             continue
         try:
             rle = None
-            if test_if_prush(options[i]):
+            if test_if_brush(options[i]):
                 mask_img = Image.open(difference_path).convert("L")
                 w, h = mask_img.size
                 mask = ((np.array(mask_img) > 127) * 255).astype(np.uint8)  # white = 255
@@ -394,7 +394,7 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
             for i,_ in enumerate(label):
                 if check_if_hole(options[i]):
                     hole = True
-                if test_if_prush(options[i]):
+                if test_if_brush(options[i]):
                     mask_img = Image.open(difference_path).convert("L")
                     w, h = mask_img.size
                     mask = ((np.array(mask_img) > 127) * 255).astype(np.uint8)  # white = 255

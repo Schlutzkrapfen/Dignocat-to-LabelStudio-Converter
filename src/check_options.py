@@ -1,18 +1,18 @@
 
 from pathlib import Path
 
-def test_if_prush(options:str) -> bool:
+def test_if_brush(options:str) -> bool:
     """
-    Checks whether an annotation has the option prush.
+    Checks whether an annotation has the option brush.
         Args:
             options (str): Comma-separated list of option flags.
 
         Returns:
-            bool: True if the annotation has the option prush,
+            bool: True if the annotation has the option brush,
                  False otherwise.
     """
     parts = options.split(",")
-    return any(part == "prush" for part in parts)
+    return any(part == "brush" for part in parts)
 
 def test_if_local_ai(options:str) -> bool:
     """
