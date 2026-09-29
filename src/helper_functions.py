@@ -5,7 +5,7 @@ from typing import TypeGuard
 
 from task_item import BrushValue, InnerAnnotation, TaskItem, Value
 def is_rect(value:Value|BrushValue)->TypeGuard[Value]:
-    return "brushlabels" in value
+    return "rectanglelabels" in value
 def is_brush(value:Value|BrushValue)->TypeGuard[BrushValue]:
     return "brushlabels" in value
 
