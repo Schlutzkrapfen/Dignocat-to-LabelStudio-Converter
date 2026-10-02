@@ -20,7 +20,7 @@ def is_brush(value:Value|BrushValue)->TypeGuard[BrushValue]:
     Returns:
         bool: True if the value is a BrushValue, False otherwise.
     """
-    return "labels" in value
+    return "brushlabels" in value
 
 
 def find_heighest_height(annotations: list[InnerAnnotation]) -> float:

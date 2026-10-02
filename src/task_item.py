@@ -3,7 +3,7 @@ from typing import TypedDict
 
 
 class BrushValue(TypedDict):
-    labels: list[str]
+    brushlabels: list[str]
     format: str
     rle: list[int]
 

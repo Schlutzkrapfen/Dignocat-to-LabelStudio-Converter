@@ -173,7 +173,6 @@ def inner_json(
     label_catorgie:str,
     option:str,thoot_id:str,
     rle:list | None,
-    second_brush:bool = False
 )->InnerAnnotation:
     """Creates an individual annotation object for a labeled bounding box.
 
@@ -196,9 +195,9 @@ def inner_json(
         """
     task:InnerAnnotation
     type:str = ""
-    if rle is not None and second_brush is False:
+    if rle is not None :
         values:Value | BrushValue = {
-           "labels" : [label],
+           "brushlabels" : [label],
            "format": "rle",
            "rle": rle
         }
@@ -429,8 +428,6 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
                 raise ValueError("label Category doesen't exist")
             for i,_ in enumerate(label):
                 task.append(inner_json(label[i], x, y, w, h, id+current_id, prozent, label_categorie[i],options[i],sub_id, rle))
-                if rle is not None:
-                    task.append(inner_json(label[i], x, y, w, h, id+current_id, prozent, label_categorie[i],options[i],sub_id, rle,True))
                 id +=1
         return outer_json(user_id, str(id), task)
 
