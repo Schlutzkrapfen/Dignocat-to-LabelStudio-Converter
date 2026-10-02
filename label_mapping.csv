@@ -1,29 +1,29 @@
 diagnocat_label	code	label_category	option
 Endodontisch behandelter Zahn	Zement-Rootfilling	"Zement/Guttapercha
-"	
+"
 Füllung	Metall-Filling	"metal
 "	ai:filling.pth
 Künstliche Zahnkrone	Metal-Crown	"metal
 "	ai:crown.pth
 Zahn	Horizontal Bone loss (to enamel-dentin-border)	Peridontology	hole
 Periapikale Radioluzenz	PPC/Ostitis/Zyst	"PPC/Ostitis/Zyst
-"	
+"
 Periimplantitis	PPC/Ostitis/Zyst	"PPC/Ostitis/Zyst
-"	
-Sekundäre Karies	Caries	pathology	
-Zeichen von Karies	Caries	pathology	
+"
+Sekundäre Karies	Caries	pathology
+Zeichen von Karies	Caries	pathology
 Implantat	Metal-Implant	"metal
 "	ai:implant.pth
 Brückenglied	Metal-Bridge	"metal
-"	
-Fehlt	Missing/lost Odontom	Odontoms	
+"
+Fehlt	Missing/lost Odontom	Odontoms
 Fehlt 	Gap	Restauration	combine,inward,neighbors_connect
 Brückenglied	Blocking	Restauration	connections
 Brückenglied	Missing/lost Odontom	Odontoms	height:2
-Implantat	Implant	Restauration	
-Zahn	Teeth	Abrasion	own_json,brush
-Brückenglied	Bridge	Restauration	
+Implantat	Implant	Restauration
+Zahn	Teeth	abrasion-labels	own_json,brush
+Brückenglied	Bridge	Restauration
 Künstliche Zahnkrone	Blocking	Restauration	connections
 Fehlt	Unharmonic Line to Articulated line inclination	Spee curve	inward,single
-Implantat	Horizontal Bone loss (to enamel-dentin-border)	Peridontology	
-Zahn	Teeth	Abrasion	brush
+Implantat	Horizontal Bone loss (to enamel-dentin-border)	Peridontology
+Zahn	Teeth	abrasion-labels	brush

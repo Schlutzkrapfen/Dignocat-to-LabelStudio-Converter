@@ -5,9 +5,22 @@ from typing import TypeGuard
 
 from task_item import BrushValue, InnerAnnotation, TaskItem, Value
 def is_rect(value:Value|BrushValue)->TypeGuard[Value]:
+    """Checks if the value is a rectangle.
+    Args:
+        value (Value | BrushValue): The value to check.
+    Returns:
+        bool: True if the value is a rectangle, False otherwise.
+
+    """
     return "rectanglelabels" in value
 def is_brush(value:Value|BrushValue)->TypeGuard[BrushValue]:
-    return "brushlabels" in value
+    """Checks if the value is a BrushValue.
+    Args:
+        value (Value | BrushValue): The value to check.
+    Returns:
+        bool: True if the value is a BrushValue, False otherwise.
+    """
+    return "labels" in value
 
 
 def find_heighest_height(annotations: list[InnerAnnotation]) -> float:

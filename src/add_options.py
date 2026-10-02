@@ -90,7 +90,7 @@ def split_tasks(tasks: list[TaskItem]) -> dict[str, list[TaskItem]]:
                 if  is_rect(anotation["value"]):
                     key = anotation["value"]["rectanglelabels"][0]
                 elif is_brush(anotation["value"]):
-                    key = anotation["value"]["brushlabels"][0]
+                    key = anotation["value"]["labels"][0]
                 else:
                     key = "main"
             else:

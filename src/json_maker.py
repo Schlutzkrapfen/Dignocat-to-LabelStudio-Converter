@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image, ImageChops
 from check_options import check_if_hole, test_if_brush
 from controll import find_duplicates_of
-from task_item import BrushValue, InnerAnnotation,  Prediction, TaskItem, Value
+from task_item import BrushValue,  InnerAnnotation,  Prediction, TaskItem, Value
 import shutil
 from label_studio_converter import brush
 
@@ -173,6 +173,7 @@ def inner_json(
     label_catorgie:str,
     option:str,thoot_id:str,
     rle:list | None,
+    second_brush:bool = False
 )->InnerAnnotation:
     """Creates an individual annotation object for a labeled bounding box.
 
@@ -186,21 +187,22 @@ def inner_json(
             prozent: The confidence score of the prediction as a percentage string (e.g., "96%").
             label_catorgie: The Category identifier
             option: Option which need to saved can be added
-            thoot_id: needed for options
+            thoot_id: needed for option
+            SSSS:s
 
         Returns:
             InnerAnnotation: A dictionary representing a single formatted annotation
                 ready for Label Studio.
         """
     task:InnerAnnotation
-    rectangles:str = ""
-    if rle is not None:
+    type:str = ""
+    if rle is not None and second_brush is False:
         values:Value | BrushValue = {
-           "brushlabels" : [label],
+           "labels" : [label],
            "format": "rle",
            "rle": rle
         }
-        rectangles = "brushlabels"
+        type = "brushlabels"
 
     else:
         values: Value | BrushValue = {
@@ -211,12 +213,13 @@ def inner_json(
             "width": w,
             "height": h,
         }
-        rectangles = "rectanglelabels"
+        type = "rectanglelabels"
+
     task =  (
         {
-            "from_name": str(label_catorgie),
+            "from_name":  str(label_catorgie),
             "to_name": "image",
-            "type": rectangles,
+            "type": type,
             "id": "ann" + str(sub_index),
             "value": values,
             "score": to_confidence(prozent),
@@ -341,7 +344,7 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
                 mask = ((np.array(mask_img) > 127) * 255).astype(np.uint8)  # white = 255
                 # mask = 255 - mask   # uncomment if your colors are the other way round
 
-                rle = brush.mask2rle(mask)
+                rle = [0,1,2,3,4,5]
             inner_task.append( inner_json(
                 labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k],options[k],thooth_id, rle
             ))
@@ -350,6 +353,7 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
             print("Refrence Image is none")
             continue
     images_paths = await get_user_screenshoots( user_id)
+
 
     return( await make_json(
                     images_paths, label_Data, refrence_image_path, inner_task,len(not_conv_labels)+id_addition
@@ -404,7 +408,7 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
                     w, h = mask_img.size
                     mask = ((np.array(mask_img) > 127) * 255).astype(np.uint8)  # white = 255
                     # mask = 255 - mask   # uncomment if your colors are the other way round
-                    rle = brush.mask2rle(mask)
+                    rle = [0,1,2,3,4,5]
             if w == 0 and h == 0 or hole:
                 if not hole:
                     logger.warning(
@@ -425,6 +429,8 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
                 raise ValueError("label Category doesen't exist")
             for i,_ in enumerate(label):
                 task.append(inner_json(label[i], x, y, w, h, id+current_id, prozent, label_categorie[i],options[i],sub_id, rle))
+                if rle is not None:
+                    task.append(inner_json(label[i], x, y, w, h, id+current_id, prozent, label_categorie[i],options[i],sub_id, rle,True))
                 id +=1
         return outer_json(user_id, str(id), task)
 

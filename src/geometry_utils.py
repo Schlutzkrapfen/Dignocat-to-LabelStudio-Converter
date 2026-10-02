@@ -29,6 +29,8 @@ def get_new_rectangle(item:InnerAnnotation,x,y,width,height):
         Returns:
             tuple[float, float, float, float]: The new bounding box as
                 `(x, y, width, height)`.
+        Raises:
+            ValueError: If `item` is not a rectangle.
         """
     if not is_rect(item["value"]):
         raise ValueError("item is not a rectangle")

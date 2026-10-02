@@ -3,9 +3,10 @@ from typing import TypedDict
 
 
 class BrushValue(TypedDict):
-    brushlabels: list[str]
+    labels: list[str]
     format: str
-    rle: list[float]
+    rle: list[int]
+
 
 
 class Value(TypedDict):
@@ -15,6 +16,7 @@ class Value(TypedDict):
     y: float
     width: float
     height: float
+
 class InnerAnnotation(TypedDict):
         from_name:str
         to_name:str
