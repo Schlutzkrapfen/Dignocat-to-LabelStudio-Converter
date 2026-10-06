@@ -17,6 +17,7 @@ from label_studio_converter import brush
 from helper_functions import get_info, strip_keys, to_percent,get_image_size,to_confidence
 from typing import cast
 from webcrawler import (
+    get_anatomie,
     get_refrence_image,
     get_theeh_picture,
     get_thooth_id,
@@ -308,13 +309,10 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
 
             thooth_id = await get_thooth_id( int(non_conv_label["id"]))
 
-
             paths = await get_theeh_picture( thooth_id, user_id)
         except ValueError as e :
             print(f"Warning: {e}")
             continue
-
-
 
         print(f"Saved {paths}")
 
@@ -332,7 +330,7 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
             if tries_until_new_refrence_picture == 0:
                 print("Refrence Image is wrong let's try again")
                 delete_screenshot_folders()
-                return await get_task(label_Data, user_id,delete_refrence_image= True)
+                return await get_task(label_Data, user_id,delete_refrence_image=True)
             print(f"Something went wrong with label {non_conv_label}: {e}")
             continue
 
@@ -358,6 +356,7 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
             print("Refrence Image is none")
             continue
     images_paths = await get_user_screenshoots( user_id)
+    images_paths.extend(await get_anatomie(user_id))
 
 
     return( await make_json(
@@ -399,8 +398,6 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
             rle = None
             try:
                 difference_path = await get_difference(refrence_image_path, paths)
-
-                x, y, w, h = await get_json_cordinates(difference_path)
             except (ValueError,FileNotFoundError,OSError) as e :
                 print(f"Error: {e}")
                 continue
@@ -420,22 +417,33 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
 
 
                     rle = brush.mask2rle(mask)
-
+            try:
+                if rle is None:
+                    x, y, w, h = await get_json_cordinates(difference_path)
+                else:
+                    w = 1
+                    h = 1
+                    x = 0
+                    y = 0
+            except (ValueError,FileNotFoundError,OSError) as e :
+                print(f"Error: {e}")
+                continue
             if w == 0 and h == 0 or hole:
                 if not hole:
                     logger.warning(
                         f"Something went wrong with id= {id},user_id={user_id},label={label}/{diagnocat_label},thoot_id = {sub_id}\n removed the broken Picture. "
                     )
                 os.remove(paths)
-                paths = await get_theeh_picture( sub_id, id)
+                paths = await get_theeh_picture(sub_id, id)
                 difference_path = await  get_difference(refrence_image_path, paths)
-                try:
-                    x, y, w, h = await get_json_cordinates(difference_path)
-                except ValueError:
-                    continue
-                if w == 0 and h == 0:
-                    logger.error("Failed to get the  hole thoot Picture as replacement")
-                    continue
+                if rle is None:
+                    try:
+                        x, y, w, h = await get_json_cordinates(difference_path)
+                    except ValueError:
+                        continue
+                    if w == 0 and h == 0:
+                        logger.error("Failed to get the  hole thoot Picture as replacement")
+                        continue
 
             if label_categorie is None:
                 raise ValueError("label Category doesen't exist")

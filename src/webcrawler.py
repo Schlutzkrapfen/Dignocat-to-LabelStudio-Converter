@@ -78,7 +78,6 @@ async def get_tooth_descriptions() -> list[dict[str, str]]:
         tooth_types.append({"type": parts[0], "id": parts[1]})
     return tooth_types
 
-
 async def get_theeh_picture( teeth_id: str, user_id: int) -> Path:
     """Retrieves or generates a screenshot of a specific tooth's canvas.
 
@@ -235,6 +234,37 @@ async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:
             raise ValueError("couldn't find a other duplicate")
     return user_id
 
+async def get_anatomie(user_id: int) -> list[Path]:
+    selector = "button.MaskFilterButton-module_container_EFNpE"
+    try:
+        if user_page is None:
+            raise ValueError("user_page is None")
+        await user_page.wait_for_selector(selector, state="visible")
+    except PlaywrightTimeoutError:
+        raise PlaywrightTimeoutError("waitforselector didn't work")
+
+    buttons =  user_page.locator(selector)
+    count = await buttons.count()
+    paths:list[Path] = []
+    names = []
+    for i in range(count):
+        btn = buttons.nth(i)
+        text = (await btn.inner_text()).strip()
+        names.append(text)
+        await buttons.nth(i).click()
+        canvas = await user_page.query_selector("canvas")
+        if canvas is None:
+            raise ValueError("canvas is None")
+        #TODO: MAKE BETTER FIX
+        input  = i+  110000
+
+        path :Path = Path(f"output/{user_id}_{input}_{text}_{"100%"}_{"0000"}.png")
+        await take_screenshot(canvas=canvas, path=path)
+        paths.append(path)
+        await buttons.nth(i).click()
+        print(f"Saved the picture: {path}")
+
+    return paths
 
 async def get_user_screenshoots( user_id: int) -> list[Path]:
     """Screenshots each condition button's canvas view for a user.
@@ -279,7 +309,7 @@ async def get_user_screenshoots( user_id: int) -> list[Path]:
 
         if await name.count() == 0 or await percentage.count() == 0:
             print("No name or percentage found, lets try again.")
-            return await get_user_screenshoots( user_id)
+            return await get_user_screenshoots(user_id)
 
         picture_path =Path(f"output/screenshots/{user_id}_{i}_{await name.inner_text()}_{await percentage.inner_text()}_{last_4}.png")
 
@@ -290,7 +320,7 @@ async def get_user_screenshoots( user_id: int) -> list[Path]:
 
         print(f"Saved {picture_path}")
         saved_screenshoots.append(picture_path)
-        await take_screenshot( canvas, picture_path)
+        await take_screenshot(canvas, picture_path)
 
     return saved_screenshoots
 
@@ -602,7 +632,10 @@ async def get_refrence_image(user_id:int, skip_if_exist: bool = True,)-> Path:
         if user_page is None:
             raise ValueError("user_page is None")
         await user_page.mouse.move(0, 0)
-        await deactivated_show_buttons()
+        try:
+            await deactivated_show_buttons()
+        except PlaywrightTimeoutError as e:
+            raise LookupError(f"couldn't find buttons: {e}")
         canvas = await user_page.wait_for_selector("canvas")
         if canvas is None:
             raise LookupError("Got no Canvas")

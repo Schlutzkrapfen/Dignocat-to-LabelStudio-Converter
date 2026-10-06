@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-
-
 import cv2
 import torch
 from pathlib import Path
