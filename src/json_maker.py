@@ -5,6 +5,7 @@ import logging
 
 from pathlib import Path
 
+import cv2
 import numpy as np
 from PIL import Image, ImageChops
 from check_options import check_if_hole, test_if_brush
@@ -339,11 +340,17 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
             rle = None
             if test_if_brush(options[k]):
                 mask_img = Image.open(difference_path).convert("L")
-                w, h = mask_img.size
-                mask = ((np.array(mask_img) > 127) * 255).astype(np.uint8)  # white = 255
-                # mask = 255 - mask   # uncomment if your colors are the other way round
+                mask = ((np.array(mask_img) > 20) * 255).astype(np.uint8)
 
-                rle = [0,1,2,3,4,5]
+                # match the image size (2400 x 1920)
+                IMG_W, IMG_H = 2400, 1920
+                if mask.shape != (IMG_H, IMG_W):
+                    mask = mask[:IMG_H, :IMG_W]          # if it was padded
+                    # mask = cv2.resize(mask, (IMG_W, IMG_H), interpolation=cv2.INTER_NEAREST)  # if it was scaled
+
+
+                Image.fromarray(mask).save(f"mask_{k}.png")
+                rle = brush.mask2rle(mask)
             inner_task.append( inner_json(
                 labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k],options[k],thooth_id, rle
             ))
@@ -406,8 +413,11 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
                     mask_img = Image.open(difference_path).convert("L")
                     w, h = mask_img.size
                     mask = ((np.array(mask_img) > 127) * 255).astype(np.uint8)  # white = 255
-                    # mask = 255 - mask   # uncomment if your colors are the other way round
-                    rle = [0,1,2,3,4,5]
+                    rle = brush.mask2rle(mask)
+
+                    #mask = 255 - mask   # uncomment if your colors are the other way round
+                    Image.fromarray(mask).save("mask.png")
+
             if w == 0 and h == 0 or hole:
                 if not hole:
                     logger.warning(
