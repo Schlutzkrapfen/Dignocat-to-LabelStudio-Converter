@@ -1,4 +1,3 @@
-
 import copy
 
 from PIL import Image
@@ -7,7 +6,7 @@ from add_ai import ai_predict
 from check_options import  get_which_ai_modell_to_use, test_if_ai, test_if_connections, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp,  test_if_outward, test_if_single
 from dental_logic import check_if_teeth_left, check_if_theeth_top_row, check_if_two_theeth_are_near_each_other, create_cluster, get_thooth_id_from_cluster
 from geometry_utils import crop_with_padding, enhance_contrast, find_left_top_corner, find_right_bottom_corner,  get_new_rectangle, is_overlapping
-from helper_functions import  find_heighest_height, get_user_id_from_TaskItem
+from helper_functions import  find_heighest_height, get_user_id_from_TaskItem, is_rect
 from task_item import InnerAnnotation, TaskItem, Value
 import statistics
 
@@ -33,6 +32,9 @@ def split_labels(task: TaskItem , image:Image.Image,new_width:float = 1) -> Task
     teeth_ids:list[str] =[]
 
     for annotation in result:
+        if not is_rect(annotation["value"]):
+            cur_annotations.append(annotation)
+            continue
         already_split = annotation["value"]["width"] == new_width or annotation["id"].endswith(("_left", "_right"))
         if not test_if_connections(annotation["options"]) or already_split:
             cur_annotations.append(annotation)
@@ -44,6 +46,9 @@ def split_labels(task: TaskItem , image:Image.Image,new_width:float = 1) -> Task
 
         if  not left_is_already_annotated:
             left:InnerAnnotation = copy.deepcopy(annotation)
+            if not is_rect(left["value"]):
+                continue
+
             left["value"]["width"] = new_width
             left["value"]["x"] = original_x - half_width
             left["id"] = f"{annotation['id']}_left"
@@ -56,6 +61,8 @@ def split_labels(task: TaskItem , image:Image.Image,new_width:float = 1) -> Task
 
         if not right_is_already_annotated:
             right:InnerAnnotation = copy.deepcopy(annotation)
+            if not is_rect(right["value"]):
+                continue
             right["value"]["width"] = new_width
             right["value"]["x"] = original_x - half_width + original_width
             right["id"] = f"{annotation['id']}_right"
@@ -85,7 +92,6 @@ def needs_annotation(annotation: InnerAnnotation, teeth_ids: list[str]) -> tuple
         Returns:
             Tuple of (left_is_already_annotated, right_is_already_annotated).
         """
-
     left_is_already_annotated = False
     right_is_already_annotated = False
     for tooth_id in teeth_ids:
@@ -141,6 +147,10 @@ def add_single(task:TaskItem)-> TaskItem:
     cur_anotation:list[InnerAnnotation] = []
     already_combined:bool = False
     for anotation in result:
+        if not is_rect(anotation["value"]):
+            cur_anotation.append(anotation)
+
+            continue
         if test_if_single(anotation["options"]):
             if already_combined:
                 continue
@@ -203,6 +213,9 @@ def combine_labels(task:TaskItem)-> TaskItem:
     cur_anotation:list[InnerAnnotation] = []
     combine_annotaion: dict[str,list[ InnerAnnotation]] = {}
     for anotation in result:
+        if not is_rect(anotation["value"]):
+            cur_anotation.append(anotation)
+            continue
         if test_if_needs_combine(anotation["options"]):
 
             key = anotation["value"]["rectanglelabels"]
@@ -233,12 +246,13 @@ def add_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]],image:Image.Image)
             list[TaskItem]: The same tasks, with AI-eligible annotations
             updated in place.
     """
-
-
     result = task["predictions"][0]["result"]
     cur_anotation:list[InnerAnnotation] = []
     for anotation in result:
         if test_if_ai(anotation["options"]):
+            if not is_rect(anotation["value"]):
+                cur_anotation.append(anotation)
+                continue
             value = anotation["value"]
             cur_amount,cur_name = ai_predict(get_which_ai_modell_to_use(anotation["options"]),crop_with_padding(image,value["x"], value["y"], value["width"], value["height"]))
             anotation["from_name"] = labels[cur_name][0]["label_category"]
@@ -264,6 +278,9 @@ def add_heigt(task: TaskItem) -> TaskItem:
     cur_anotation:list[InnerAnnotation] = []
     heigest_height = find_heighest_height(task["predictions"][0]["result"])
     for anotation in task["predictions"][0]["result"]:
+        if not is_rect(anotation["value"]):
+            cur_anotation.append(anotation)
+            continue
         if  test_if_height(anotation["options"]):
             try:
                 old_height = anotation["value"]["height"]
@@ -315,6 +332,9 @@ def combine_anotations(dict_combinations:dict[str, list[InnerAnnotation]])->list
 
             for item in cluster:
                 x, y, width, height = get_new_rectangle(item, x, y, width, height)
+            if not is_rect(cluster[0]["value"]):
+                continue
+
 
 
             value = Value({

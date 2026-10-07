@@ -1,6 +1,5 @@
 import csv
 import os
-
 from numpy.ma.core import empty
 
 

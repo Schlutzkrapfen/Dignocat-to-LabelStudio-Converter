@@ -1,3 +1,4 @@
+from __future__ import annotations
 from collections import defaultdict
 
 import copy
@@ -7,9 +8,9 @@ from PIL import Image
 from add_ai import add_local_ai
 from annotation_opterations import add_ai, add_heigt, add_single, combine_labels,   remove_labels, split_labels
 from check_options import test_if_ownjson
-from helper_functions import get_path_from_taskItem
+from helper_functions import get_path_from_taskItem, is_brush, is_rect
 from label_converter import load_label_mapping
-from task_item import InnerAnnotation, TaskItem
+from task_item import  InnerAnnotation, TaskItem
 
 
 async def check_task_options(tasks:list[TaskItem])->dict[str,list[TaskItem]]:
@@ -86,7 +87,12 @@ def split_tasks(tasks: list[TaskItem]) -> dict[str, list[TaskItem]]:
 
         for anotation in result:
             if test_if_ownjson(anotation["options"]):
-                key = anotation["value"]["rectanglelabels"][0]
+                if  is_rect(anotation["value"]):
+                    key = anotation["value"]["rectanglelabels"][0]
+                elif is_brush(anotation["value"]):
+                    key = anotation["value"]["brushlabels"][0]
+                else:
+                    key = "main"
             else:
                 key = "main"
             cur_anotation[key].append(anotation)

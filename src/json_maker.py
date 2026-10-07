@@ -7,14 +7,16 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageChops
-from check_options import check_if_hole
+from check_options import check_if_hole, test_if_brush
 from controll import find_duplicates_of
-from task_item import InnerAnnotation,  Prediction, TaskItem, Value
+from task_item import BrushValue,  InnerAnnotation,  Prediction, TaskItem, Value
 import shutil
+from label_studio_converter import brush
 
 from helper_functions import get_info, strip_keys, to_percent,get_image_size,to_confidence
 from typing import cast
 from webcrawler import (
+    get_anatomie,
     get_refrence_image,
     get_theeh_picture,
     get_thooth_id,
@@ -170,9 +172,13 @@ def inner_json(
     sub_index:int,
     prozent:str,
     label_catorgie:str,
-    option:str,thoot_id:str
+    option:str,thoot_id:str,
+    rle:list | None,
 )->InnerAnnotation:
-    """Creates an individual annotation object for a labeled bounding box.
+    """Creates an individual annotation object for a labeled region.
+
+        Builds a brush (RLE mask) annotation if `rle` is given, otherwise a
+        rectangle annotation.
 
         Args:
             label: The specific label text (e.g., "Füllung").
@@ -180,30 +186,44 @@ def inner_json(
             y: The vertical starting coordinate of the bounding box.
             w: The width of the bounding box.
             h: The height of the bounding box.
-            sub_index: A unique identifier index used to generate the annotation ID.
-            prozent: The confidence score of the prediction as a percentage string (e.g., "96%").
-            label_catorgie: The Category identifier
-            option: Option which need to saved can be added
-            thoot_id: needed for options
+            sub_index: A unique index used to generate the annotation ID.
+            prozent: The prediction confidence as a percentage string (e.g., "96%").
+            label_catorgie: The category identifier, used as the annotation's `from_name`.
+            option: Additional option value to store with the annotation.
+            thoot_id: Identifier required for the option.
+            rle: Run-length-encoded mask. If not None, a brush annotation is
+                created and the box coordinates are ignored.
 
         Returns:
             InnerAnnotation: A dictionary representing a single formatted annotation
                 ready for Label Studio.
         """
     task:InnerAnnotation
-    values:Value = {
-        "rotation": 0,
-        "rectanglelabels": [label],
-        "x": x,
-        "y": y,
-        "width": w,
-        "height": h,
-    }
+    type:str = ""
+    if rle is not None :
+        values:Value | BrushValue = {
+           "brushlabels" : [label],
+           "format": "rle",
+           "rle": rle
+        }
+        type = "brushlabels"
+
+    else:
+        values: Value | BrushValue = {
+            "rotation": 0,
+            "rectanglelabels": [label],
+            "x": x,
+            "y": y,
+            "width": w,
+            "height": h,
+        }
+        type = "rectanglelabels"
+
     task =  (
         {
-            "from_name": str(label_catorgie),
+            "from_name":  str(label_catorgie),
             "to_name": "image",
-            "type": "rectanglelabels",
+            "type": type,
             "id": "ann" + str(sub_index),
             "value": values,
             "score": to_confidence(prozent),
@@ -292,42 +312,55 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,tries_
 
             thooth_id = await get_thooth_id( int(non_conv_label["id"]))
 
-
             paths = await get_theeh_picture( thooth_id, user_id)
         except ValueError as e :
             print(f"Warning: {e}")
             continue
 
-
-
         print(f"Saved {paths}")
 
         try:
-
             difference_path = await get_difference(refrence_image_path, paths)
+
         except (FileNotFoundError,OSError)as e:
             print(e)
             continue
         try:
+
             x, y, w, h = await get_json_cordinates(difference_path)
         except ValueError as e:
             tries_until_new_refrence_picture -= 1
             if tries_until_new_refrence_picture == 0:
                 print("Refrence Image is wrong let's try again")
                 delete_screenshot_folders()
-                return await get_task(label_Data, user_id,delete_refrence_image= True)
+                return await get_task(label_Data, user_id,delete_refrence_image=True)
             print(f"Something went wrong with label {non_conv_label}: {e}")
             continue
 
         for k, _ in enumerate(labels):
+            rle = None
+            if test_if_brush(options[k]):
+                mask_img = Image.open(difference_path).convert("L")
+                mask = ((np.array(mask_img) > 20) * 255).astype(np.uint8)
+
+                # match the image size (2400 x 1920)
+                IMG_W, IMG_H = 2400, 1920
+                if mask.shape != (IMG_H, IMG_W):
+                    mask = mask[:IMG_H, :IMG_W]          # if it was padded
+                    # mask = cv2.resize(mask, (IMG_W, IMG_H), interpolation=cv2.INTER_NEAREST)  # if it was scaled
+
+
+                rle = brush.mask2rle(mask)
             inner_task.append( inner_json(
-                labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k],options[k],thooth_id
+                labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k],options[k],thooth_id, rle
             ))
             id_addition +=1
         if refrence_image_path == Path("."):
             print("Refrence Image is none")
             continue
     images_paths = await get_user_screenshoots( user_id)
+    images_paths.extend(await get_anatomie(user_id))
+
 
     return( await make_json(
                     images_paths, label_Data, refrence_image_path, inner_task,len(not_conv_labels)+id_addition
@@ -365,9 +398,9 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
 
             user_id = patient_id
             id = picture_id + thooth_leng
+            rle = None
             try:
                 difference_path = await get_difference(refrence_image_path, paths)
-                x, y, w, h = await get_json_cordinates(difference_path)
             except (ValueError,FileNotFoundError,OSError) as e :
                 print(f"Error: {e}")
                 continue
@@ -375,26 +408,50 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
             for i,_ in enumerate(label):
                 if check_if_hole(options[i]):
                     hole = True
+                if test_if_brush(options[i]):
+                    mask_img = Image.open(difference_path).convert("L")
+                    mask = ((np.array(mask_img) > 20) * 255).astype(np.uint8)
+
+                    # match the image size (2400 x 1920)
+                    IMG_W, IMG_H = 2400, 1920
+                    if mask.shape != (IMG_H, IMG_W):
+                        mask = mask[:IMG_H, :IMG_W]          # if it was padded
+                        # mask = cv2.resize(mask, (IMG_W, IMG_H), interpolation=cv2.INTER_NEAREST)  # if it was scaled
+
+
+                    rle = brush.mask2rle(mask)
+            try:
+                if rle is None:
+                    x, y, w, h = await get_json_cordinates(difference_path)
+                else:
+                    w = 1
+                    h = 1
+                    x = 0
+                    y = 0
+            except (ValueError,FileNotFoundError,OSError) as e :
+                print(f"Error: {e}")
+                continue
             if w == 0 and h == 0 or hole:
                 if not hole:
                     logger.warning(
                         f"Something went wrong with id= {id},user_id={user_id},label={label}/{diagnocat_label},thoot_id = {sub_id}\n removed the broken Picture. "
                     )
                 os.remove(paths)
-                paths = await get_theeh_picture( sub_id, id)
+                paths = await get_theeh_picture(sub_id, id)
                 difference_path = await  get_difference(refrence_image_path, paths)
-                try:
-                    x, y, w, h = await get_json_cordinates(difference_path)
-                except ValueError:
-                    continue
-                if w == 0 and h == 0:
-                    logger.error("Failed to get the  hole thoot Picture as replacement")
-                    continue
+                if rle is None:
+                    try:
+                        x, y, w, h = await get_json_cordinates(difference_path)
+                    except ValueError:
+                        continue
+                    if w == 0 and h == 0:
+                        logger.error("Failed to get the  hole thoot Picture as replacement")
+                        continue
 
             if label_categorie is None:
                 raise ValueError("label Category doesen't exist")
             for i,_ in enumerate(label):
-                task.append(inner_json(label[i], x, y, w, h, id+current_id, prozent, label_categorie[i],options[i],sub_id))
+                task.append(inner_json(label[i], x, y, w, h, id+current_id, prozent, label_categorie[i],options[i],sub_id, rle))
                 id +=1
         return outer_json(user_id, str(id), task)
 

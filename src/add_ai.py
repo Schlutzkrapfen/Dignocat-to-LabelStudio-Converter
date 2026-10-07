@@ -1,7 +1,4 @@
-
 from __future__ import annotations
-
-
 
 import cv2
 import torch
@@ -128,7 +125,8 @@ def ai_make_predtioction(ai_path: Path, task: TaskItem, label_cotegory: str, nam
         y = y1 / img_h * 100
         width = (x2 - x1) / img_w * 100
         height = (y2 - y1) / img_h * 100
-        result_item.append( inner_json(name, x, y, width, height, 10000 +i , str(f"{conf*100}%"), label_cotegory, "", thoot_id="0000"))
+        result_item.append(inner_json(label=name, x=x, y=y, w=width, h=height, sub_index=10000 + i, prozent=str(f"{conf*100}%"),
+            label_catorgie=label_cotegory, option="", thoot_id="0000", rle=None))
     if len(result_item) == 0:
         raise ValueError("resultItem is null")
 

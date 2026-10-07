@@ -1,8 +1,27 @@
 import os
 from pathlib import Path
 from PIL import Image
+from typing import TypeGuard
 
-from task_item import InnerAnnotation, TaskItem
+from task_item import BrushValue, InnerAnnotation, TaskItem, Value
+def is_rect(value:Value|BrushValue)->TypeGuard[Value]:
+    """Checks if the value is a rectangle.
+    Args:
+        value (Value | BrushValue): The value to check.
+    Returns:
+        bool: True if the value is a rectangle, False otherwise.
+
+    """
+    return "rectanglelabels" in value
+def is_brush(value:Value|BrushValue)->TypeGuard[BrushValue]:
+    """Checks if the value is a BrushValue.
+    Args:
+        value (Value | BrushValue): The value to check.
+    Returns:
+        bool: True if the value is a BrushValue, False otherwise.
+    """
+    return "brushlabels" in value
+
 
 def find_heighest_height(annotations: list[InnerAnnotation]) -> float:
     """Finds the heighest height in the annotations.
@@ -13,10 +32,15 @@ def find_heighest_height(annotations: list[InnerAnnotation]) -> float:
     Returns:
         float: The heighest height found in the annotations.
     """
-
+    info_brush = False
     max_height = 0
     for annotation in annotations:
+        if not is_rect(annotation["value"]):
+            info_brush = True
+            continue
         max_height = max(max_height, annotation["value"]["height"])
+    if info_brush:
+        print("Info: brush isn't included in the height calculation")
     return max_height
 
 def get_info(filename: str)-> tuple[int,int,str,str,str]:
