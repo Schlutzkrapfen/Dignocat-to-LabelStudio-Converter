@@ -235,6 +235,28 @@ async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:
     return user_id
 
 async def get_anatomie(user_id: int) -> list[Path]:
+    """Captures a screenshot of the canvas for each anatomy mask filter button.
+
+        Waits for the mask filter buttons to become visible, then iterates over
+        them. For each button, it toggles the mask on, screenshots the canvas,
+        and toggles the mask off again. Buttons that time out on click are
+        skipped.
+
+        Args:
+            user_id: The user ID, used as the first part of each screenshot
+                filename.
+
+        Returns:
+            list[Path]: Paths of the saved screenshots, one per processed button.
+                Filenames follow the pattern
+                `output/{user_id}_{110000 + index}_{button_text}_100%_0000.png`.
+
+        Raises:
+            ValueError: If the global `user_page` is None, or if no canvas
+                element is found after clicking a button.
+            TimeoutError: If the mask filter buttons do not become
+                visible in time.
+        """
     selector = "button.MaskFilterButton-module_container_EFNpE"
     try:
         if user_page is None:
@@ -251,8 +273,11 @@ async def get_anatomie(user_id: int) -> list[Path]:
         btn = buttons.nth(i)
         text = (await btn.inner_text()).strip()
         names.append(text)
-        await buttons.nth(i).click()
-        canvas = await user_page.query_selector("canvas")
+        try:
+            await buttons.nth(i).click()
+            canvas = await user_page.query_selector("canvas")
+        except PlaywrightTimeoutError:
+            continue
         if canvas is None:
             raise ValueError("canvas is None")
         #TODO: MAKE BETTER FIX
@@ -261,9 +286,11 @@ async def get_anatomie(user_id: int) -> list[Path]:
         path :Path = Path(f"output/{user_id}_{input}_{text}_{"100%"}_{"0000"}.png")
         await take_screenshot(canvas=canvas, path=path)
         paths.append(path)
-        await buttons.nth(i).click()
+        try:
+            await buttons.nth(i).click()
+        except PlaywrightTimeoutError:
+            continue
         print(f"Saved the picture: {path}")
-
     return paths
 
 async def get_user_screenshoots( user_id: int) -> list[Path]:

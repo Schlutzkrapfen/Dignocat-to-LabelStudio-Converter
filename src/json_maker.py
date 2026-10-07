@@ -5,7 +5,6 @@ import logging
 
 from pathlib import Path
 
-import cv2
 import numpy as np
 from PIL import Image, ImageChops
 from check_options import check_if_hole, test_if_brush
@@ -176,7 +175,10 @@ def inner_json(
     option:str,thoot_id:str,
     rle:list | None,
 )->InnerAnnotation:
-    """Creates an individual annotation object for a labeled bounding box.
+    """Creates an individual annotation object for a labeled region.
+
+        Builds a brush (RLE mask) annotation if `rle` is given, otherwise a
+        rectangle annotation.
 
         Args:
             label: The specific label text (e.g., "Füllung").
@@ -184,12 +186,13 @@ def inner_json(
             y: The vertical starting coordinate of the bounding box.
             w: The width of the bounding box.
             h: The height of the bounding box.
-            sub_index: A unique identifier index used to generate the annotation ID.
-            prozent: The confidence score of the prediction as a percentage string (e.g., "96%").
-            label_catorgie: The Category identifier
-            option: Option which need to saved can be added
-            thoot_id: needed for option
-            SSSS:s
+            sub_index: A unique index used to generate the annotation ID.
+            prozent: The prediction confidence as a percentage string (e.g., "96%").
+            label_catorgie: The category identifier, used as the annotation's `from_name`.
+            option: Additional option value to store with the annotation.
+            thoot_id: Identifier required for the option.
+            rle: Run-length-encoded mask. If not None, a brush annotation is
+                created and the box coordinates are ignored.
 
         Returns:
             InnerAnnotation: A dictionary representing a single formatted annotation
