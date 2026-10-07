@@ -26,6 +26,6 @@ Brückenglied	Bridge	Restauration
 Künstliche Zahnkrone	Blocking	Restauration	connections
 Fehlt	Unharmonic Line to Articulated line inclination	Spee curve	inward,single
 Implantat	Horizontal Bone loss (to enamel-dentin-border)	Peridontology	
-Perio	Horizontal Bone loss (to enamel-dentin-border)	Peridontology	brush,own_json
+Perio	Horizontal Bone loss (to enamel-dentin-border)	peridontology-labels	brush,own_json
 Anatomie	Teeth	abrasion-labels	brush,own_json
-Endo	Caries	pathology	brush,own_json
+Endo	Caries	pathology-labels	brush,own_json
