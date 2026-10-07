@@ -283,7 +283,7 @@ async def get_anatomie(user_id: int) -> list[Path]:
         #TODO: MAKE BETTER FIX
         input  = i+  110000
 
-        path :Path = Path(f"output/{user_id}_{input}_{text}_{"100%"}_{"0000"}.png")
+        path :Path = Path(f"output/teeth-screenshots/{user_id}_{input}_{text}_{"100%"}_{"0000"}.png")
         await take_screenshot(canvas=canvas, path=path)
         paths.append(path)
         try:
