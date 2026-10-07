@@ -8,3 +8,4 @@ torch
 torchvision
 opencv-python
 ultralytics
+label_studio_converter
