@@ -4,13 +4,12 @@ from pathlib import Path
 from typing import cast
 from playwright.async_api import BrowserContext, Error as PlaywrightError, TimeoutError as PlaywrightTimeoutError
 
-from playwright.async_api import ElementHandle,   Page
+from playwright.async_api import ElementHandle,Page
 from controll import find_duplicates_of
 
 
 page:Page
 user_page:Page | None = None
-
 
 async def login(page1: Page):
     """
@@ -39,6 +38,7 @@ async def login(page1: Page):
         await page.wait_for_url("**/patients**", timeout=0)
         # Crucial: Wait a moment for cookies to sync to the 'user_data' folder
         print("Login successful!")
+
 async def reset_starting_page(page1: Page):
     """Resets the global starting page after a failure, closing the old one.
 
