@@ -500,6 +500,13 @@ async def get_patient_amount(tries_unitl_retry: int = 3) -> int:
         return previous_count
 
 
+async def ensure_page(context: BrowserContext):
+    global page
+    if page.is_closed():
+        page = await context.new_page()
+           # re-navigate / re-login if needed
+    return page
+
 async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries:int=20,locked:bool=False)-> Page:
     """Navigates to a specific patient's report page.
 
@@ -548,6 +555,9 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
         _row = await page.wait_for_selector(row_selector, timeout=15000)
     except (PlaywrightTimeoutError, PlaywrightError) as e:
         print(f"couldn't find body/row,skipping page: {e}")
+        await ensure_page(context)
+
+
         if max_retries <= 0:
             raise OSError("Window is closed or can't be seen")
         return await go_to_patient_report(context,user_id ,max_retries -1, True)
