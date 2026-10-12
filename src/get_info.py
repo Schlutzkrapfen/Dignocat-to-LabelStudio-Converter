@@ -75,9 +75,11 @@ async def get_patient_information() -> dict[str, str]:
     details = await user_page.locator(Sel.PATIENT_DETAILS).locator("p").all_inner_texts()
     # details == ["19 Jahre", "Männlich", "ID: 1106"]
 
-    return {
+    info = {
         "name": name.strip(),
         "age": details[0],
         "sex": details[1],
-        "id": details[2].removeprefix("ID:").strip(),
     }
+    if len(details) > 2:
+        info["id"] = details[2].removeprefix("ID:").strip()
+    return info

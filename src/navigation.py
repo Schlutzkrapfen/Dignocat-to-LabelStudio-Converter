@@ -1,4 +1,5 @@
 from pathlib import Path
+from types import new_class
 
 from playwright.async_api import BrowserContext, Page
 
@@ -34,6 +35,7 @@ async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:
                 before duplicates are resolved.
             OSError: If navigating to a patient's report fails.
         """
+
     duplictas: list[Path] = [Path("")]
     already_skipped: list[int] = []
     duplictas_i = 0
@@ -57,9 +59,9 @@ async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:
 
 
         try:
-            user_page = Session.require_user_page()
-            await user_page.close()
-            user_page = await go_to_patient_report(context, user)
+            if Session.user_page is not None:
+                await Session.user_page.close()
+            Session.user_page = await go_to_patient_report(context, user)
         except OSError as e:
             print(e)
             raise OSError(e)
@@ -220,7 +222,8 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
 
                 # Scroll until we have enough rows loaded to reach user_id
                 # Wait for the next page
-                new_page = await context.new_page()
+                Session.user_page = await context.new_page()
+                new_page = Session.user_page
                 try:
                     while True:
                            rows = await page.query_selector_all(row_selector)
@@ -248,7 +251,7 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
                         patient_id = row_data["children"][0]["props"]["children"]["props"]["row"]["original"]["ID"]
                         patient_url = f"{Url.PATIENTS}/{patient_id}"
 
-                        await new_page.goto(patient_url, wait_until="domcontentloaded", timeout=10000)
+                        await Session.user_page.goto(patient_url, wait_until="domcontentloaded", timeout=10000)
 
                         # ... do your work on new_page ...
 
@@ -263,7 +266,7 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
                     print("Clicked first patient row")
 
                     print(f"Now on: {page.url}")
-                    print(get_patient_information)
+                    print(await get_patient_information())
                     _div = await new_page.wait_for_selector("div.ReportCardLayout-module_container_tPN-J")
 
                     button = await new_page.query_selector("div.ReportCardLayout-module_container_tPN-J")
