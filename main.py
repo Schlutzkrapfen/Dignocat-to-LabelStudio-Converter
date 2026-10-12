@@ -8,8 +8,11 @@ from typing import cast
 
 from playwright.async_api import BrowserContext, Page, async_playwright
 
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
+from navigation import find_page, get_patient_amount
+from session import login, reset_starting_page
 from add_options import check_task_options
 from json_maker import (
     delete_screenshot_folders,
@@ -18,12 +21,6 @@ from json_maker import (
 )
 from label_converter import load_label_mapping
 from task_item import  TaskItem
-from webcrawler import (
-    find_page,
-    get_patient_amount,
-    login,
-    reset_starting_page,
-)
 logger = logging.getLogger(__name__)
 
 USER_DATA_DIR = "user_data"

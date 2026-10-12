@@ -2,7 +2,7 @@
 import asyncio
 import os
 from pathlib import Path
-from typing_extensions import cast
+from typing import cast
 
 from playwright.async_api import ElementHandle, Error as PlaywrightError, TimeoutError as PlaywrightTimeoutError
 

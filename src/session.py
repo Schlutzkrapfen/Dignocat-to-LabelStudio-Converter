@@ -2,18 +2,20 @@ from locators import Url,Sel
 from playwright.async_api import BrowserContext
 from playwright.async_api import Page
 
-from dataclasses import dataclass
 
+from dataclasses import dataclass
 @dataclass
+
 class Session:
     context: BrowserContext
     page: Page                      # patient list page
     user_page: Page | None = None   # currently opened patient
 
-    def require_user_page(self) -> Page:
-        if self.user_page is None:
+    @classmethod
+    def require_user_page(cls) -> Page:
+        if cls.user_page is None:
             raise ValueError("user_page is not initialized")
-        return self.user_page
+        return cls.user_page
 
 
 async def login(page: Page):

@@ -1,9 +1,9 @@
-from asyncio import ensure_future
 from pathlib import Path
 
 from playwright.async_api import BrowserContext, Page
 
 from controll import find_duplicates_of
+from get_info import get_patient_information
 from locators import Url
 from screenshots import deactivated_show_buttons, get_refrence_image
 from session import Session, ensure_page, remove_overlay
@@ -263,6 +263,7 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
                     print("Clicked first patient row")
 
                     print(f"Now on: {page.url}")
+                    print(get_patient_information)
                     _div = await new_page.wait_for_selector("div.ReportCardLayout-module_container_tPN-J")
 
                     button = await new_page.query_selector("div.ReportCardLayout-module_container_tPN-J")

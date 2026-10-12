@@ -3,11 +3,16 @@ from typing import Final
 
 
 def _cls(prefix: str) -> str:
-    """Match an element whose class contains `prefix`, ignoring the trailing hash.
+    """Builds a CSS selector matching classes that contain `prefix`.
 
-    CSS-module classes like `ConditionTitle-module_container_vpIP9` change
-    their hash suffix on redeploy. Matching on the prefix survives that.
-    """
+        Ignores the hash suffix of CSS-module classes, which changes on redeploy.
+
+        Args:
+            prefix: Stable part of the class name, e.g. `"ConditionTitle-module_container"`.
+
+        Returns:
+            A selector such as `[class*="ConditionTitle-module_container"]` as a string.
+        """
     return f'[class*="{prefix}"]'
 
 
@@ -22,6 +27,10 @@ class Sel:
     CONDITION_TITLE: Final = "div" + _cls("ConditionTitle-module_container")
     CONDITION_BUTTON: Final = "button" + _cls("ConditionButton-module_container")
     MASK_FILTER_BUTTON: Final = "button" + _cls("MaskFilterButton-module_container")
+
+    # locators.py, inside class Sel
+    PATIENT_NAME: Final = "h1" + _cls("PatientPersonalInfo-module_patientName")
+    PATIENT_DETAILS: Final = "div" + _cls("PatientPersonalInfo-module_patientInfoDetailsWrapper")
 
     # Generic
     CANVAS: Final = "canvas"

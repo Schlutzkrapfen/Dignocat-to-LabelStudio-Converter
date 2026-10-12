@@ -9,20 +9,14 @@ import numpy as np
 from PIL import Image, ImageChops
 from check_options import check_if_hole, test_if_brush
 from controll import find_duplicates_of
+from get_info import get_thooth_id, get_tooth_descriptions
+from screenshots import get_anatomie, get_refrence_image, get_theeh_picture, get_user_screenshoots
 from task_item import BrushValue,  InnerAnnotation,  Prediction, TaskItem, Value
 import shutil
 from label_studio_converter import brush
 
 from helper_functions import get_info, strip_keys, to_percent,get_image_size,to_confidence
 from typing import cast
-from webcrawler import (
-    get_anatomie,
-    get_refrence_image,
-    get_theeh_picture,
-    get_thooth_id,
-    get_tooth_descriptions,
-    get_user_screenshoots,
-)
 from label_converter import  map_label
 logger = logging.getLogger(__name__)
 

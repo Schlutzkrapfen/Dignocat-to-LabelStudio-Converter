@@ -7,7 +7,8 @@ from dental_logic import convert_thooth_id_to_number, find_tooth_id_around
 from helper_functions import is_rect
 from json_maker import get_difference, get_json_cordinates
 from task_item import InnerAnnotation
-from webcrawler import get_refrence_image, get_theeh_picture, get_thooth_id
+from screenshots import get_refrence_image, get_theeh_picture
+from get_info import get_thooth_id
 
 
 def get_new_rectangle(item:InnerAnnotation,x,y,width,height):
