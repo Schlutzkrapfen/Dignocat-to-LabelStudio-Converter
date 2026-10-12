@@ -2,6 +2,7 @@ import os
 import asyncio
 from pathlib import Path
 from typing import cast
+from locators import Url
 from playwright.async_api import BrowserContext, Error as PlaywrightError, TimeoutError as PlaywrightTimeoutError
 
 from playwright.async_api import ElementHandle,Page
@@ -27,7 +28,7 @@ async def login(page1: Page):
     print("Checking login status...")
     global page
     page = page1
-    _website = await page.goto("https://app.diagnocat.eu/sign-in")
+    _website = await page.goto(Url.SIGN_IN)
 
     # If we are already logged in, the site might auto-redirect to /patients
     if "sign-in" not in page.url:
@@ -506,6 +507,8 @@ async def ensure_page(context: BrowserContext):
         page = await context.new_page()
            # re-navigate / re-login if needed
     return page
+async def get_pation_information()-> str:
+    return ""
 
 async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries:int=20,locked:bool=False)-> Page:
     """Navigates to a specific patient's report page.
@@ -537,10 +540,10 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
 
      """
     try:
-        if page.url.rstrip("/") != "https://app.diagnocat.eu/patients".rstrip("/") or locked == True:
+        if page.url.rstrip("/") != Url.PATIENTS.rstrip("/") or locked == True:
             print("Opening data page...")
             _website = await page.goto(
-            "https://app.diagnocat.eu/patients",
+            Url.PATIENTS,
             wait_until="domcontentloaded",
             timeout=10000,
             )
@@ -590,7 +593,7 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
             import json
             row_data = json.loads(row_data_json)
             patient_id = row_data["children"][0]["props"]["children"]["props"]["row"]["original"]["ID"]
-            patient_url = f"https://app.diagnocat.eu/patients/{patient_id}"
+            patient_url = f"{Url.PATIENTS}/{patient_id}"
 
             await new_page.goto(patient_url, wait_until="domcontentloaded", timeout=10000)
 
