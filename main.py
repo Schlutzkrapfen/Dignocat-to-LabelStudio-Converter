@@ -99,11 +99,11 @@ async def process_page_task(i:int, page_amount:int, context, output_dir, label_D
         """
     try:
         print(f"processing {i},page_amount={page_amount}")
-        user_id = await find_page(context,i,page_amount,output_dir)
+        user_id,info = await find_page(context,i,page_amount,output_dir)
         task:list[TaskItem] = []
         refrence_image_path = Path()
         print(refrence_image_path)
-        single_task  = await get_task(label_Data,user_id)
+        single_task  = await get_task(label_Data,user_id,info)
     except ValueError as e:
         print(f"Duplicate image found: {e}")
         return await process_page_task(i, page_amount, context, output_dir, label_Data,max_tries)

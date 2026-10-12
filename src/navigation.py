@@ -1,5 +1,4 @@
 from pathlib import Path
-from types import new_class
 
 from playwright.async_api import BrowserContext, Page
 
@@ -12,7 +11,7 @@ from session import Session, ensure_page, remove_overlay
 from playwright.async_api import  Error as PlaywrightError, TimeoutError as PlaywrightTimeoutError
 
 
-async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:Path)->int:
+async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:Path)->tuple[int, dict]:
     """Finds a page/user whose reference image has no duplicates left.
 
         Starting from index `i`, checks successive users by generating a
@@ -41,6 +40,7 @@ async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:
     duplictas_i = 0
     first_over: bool = False
     user_id = 0
+    info: dict = {}
     while len(duplictas) > 0:
         user = i + duplictas_i
         duplictas_i += 1
@@ -61,7 +61,7 @@ async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:
         try:
             if Session.user_page is not None:
                 await Session.user_page.close()
-            Session.user_page = await go_to_patient_report(context, user)
+            Session.user_page, info = await go_to_patient_report(context, user)
         except OSError as e:
             print(e)
             raise OSError(e)
@@ -72,7 +72,7 @@ async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:
             continue
         try:
             refrence_image_path = await get_refrence_image(
-                 user_id,  skip_if_exist=False,
+                 user_id,info,  skip_if_exist=False,
             )
         except LookupError as e:
             print(f"Error:{e}")
@@ -86,7 +86,7 @@ async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:
         already_skipped.append(user)
         if user_id < 0:
             raise ValueError("couldn't find a other duplicate")
-    return user_id
+    return user_id, info
 async def get_patient_amount(tries_unitl_retry: int = 3) -> int:
         """Gets the total patient count from Diagnocat.
 
@@ -164,7 +164,7 @@ async def get_patient_amount(tries_unitl_retry: int = 3) -> int:
                 await page.wait_for_timeout(poll_interval)
 
             return previous_count
-async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries:int=20,locked:bool=False)-> Page:
+async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries:int=20,locked:bool=False)-> tuple[Page, dict[str,str]]:
                 """Navigates to a specific patient's report page.
 
                  Opens the patients list page (or reloads if `locked`), scrolls the
@@ -266,7 +266,7 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
                     print("Clicked first patient row")
 
                     print(f"Now on: {page.url}")
-                    print(await get_patient_information())
+                    info = await get_patient_information()
                     _div = await new_page.wait_for_selector("div.ReportCardLayout-module_container_tPN-J")
 
                     button = await new_page.query_selector("div.ReportCardLayout-module_container_tPN-J")
@@ -291,4 +291,4 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
 
                 await remove_overlay(new_page)
                 print(f"Now on: {new_page.url}")
-                return new_page
+                return new_page, info

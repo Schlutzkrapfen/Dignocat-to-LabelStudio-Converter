@@ -59,7 +59,7 @@ def get_new_rectangle(item:InnerAnnotation,x,y,width,height):
 
     return new_x, new_y, new_width, new_height
 
-async def is_overlapping(thooth_id:str,user_id:int,offset:float=2.0)->bool:
+async def is_overlapping(thooth_id:str,user_id:int,info:dict[str,str],offset:float=2.0)->bool:
     """
         Checks whether the teeth adjacent to `thooth_id` have overlapping
         bounding boxes on the x-axis, based on diff images against the
@@ -84,7 +84,7 @@ async def is_overlapping(thooth_id:str,user_id:int,offset:float=2.0)->bool:
         thoot1_id = await get_thooth_id(convert_thooth_id_to_number(thoot1))
 
         thoot2_id = await get_thooth_id(convert_thooth_id_to_number(thoot2))
-        refrence_path = await get_refrence_image(user_id)
+        refrence_path = await get_refrence_image(user_id,info )
         image_path1 = await get_theeh_picture(thoot1_id, user_id)
         image_path2 = await get_theeh_picture(thoot2_id, user_id)
         diff_path1 = await get_difference(refrence_path, image_path1)
