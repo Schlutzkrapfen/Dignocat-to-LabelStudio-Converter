@@ -133,7 +133,7 @@ def get_coordinates(difference_path:str)-> tuple[float,float,float,float]:
 
 
 
-def outer_json(user_id: int, id: str, inner_json: list[InnerAnnotation])->TaskItem:
+def outer_json(user_id: int, image_path: Path, id: str, inner_json: list[InnerAnnotation])->TaskItem:
 
     """Makes the outer JSON file that is needed once per person/X-ray.
 
@@ -146,10 +146,11 @@ def outer_json(user_id: int, id: str, inner_json: list[InnerAnnotation])->TaskIt
             TaskItem: An item formatted for Label Studio.+Option settings
         """
     predictions:Prediction = {"id": id, "result": inner_json, "model_version": "Diagnocat"}
+
     task:TaskItem = {
             "id": user_id,
             "data": {
-                "image": f"/data/local-files/?d=/Dignocat-to-LabelStudio-Converter/output/{user_id}.png"
+                "image": f"/data/local-files/?d=/Dignocat-to-LabelStudio-Converter/{image_path}"
             },
             "predictions": [predictions],
         }
@@ -449,7 +450,7 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
             for i,_ in enumerate(label):
                 task.append(inner_json(label[i], x, y, w, h, id+current_id, prozent, label_categorie[i],options[i],sub_id, rle))
                 id +=1
-        return outer_json(user_id, str(id), task)
+        return outer_json(user_id, refrence_image_path,str(id), task)
 
 def delete_screenshot_folders(teeth_folder:Path =Path("output/teeth-screenshoots"),screenshot_folder:Path=Path("output/screenshots") ):
     """Deletes the folders containing previously generated screenshots.
