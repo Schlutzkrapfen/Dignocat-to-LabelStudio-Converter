@@ -203,11 +203,10 @@ async def get_refrence_image(picture_path: Path, skip_if_exist: bool = True,)-> 
     Raises:
         LookupError: Couldn't find the canvas
     """
-
-
-
-
-    if not await asyncio.to_thread(os.path.exists, picture_path) or not skip_if_exist:
+    if skip_if_exist and await asyncio.to_thread(os.path.exists, picture_path):
+        print(f"Screenshot already exists: {picture_path}")
+        return picture_path
+    else:
         user_page = Session.require_user_page()
         await user_page.mouse.move(0, 0)
         try:
@@ -219,10 +218,7 @@ async def get_refrence_image(picture_path: Path, skip_if_exist: bool = True,)-> 
             raise LookupError("Got no Canvas")
         await take_screenshot(canvas,picture_path)
         print(f"Saved {picture_path}")
-    else:
-        print(f"Screenshot already exists: {picture_path}")
-
-    return picture_path
+        return picture_path
 
 
 async def get_theeh_picture( teeth_id: str, user_id: int) -> Path:

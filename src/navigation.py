@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 
 from playwright.async_api import BrowserContext, Page
@@ -35,9 +36,9 @@ async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:
                 before duplicates are resolved.
             OSError: If navigating to a patient's report fails.
         """
-
+    already_skipped: list[int] = [
+    ]
     duplictas: list[Path] = [Path("")]
-    already_skipped: list[int] = []
     duplictas_i = 0
     first_over: bool = False
     user_id = 0
@@ -84,6 +85,9 @@ async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:
             raise ValueError("There is no Refrance Image")
         duplictas = find_duplicates_of(refrence_image_path, output_dir)
         print(f"Duplicated ID: {i} with {duplictas}")
+        if len(duplictas) > 0:
+            await asyncio.to_thread(refrence_image_path.unlink, missing_ok=True)
+        #wy IS THERE NO RAISE OR RETURN here ????
         already_skipped.append(user)
         if user_id < 0:
             raise ValueError("couldn't find a other duplicate")
