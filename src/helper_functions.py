@@ -123,9 +123,11 @@ def get_path_from_TaskItem(task: TaskItem) -> Path:
         task: The task item from which to extract the path.
 
     Returns:
-        str: The path associated with the task.
+        Path: The path associated with the task.
     """
-    return Path(task["data"]["path"])
+    p = Path(task["data"]["image"])
+    result = Path(*p.parts[-2:])
+    return result
 
 
 def to_confidence(value: str)->float:

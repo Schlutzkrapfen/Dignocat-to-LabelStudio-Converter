@@ -6,7 +6,7 @@ from PIL import Image
 
 from dental_logic import convert_thooth_id_to_number, find_tooth_id_around
 
-from helper_functions import is_rect, make_path
+from helper_functions import is_rect
 from json_maker import get_difference, get_json_cordinates
 from task_item import InnerAnnotation
 from screenshots import get_refrence_image, get_theeh_picture
