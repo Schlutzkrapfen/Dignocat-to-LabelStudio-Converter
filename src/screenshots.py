@@ -189,7 +189,7 @@ async def deactivated_show_buttons() :
             if len(classes) > 2:
                 await button.click()
 
-async def get_refrence_image(user_id:int,info:dict[str,str], skip_if_exist: bool = True,)-> Path:
+async def get_refrence_image(picture_path: Path, skip_if_exist: bool = True,)-> Path:
     """gets a empty Image for refrence
     Args:
             user_id (int): Identifier of the user, used to build the
@@ -204,7 +204,6 @@ async def get_refrence_image(user_id:int,info:dict[str,str], skip_if_exist: bool
         LookupError: Couldn't find the canvas
     """
 
-    picture_path = Path(f"output/{user_id}_{info}.png")
 
 
 

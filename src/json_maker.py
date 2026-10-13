@@ -15,7 +15,7 @@ from task_item import BrushValue,  InnerAnnotation,  Prediction, TaskItem, Value
 import shutil
 from label_studio_converter import brush
 
-from helper_functions import get_info, strip_keys, to_percent,get_image_size,to_confidence
+from helper_functions import get_info, make_path, strip_keys, to_percent,get_image_size,to_confidence
 from typing import cast
 from label_converter import  map_label
 logger = logging.getLogger(__name__)
@@ -281,7 +281,7 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,info:d
     id_addition:int = 0
 
     try:
-        refrence_image_path:Path = await get_refrence_image( user_id, info, not delete_refrence_image)
+        refrence_image_path:Path = await get_refrence_image( make_path(user_id, info), not delete_refrence_image)
     except LookupError as e:
         print(f"Fatal Error:{e}, tries again")
         return await get_task(label_Data,user_id,info)

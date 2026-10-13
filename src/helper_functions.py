@@ -116,6 +116,17 @@ def get_user_id_from_TaskItem(task: TaskItem) -> int:
     """
     return task["id"]
 
+def get_path_from_TaskItem(task: TaskItem) -> Path:
+    """Extracts the path from the task item.
+
+    Args:
+        task: The task item from which to extract the path.
+
+    Returns:
+        str: The path associated with the task.
+    """
+    return Path(task["data"]["path"])
+
 
 def to_confidence(value: str)->float:
     """Converts a percentage string to a float value (e.g., "50%" -> 0.5).
@@ -158,3 +169,15 @@ def strip_keys(obj, keys_to_remove: set[str]):
         return [strip_keys(item, keys_to_remove) for item in obj]
     else:
         return obj
+
+def make_path(user_id: int, info: dict[str, str]) -> Path:
+    parts = [str(user_id), info["name"], info["sex"]]
+
+    if "age" in info:
+        value, _, unit = info["age"].partition(" ")
+        parts.append("0" if unit == "Monate" else str(int(value)))
+
+    if "id" in info:
+        parts.append(info["id"])
+
+    return Path("output") / ("_".join(parts) + ".png")

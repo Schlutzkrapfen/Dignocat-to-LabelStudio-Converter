@@ -4,6 +4,7 @@ from playwright.async_api import BrowserContext, Page
 
 from controll import find_duplicates_of
 from get_info import get_patient_information
+from helper_functions import make_path
 from locators import Url
 from screenshots import deactivated_show_buttons, get_refrence_image
 from session import Session, ensure_page, remove_overlay
@@ -72,7 +73,7 @@ async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:
             continue
         try:
             refrence_image_path = await get_refrence_image(
-                 user_id,info,  skip_if_exist=False,
+                make_path(user_id,info),  skip_if_exist=False,
             )
         except LookupError as e:
             print(f"Error:{e}")
