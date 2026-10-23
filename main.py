@@ -152,22 +152,21 @@ async def main():
             for i in parse_id_range(page_amount):
                 task.extend(await process_page_task(i, page_amount, context, output_dir, label_Data))
         finally:
+            task_dic: dict[str, list[TaskItem]] = {}
             try:
                 task_dic = await check_task_options(task)
-                for key,value in task_dic.items():
-                    if key =="main":
-                        dump_json(value)
-                    else:
-                        dump_json(value, Path(f"json/{key}.json"))
-                if len(task_dic) == 0:
-                    dump_json(task)
             except (OSError, RecursionError) as e:
-                print(f"complete failure:{e}")
-                raise
+                print(f"Error to get Task_options:{e}")
+                dump_json(task)
             except ValueError as e:
-                print(f"value error:{e}")
-                raise
-                   #When debugging can be deaktivated for faster new runs and shows what screenshots were made
+                print(f"value error in taskitems:{e}")
+                dump_json(task)
+            for key,value in task_dic.items():
+                if key =="main":
+                    dump_json(value)
+                else:
+                    dump_json(value, Path(f"json/{key}.json"))
+            #When debugging can be deaktivated for faster new runs and shows what screenshots were made
             delete_screenshot_folders()
             print("Finished")
 
