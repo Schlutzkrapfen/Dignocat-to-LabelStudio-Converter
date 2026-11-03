@@ -1,13 +1,12 @@
 ai_label	code	label_category	option
 Ceramic-Crown	Ceramic-Crown	ceramic	
 Composit-Crown	Plastic/Composit-Crown	plastic	
-Metal-Crown	Metal-Crown	metal	"
-"
+Metal-Crown	Metal-Crown	metal	
 Ceramic-Filling	Ceramic-Filling	ceramic	
 Composit-Filling	Plastic/Composit-Filling	plastic	
 Metall-Filling	Metall-Filling	metal	
 Zement-Filling	Zement-Filling	Zement/Guttapercha	
-Metal-Implant	Metal-Implant	"metal
-"	
+Metal-Implant	Metal-Implant	metal	
 Ceramic-Implant	Ceramic-Implant	ceramic	
 Asymmetry Caput	Asymmetry Caput	TMJ	local_ai:caput.pt
+Shadow Sinus	 Shadow Sinus	pathology	local_ai:shadow_sinus.pt
