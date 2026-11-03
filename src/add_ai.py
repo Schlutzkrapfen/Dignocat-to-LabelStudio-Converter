@@ -55,9 +55,7 @@ def add_local_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]]):
     ai_path:Path |None = None
     label_category:str = ""
     label_name:str = ""
-    for list in labels.values():
-
-
+    for i,list in enumerate(labels.values()):
 
         for key,value in list[0].items():
             if key == "option" and test_if_local_ai(value):
@@ -66,19 +64,15 @@ def add_local_ai(task:TaskItem,labels:dict[str,list[dict[str,str]]]):
                 label_category = value
             elif key == "code":
                 label_name = value
-
-
-
-    if ai_path is not None:
-        inner = ai_make_predtioction(ai_path,task,label_category,label_name)
-        ai_path = None
-    task = add_annotations_to_task(task,inner)
-
-
+            if ai_path is not None:
+                print(i)
+                inner = ai_make_predtioction(ai_path,task,label_category,label_name,i)
+                ai_path = None
+                task = add_annotations_to_task(task,inner)
     return task
 
 
-def ai_make_predtioction(ai_path: Path, task: TaskItem, label_cotegory: str, name: str) -> list[InnerAnnotation]:
+def ai_make_predtioction(ai_path: Path, task: TaskItem, label_cotegory: str, name: str,cur_option:int) -> list[InnerAnnotation]:
     """Runs YOLO on a task's image and builds annotations from the top detections.
 
         Args:
@@ -86,6 +80,7 @@ def ai_make_predtioction(ai_path: Path, task: TaskItem, label_cotegory: str, nam
             task: Task item whose image will be used for prediction.
             label_cotegory: Label category for the annotations.
             name: Annotation name/code.
+            cur_option: is the int which option is there for making the id
 
         Returns:
             Up to 2 annotations for the highest-confidence class-0 detections,
@@ -125,7 +120,8 @@ def ai_make_predtioction(ai_path: Path, task: TaskItem, label_cotegory: str, nam
         y = y1 / img_h * 100
         width = (x2 - x1) / img_w * 100
         height = (y2 - y1) / img_h * 100
-        result_item.append(inner_json(label=name, x=x, y=y, w=width, h=height, sub_index=10000 + i, prozent=str(f"{conf*100}%"),
+        #TODO: find a better way to make the id
+        result_item.append(inner_json(label=name, x=x, y=y, w=width, h=height, sub_index=(10000 *cur_option) +i, prozent=str(f"{conf*100}%"),
             label_catorgie=label_cotegory, option="", thoot_id="0000", rle=None))
     if len(result_item) == 0:
         raise ValueError("resultItem is null")
