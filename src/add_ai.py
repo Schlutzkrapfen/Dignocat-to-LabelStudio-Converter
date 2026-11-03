@@ -104,7 +104,7 @@ def ai_make_predtioction(ai_path: Path, task: TaskItem, label_cotegory: str, nam
 
     img_h, img_w = img.shape[:2]
 
-    results = model.predict(source=image_path, conf=0.005, iou=0.5)
+    results = model.predict(source=image_path, conf=0.008, iou=0.5)
 
     boxes = results[0].boxes
     if not boxes or len(boxes) == 0:
