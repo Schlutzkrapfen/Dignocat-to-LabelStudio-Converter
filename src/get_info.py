@@ -15,8 +15,6 @@ async def get_tooth_descriptions() -> list[dict[str, str]]:
             A list of dictionaries, where each dictionary contains the "type"
             and "id" of a tooth.
 
-        Raises:
-            ValueError: If `user_page` is not initialized.
     """
 
     user_page = Session.require_user_page()

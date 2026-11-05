@@ -3,7 +3,7 @@ from pathlib import Path
 
 from playwright.async_api import BrowserContext, Page
 
-from controll import find_duplicates_of
+from controll import find_duplaceted_info, find_duplicates_of
 from get_info import get_patient_information
 from helper_functions import make_path
 from locators import Url
@@ -67,6 +67,10 @@ async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:
         except OSError as e:
             print(e)
             raise OSError(e)
+        if find_duplaceted_info(info):
+            print(f"found duplicates: {info}")
+            continue
+
         try:
             await deactivated_show_buttons()
         except PlaywrightTimeoutError as e:

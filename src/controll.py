@@ -1,5 +1,25 @@
 import hashlib
 from pathlib import Path
+import os
+
+
+
+def get_all_ids() -> list[str]:
+    ids: list[str] = []
+
+    for filename in os.listdir("output"):
+        parts = filename.split("_")
+        if len(parts) > 4:
+            id = parts[4].split(".")
+            ids.append(id[0])
+    return ids
+def find_duplaceted_info(info):
+    """Returns true when there is found a id 2 types"""
+    if not info.get("id"):
+        return False
+    ids=  get_all_ids()
+    return info["id"] in ids
+
 
 
 
