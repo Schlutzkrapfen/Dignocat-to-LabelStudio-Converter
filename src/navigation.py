@@ -9,6 +9,7 @@ from helper_functions import make_path
 from locators import Url
 from screenshots import deactivated_show_buttons, get_refrence_image
 from session import Session, ensure_page, remove_overlay
+import time
 
 from playwright.async_api import  Error as PlaywrightError, TimeoutError as PlaywrightTimeoutError
 
@@ -221,12 +222,16 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
                     _body = await page.wait_for_selector("body", timeout=15000)
                     _row = await page.wait_for_selector(row_selector, timeout=15000)
                 except (PlaywrightTimeoutError, PlaywrightError) as e:
+                    print(f"URL: {Session.page.url if not Session.page.is_closed() else 'Closed'}")
+                    if not Session.page.is_closed():
+                            await Session.page.screenshot(path=f"fail_{int(time.time())}.png")
+
                     print(f"couldn't find body/row,skipping page: {e}")
                     await ensure_page(context)
 
 
                     if max_retries <= 0:
-                        raise OSError("Window is closed or can't be seen")
+                        raise OSError("Cant click on the body")
                     return await go_to_patient_report(context,user_id ,max_retries -1, True)
 
                 # Scroll until we have enough rows loaded to reach user_id

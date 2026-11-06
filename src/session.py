@@ -1,8 +1,11 @@
+import os
 from locators import Url,Sel
-from playwright.async_api import BrowserContext
-from playwright.async_api import Page
+from playwright.async_api import BrowserContext, TimeoutError as PlaywrightTimeoutError, Page
+from dotenv import load_dotenv  # pip install python-dotenv
 
-
+load_dotenv()  # loads variables from the .env file
+EMAIL = os.environ["DIAGNOCAT_EMAIL"]
+PASSWORD = os.environ["DIAGNOCAT_PASSWORD"]
 from dataclasses import dataclass
 @dataclass
 
@@ -31,20 +34,28 @@ async def login(page: Page):
            page (Page): Playwright page object used to navigate and check
                login status.
        """
+
     print("Checking login status...")
     Session.page = page
-    _website = await Session.page.goto(Url.SIGN_IN)
+    await page.goto(Url.SIGN_IN, wait_until="domcontentloaded", timeout=60000)
 
-    # If we are already logged in, the site might auto-redirect to /patients
-    if "sign-in" not in Session.page.url:
-        print("Already logged in. Skipping manual step.")
-    else:
-        print("Please log in manually in the browser window...")
-        # Wait for the URL to change to the patients page
-        await Session.page.wait_for_url("**/patients**", timeout=0)
-        # Crucial: Wait a moment for cookies to sync to the 'user_data' folder
+    # If we are redirected away from sign-in, the session is still valid
+    if "sign-in" not in page.url:
+        print("Already logged in.")
+        return
+
+    print("Logging in automatically...")
+    await page.fill('input[type="email"]', EMAIL)
+    await page.fill('input[type="password"]', PASSWORD)
+    await page.click('button[type="submit"]')
+
+    try:
+        await page.wait_for_url("**/patients**", timeout=60000)
         print("Login successful!")
-
+    except PlaywrightTimeoutError:
+        # Fallback: captcha or 2FA may require manual input
+        print("Automatic login failed (captcha/2FA?). Please log in manually...")
+        await page.wait_for_url("**/patients**", timeout=0)
 async def reset_starting_page(page: Page):
     """Resets the global starting page after a failure, closing the old one.
 
@@ -70,8 +81,8 @@ async def ensure_page(context: BrowserContext):
         Args:
             context: Browser context used to open the replacement page.
         """
-    if Session.page.is_closed():
-        Session.page = await context.new_page()
+    Session.page = await context.new_page()
+    await login(Session.page)
 
 
 
