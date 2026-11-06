@@ -17,3 +17,4 @@ output.json
 src/__pycache__/*
 venv/*
 json/*
+*.env
