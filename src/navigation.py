@@ -231,7 +231,7 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
 
 
                     if max_retries <= 0:
-                        raise OSError("Cant click on the body")
+                         raise OSError("Could not load the patients page after all retries")
                     return await go_to_patient_report(context,user_id ,max_retries -1, True)
 
                 # Scroll until we have enough rows loaded to reach user_id
