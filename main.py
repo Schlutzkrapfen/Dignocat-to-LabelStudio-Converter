@@ -42,37 +42,46 @@ def parse_id_range(total: int) -> list[int]:
         Returns:
             list[int]: Indices, flipped relative to `total`, in generation order.
         """
-    parser:argparse.ArgumentParser = argparse.ArgumentParser()
-    _action:argparse.Action = parser.add_argument("ids", nargs="*")
-    args:argparse.Namespace = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("ids", nargs="*", default=[])
+    group.add_argument("--u", metavar="PATH", help="upload files from PATH")
+    args = parser.parse_args()
 
-    raw_indices = []
-    raw_ids: list[str] = cast(list[str], args.ids)
-    match raw_ids:
-        case []:
-            raw_indices = list(range(total))
+    if args.u:
+        print(f"upload files from {args.u}")
+        return []
 
-        case [s] if s.endswith("+"):
-            raw_indices = list(range(int(s[:-1]), total))
-            if int(s[:-1]) >= total:
-                logger.error("The start number was to big")
-        case [s] if s.endswith("-"):
-            raw_indices = list(range(int(s[:-1])))
-        case [a, b]:
-            if int(b) + 1 > total:
-                b = total - 1
-            raw_indices = list(range(int(a), int(b) + 1))
-            if int(a) >= total:
-                logger.error("The start number was to big")
-        case [s]:
-            raw_indices = [int(s)]
-            if int(s) >= total:
-                logger.error("The number was to big")
+    raw_ids = cast(list[str], args.ids)
+    raw_indices: list[int] = []
 
-    def flip(i: int):
-        return total - i - 1
+    try:
+        match raw_ids:
+            case []:
+                raw_indices = list(range(total))
+            case [s] if s.endswith("+"):
+                start = int(s[:-1])
+                if start >= total:
+                    logger.error("The start number was too big")
+                raw_indices = list(range(start, total))
+            case [s] if s.endswith("-"):
+                raw_indices = list(range(min(int(s[:-1]), total)))
+            case [a, b]:
+                start, end = int(a), min(int(b), total - 1)
+                if start >= total:
+                    logger.error("The start number was too big")
+                raw_indices = list(range(start, end + 1))
+            case [s]:
+                n = int(s)
+                if n >= total:
+                    logger.error("The number was too big")
+                raw_indices = [n]
+            case _:
+                logger.error("Invalid arguments")
+    except ValueError:
+        logger.error("Invalid number in arguments")
 
-    return [flip(i) for i in raw_indices]
+    return [total - i - 1 for i in raw_indices]
 
 async def process_page_task(i:int, page_amount:int, context, output_dir, label_Data,max_tries=10):
     """Processes a single page's task and saves the result as JSON.
