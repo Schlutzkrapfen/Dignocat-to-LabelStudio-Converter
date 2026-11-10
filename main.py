@@ -11,6 +11,8 @@ from playwright.async_api import BrowserContext, Page, async_playwright
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
+from upload_pictures import upload_pitcutres
+
 from navigation import find_page, get_patient_amount
 from session import login, reset_starting_page
 from add_options import check_task_options
@@ -24,12 +26,13 @@ from task_item import  TaskItem
 logger = logging.getLogger(__name__)
 
 USER_DATA_DIR = "user_data"
+
 screenshot_quality_mulitplayer: float = 4
 refrence_image_path = Path("")
 
 
 
-def parse_id_range(total: int) -> list[int]:
+def parse_id_range(total: int) ->str  | list[int]:
     """Parse "ids" CLI args into a flipped list of indices.
 
         Accepts: no args (all indices), "N+" (N..end), "N-" (0..N),
@@ -50,7 +53,7 @@ def parse_id_range(total: int) -> list[int]:
 
     if args.u:
         print(f"upload files from {args.u}")
-        return []
+        return [(args.u)]
 
     raw_ids = cast(list[str], args.ids)
     raw_indices: list[int] = []
@@ -158,8 +161,13 @@ async def main():
             await login(page)
             page_amount = await get_patient_amount()
             print(f"You have {page_amount} patience")
+
             for i in parse_id_range(page_amount):
-                task.extend(await process_page_task(i, page_amount, context, output_dir, label_Data))
+                try:
+                    i = int(i)
+                    task.extend(await process_page_task(i, page_amount, context, output_dir, label_Data))
+                except ValueError:
+                    task.extend(await upload_pitcutres(i,page_amount))
         finally:
             task_dic: dict[str, list[TaskItem]] = {}
             try:

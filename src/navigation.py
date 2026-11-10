@@ -1,9 +1,8 @@
 import asyncio
 from pathlib import Path
 
-from playwright.async_api import BrowserContext, Page
 
-from controll import find_duplaceted_info, find_duplicates_of
+from controll import check_preview_image, find_duplaceted_info, find_duplicates_of
 from get_info import get_patient_information
 from helper_functions import make_path
 from locators import Url
@@ -11,7 +10,7 @@ from screenshots import deactivated_show_buttons, get_refrence_image
 from session import Session, ensure_page, remove_overlay
 import time
 
-from playwright.async_api import  Error as PlaywrightError, TimeoutError as PlaywrightTimeoutError
+from playwright.async_api import  Error as PlaywrightError, TimeoutError as PlaywrightTimeoutError,BrowserContext, Page
 
 
 async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:Path)->tuple[int, dict]:
@@ -306,3 +305,90 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
                 await remove_overlay(new_page)
                 print(f"Now on: {new_page.url}")
                 return new_page, info
+
+async def go_to_upload_patient_report(user_id: int,max_retries:int=20)-> int:
+    """Opens a patient's page by row index in the patients table.
+
+        Reloads the patients list, scrolls the infinite-scroll table until
+        the row at `user_id` is loaded, extracts that patient's ID from the
+        row's React props, and navigates to their patient page.
+
+        Retries recursively on failure: a timeout waiting for the page/table
+        reloads and retries with `max_retries` decremented; a preview image
+        already present, or a missing row (`IndexError`), restarts from
+        `user_id + 1` or `0` respectively.
+
+        Args:
+            user_id: Index of the patient row to open in the table.
+            max_retries: Max retry attempts on page load/timeout errors.
+                Defaults to 20.
+
+        Raises:
+            OSError: If the patients page/row can't be loaded after
+                exhausting `max_retries`.
+        """
+    page = Session.page
+
+    await page.reload()
+    await page.wait_for_timeout(500)
+
+    try:
+        if page.url.rstrip("/") != "https://app.diagnocat.eu/patients".rstrip("/"):
+            print("Opening data page...")
+            _website = await page.goto(
+            "https://app.diagnocat.eu/patients",
+            wait_until="domcontentloaded",
+            timeout=10000,
+            )
+
+        row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
+
+        _body = await page.wait_for_selector("body", timeout=15000)
+        _row = await page.wait_for_selector(row_selector, timeout=15000)
+    except (TimeoutError, PlaywrightTimeoutError) as e:
+        print(f"couldn't find body/row,skipping page: {e}")
+        if max_retries <= 0:
+            raise OSError("Window is closed or can't be seen")
+        return await go_to_upload_patient_report(user_id ,max_retries -1)
+
+
+    # Scroll until we have enough rows loaded to reach user_id
+    # Wait for the next page
+    while True:
+            rows = await page.query_selector_all(row_selector)
+
+            if len(rows) > user_id:
+                break  # We have enough rows, stop scrolling
+
+            # Not enough rows yet — scroll down to load more
+            await rows[-1].scroll_into_view_if_needed()
+
+
+    try:
+        # await rows[user_id].click()
+        row_data_json = await rows[user_id].evaluate("""
+        el => {
+            const key = Object.keys(el).find(k => k.startsWith('__reactProps$'));
+            if (!key) return null;
+            const props = el[key];
+            return JSON.stringify(props, (k, v) => typeof v === 'function' ? undefined : v);
+        }
+        """)
+        import json
+        row_data = json.loads(row_data_json)
+        patient_id = row_data["children"][0]["props"]["children"]["props"]["row"]["original"]["ID"]
+        patient_url = f"https://app.diagnocat.eu/patients/{patient_id}"
+
+        await page.goto(patient_url, wait_until="domcontentloaded", timeout=10000)
+        await page.wait_for_timeout(500)
+        if await check_preview_image(page):
+            print("Something is wrong: the picute is already there")
+            return await go_to_upload_patient_report(user_id+1,max_retries)
+
+
+
+    except IndexError as e:
+        print(f"User_id: {user_id} the picture wasn't there: {e} ")
+        await page.close()
+        return await go_to_patient_report(0,max_retries)
+    return user_id
