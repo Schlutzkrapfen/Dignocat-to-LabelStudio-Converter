@@ -1,22 +1,26 @@
 
+import asyncio
 from pathlib import Path
 import shutil
 
-from navigation import go_to_patient_report, go_to_upload_patient_report
+from json_maker import get_task
+from navigation import  go_to_upload_patient_report
 from session import Session
 from task_item import TaskItem
 
 
 OUTPUT_DIR = Path("./used_pictures")
-async def  upload_pitcutres(pictures,patient_amount)-> list[TaskItem]:
+async def  upload_pitcutres(pictures,patient_amount,label_Data)-> list[TaskItem]:
+    tasks = []
     for i, picture in enumerate(pictures):
         await click_new_patient_button()
         info = get_info(picture)
         await add_patient(info["first_name"], info["last_name"], info["birthday"], info["sex"], external_id=str(patient_amount+i))
         current_user = await go_to_upload_patient_report(0)
-        await upload_patient_picture(picture,current_user)
-        move_picture(picture, OUTPUT_DIR)
-    return []
+      #  await upload_patient_picture(picture,current_user)
+      #  move_picture(picture, OUTPUT_DIR)
+        tasks.append( await get_task(label_Data,patient_amount+i,info))
+    return tasks
 
 async def click_new_patient_button():
     """Navigates to the patients page and clicks the 'New Patient' button.
@@ -27,7 +31,6 @@ async def click_new_patient_button():
         Raises:
             LookupError: If the 'New Patient' button is not found on the page.
         """
-    await go_to_upload_patient_report(0)
     page = Session.page
     button = await page.wait_for_selector("button.Patients-module_newPatientButton_ACBBZ")
     if button is None:
@@ -73,7 +76,7 @@ def get_info(picture_path: Path):
         dictionary["sex"] = "Weiblich"
     dictionary["age"] = age
     year =  2026 - int(dictionary["age"])
-    dictionary["birthday"] = f"01-01-{year}"
+    dictionary["birthday"] = f"11-11-{year}"
     return dictionary
 
 def move_picture(picture_path: Path, destination_path: Path):
@@ -157,8 +160,7 @@ async def add_patient(
         submit_btn = page.locator('button[form="patient-form"][type="submit"]')
 
 
-        await submit_btn.click()
-
+        #await submit_btn.click()
         print(f"Patient '{first_name} {last_name}' submitted")
 
 async def upload_patient_picture(picture_dir:Path,curren_user:int):

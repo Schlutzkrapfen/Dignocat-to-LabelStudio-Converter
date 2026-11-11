@@ -5,7 +5,7 @@ from pathlib import Path
 from controll import check_preview_image, find_duplaceted_info, find_duplicates_of
 from get_info import get_patient_information
 from helper_functions import make_path
-from locators import Url
+from locators import Sel, Url
 from screenshots import deactivated_show_buttons, get_refrence_image
 from session import Session, ensure_page, remove_overlay
 import time
@@ -216,7 +216,7 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
                                print("User ID exceeds patient amount, starting from the first patient")
                                return await go_to_patient_report(context,0, max_retries, True)
 
-                    row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
+                    row_selector =  Sel.PATIENT_ROW
 
                     _body = await page.wait_for_selector("body", timeout=15000)
                     _row = await page.wait_for_selector(row_selector, timeout=15000)
@@ -333,15 +333,15 @@ async def go_to_upload_patient_report(user_id: int,max_retries:int=20)-> int:
     await page.wait_for_timeout(500)
 
     try:
-        if page.url.rstrip("/") != "https://app.diagnocat.eu/patients".rstrip("/"):
-            print("Opening data page...")
-            _website = await page.goto(
-            "https://app.diagnocat.eu/patients",
-            wait_until="domcontentloaded",
-            timeout=10000,
-            )
+        if page.url.rstrip("/") != Url.PATIENTS.rstrip("/"):
+                               print("Opening data page...")
+                               _website = await page.goto(
+                               Url.PATIENTS,
+                               wait_until="domcontentloaded",
+                               timeout=10000,
+                               )
 
-        row_selector = "tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
+        row_selector =  Sel.PATIENT_ROW
 
         _body = await page.wait_for_selector("body", timeout=15000)
         _row = await page.wait_for_selector(row_selector, timeout=15000)
@@ -390,5 +390,5 @@ async def go_to_upload_patient_report(user_id: int,max_retries:int=20)-> int:
     except IndexError as e:
         print(f"User_id: {user_id} the picture wasn't there: {e} ")
         await page.close()
-        return await go_to_patient_report(0,max_retries)
+        return await go_to_upload_patient_report(0,max_retries)
     return user_id

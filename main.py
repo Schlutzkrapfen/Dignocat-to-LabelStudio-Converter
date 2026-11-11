@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 import sys
 from typing import cast
+from typing_extensions import Type
 
 from playwright.async_api import BrowserContext, Page, async_playwright
 
@@ -32,7 +33,7 @@ refrence_image_path = Path("")
 
 
 
-def parse_id_range(total: int) ->str  | list[int]:
+def parse_id_range(total: int) ->list[Path]  | list[int]:
     """Parse "ids" CLI args into a flipped list of indices.
 
         Accepts: no args (all indices), "N+" (N..end), "N-" (0..N),
@@ -53,7 +54,7 @@ def parse_id_range(total: int) ->str  | list[int]:
 
     if args.u:
         print(f"upload files from {args.u}")
-        return [(args.u)]
+        return list(Path(args.u).iterdir())
 
     raw_ids = cast(list[str], args.ids)
     raw_indices: list[int] = []
@@ -161,13 +162,15 @@ async def main():
             await login(page)
             page_amount = await get_patient_amount()
             print(f"You have {page_amount} patience")
+            input =parse_id_range(page_amount)
 
-            for i in parse_id_range(page_amount):
-                try:
+            try:
+                for i in input:
                     i = int(i)
                     task.extend(await process_page_task(i, page_amount, context, output_dir, label_Data))
-                except ValueError:
-                    task.extend(await upload_pitcutres(i,page_amount))
+            except TypeError:
+                print(input)
+                task.extend(await upload_pitcutres(input,page_amount,label_Data))
         finally:
             task_dic: dict[str, list[TaskItem]] = {}
             try:

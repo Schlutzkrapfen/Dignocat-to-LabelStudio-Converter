@@ -17,7 +17,7 @@ def _cls(prefix: str) -> str:
 
 
 class Sel:
-    # Patient list
+# Patient list"tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
     PATIENT_ROW: Final = "tr" + _cls("TableWithInfiniteScroll-module_tableRow")
     PATIENT_COUNT_BADGE: Final = "span" + _cls("Filters-module_amountActive")
 
