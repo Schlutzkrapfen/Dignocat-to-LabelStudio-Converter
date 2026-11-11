@@ -342,15 +342,17 @@ async def go_to_upload_patient_report(user_id: int,max_retries:int=20)-> int:
 
     await page.reload()
     await page.wait_for_timeout(500)
+    print("the start works right")
 
     try:
         if page.url.rstrip("/") != Url.PATIENTS.rstrip("/"):
-                               print("Opening data page...")
-                               _website = await page.goto(
-                               Url.PATIENTS,
-                               wait_until="domcontentloaded",
-                               timeout=10000,
-                               )
+            print("Opening data page...")
+            _website = await page.goto(
+            Url.PATIENTS,
+            wait_until="domcontentloaded",
+            timeout=10000,
+            )
+            Session.page = page
 
         row_selector =  Sel.PATIENT_ROW
 
@@ -365,6 +367,11 @@ async def go_to_upload_patient_report(user_id: int,max_retries:int=20)-> int:
 
     # Scroll until we have enough rows loaded to reach user_id
     # Wait for the next page
+    print("I was here")
+    stale_scrolls = 0
+    before = 0
+
+
     while True:
             rows = await page.query_selector_all(row_selector)
 
@@ -373,6 +380,14 @@ async def go_to_upload_patient_report(user_id: int,max_retries:int=20)-> int:
 
             # Not enough rows yet — scroll down to load more
             await rows[-1].scroll_into_view_if_needed()
+            if len(rows) == before:
+                stale_scrolls += 1
+                if stale_scrolls >= 10:
+                    return await go_to_upload_patient_report(0, max_retries-1)
+                    break
+            else:
+                stale_scrolls = 0
+            before = len(rows)
 
 
     try:
@@ -393,6 +408,7 @@ async def go_to_upload_patient_report(user_id: int,max_retries:int=20)-> int:
 
         retries = 0
         try:
+            print("HELLO")
             await page.goto(patient_url, wait_until="commit", timeout=60000)
             await page.wait_for_timeout(1500)
         except PlaywrightTimeoutError as e:
@@ -405,12 +421,11 @@ async def go_to_upload_patient_report(user_id: int,max_retries:int=20)-> int:
 
         if await check_preview_image(page):
             print("Something is wrong: the picture is already there")
-            return await go_to_upload_patient_report(user_id+1,max_retries)
+            return await go_to_upload_patient_report(user_id+1,max_retries-1)
 
 
 
     except IndexError as e:
         print(f"User_id: {user_id} the picture wasn't there: {e} ")
-        await page.close()
         return await go_to_upload_patient_report(0,max_retries)
     return user_id
