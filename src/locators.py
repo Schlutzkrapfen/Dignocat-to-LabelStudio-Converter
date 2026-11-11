@@ -27,6 +27,8 @@ class Sel:
     CONDITION_TITLE: Final = "div" + _cls("ConditionTitle-module_container")
     CONDITION_BUTTON: Final = "button" + _cls("ConditionButton-module_container")
     MASK_FILTER_BUTTON: Final = "button" + _cls("MaskFilterButton-module_container")
+    IMAGE_BUTTON: Final = "div" + _cls("ReportCardLayout-module_container_tPN-J")
+
 
     # locators.py, inside class Sel
     PATIENT_NAME: Final = "h1" + _cls("PatientPersonalInfo-module_patientName")

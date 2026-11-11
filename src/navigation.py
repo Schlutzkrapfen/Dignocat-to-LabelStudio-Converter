@@ -173,6 +173,20 @@ async def get_patient_amount(tries_unitl_retry: int = 3) -> int:
                 await page.wait_for_timeout(poll_interval)
 
             return previous_count
+async def open_tooth_page(new_page: Page|None = None):
+    if new_page is None:
+        new_page = Session.page
+
+    if new_page is None:
+        raise ValueError("Page is None")
+    _div = await new_page.wait_for_selector(Sel.IMAGE_BUTTON)
+
+    button = await new_page.query_selector(Sel.IMAGE_BUTTON)
+    if button is None:
+        print("couldn't find button")
+        raise ValueError("Button Isn't here")
+    await button.click()
+
 async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries:int=20,locked:bool=False)-> tuple[Page, dict[str,str]]:
                 """Navigates to a specific patient's report page.
 
@@ -237,6 +251,8 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
                 # Wait for the next page
                 Session.user_page = await context.new_page()
                 new_page = Session.user_page
+                if new_page is None:
+                    raise ValueError("new_page is null")
                 try:
                     while True:
                            rows = await page.query_selector_all(row_selector)
@@ -280,13 +296,8 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
 
                     print(f"Now on: {page.url}")
                     info = await get_patient_information()
-                    _div = await new_page.wait_for_selector("div.ReportCardLayout-module_container_tPN-J")
+                    await open_tooth_page(new_page)
 
-                    button = await new_page.query_selector("div.ReportCardLayout-module_container_tPN-J")
-                    if button is None:
-                        print("couldn't find button")
-                        raise ValueError("Button Isn't here")
-                    await button.click()
                 except ValueError as e:
                     print(f"User_id: {user_id} the picture wasn't there: {e} ")
                      #await new_page.close()
@@ -379,10 +390,21 @@ async def go_to_upload_patient_report(user_id: int,max_retries:int=20)-> int:
         patient_id = row_data["children"][0]["props"]["children"]["props"]["row"]["original"]["ID"]
         patient_url = f"https://app.diagnocat.eu/patients/{patient_id}"
 
-        await page.goto(patient_url, wait_until="domcontentloaded", timeout=10000)
-        await page.wait_for_timeout(500)
+
+        retries = 0
+        try:
+            await page.goto(patient_url, wait_until="commit", timeout=60000)
+            await page.wait_for_timeout(1500)
+        except PlaywrightTimeoutError as e:
+            retries += 1
+            print(f"Patient page timeout for {patient_url} ({retries}/{max_retries}): {e}")
+
+            if retries > max_retries:
+                raise OSError(f"Can't open {patient_url}")
+            return await go_to_upload_patient_report(user_id,max_retries)
+
         if await check_preview_image(page):
-            print("Something is wrong: the picute is already there")
+            print("Something is wrong: the picture is already there")
             return await go_to_upload_patient_report(user_id+1,max_retries)
 
 

@@ -4,7 +4,7 @@ from pathlib import Path
 import shutil
 
 from json_maker import get_task
-from navigation import  go_to_upload_patient_report
+from navigation import  go_to_upload_patient_report, open_tooth_page
 from session import Session
 from task_item import TaskItem
 
@@ -19,8 +19,11 @@ async def  upload_pitcutres(pictures,patient_amount,label_Data)-> list[TaskItem]
         current_user = await go_to_upload_patient_report(0)
       #  await upload_patient_picture(picture,current_user)
       #  move_picture(picture, OUTPUT_DIR)
+        await open_tooth_page()
+
         tasks.append( await get_task(label_Data,patient_amount+i,info))
     return tasks
+
 
 async def click_new_patient_button():
     """Navigates to the patients page and clicks the 'New Patient' button.
