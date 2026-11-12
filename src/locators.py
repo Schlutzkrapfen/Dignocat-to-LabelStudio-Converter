@@ -1,5 +1,6 @@
 # locators.py
 from typing import Final
+import re
 
 
 def _cls(prefix: str) -> str:
@@ -52,6 +53,8 @@ class Sel:
 class Url:
     SIGN_IN: Final = "https://app.diagnocat.eu/sign-in"
     PATIENTS: Final = "https://app.diagnocat.eu/patients"
+    PATIENT_URL = re.compile(r"^https://app\.diagnocat\.eu/patients/[^/]+/?$")
+    PANO_URL = re.compile(r"^https://app\.diagnocat\.eu/patients/[^/]+/reports/[^/]+/pano/?$")
 
     @staticmethod
     def patient(patient_id: str) -> str:

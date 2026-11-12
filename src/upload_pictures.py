@@ -12,16 +12,23 @@ from task_item import TaskItem
 OUTPUT_DIR = Path("./used_pictures")
 async def  upload_pitcutres(pictures,patient_amount,label_Data,context)-> list[TaskItem]:
     tasks = []
+    if len(pictures) == 0:
+        raise FileNotFoundError(f"no file in folder {len(pictures)}")
     for i, picture in enumerate(pictures):
-        await click_new_patient_button()
-        info = get_info(picture)
-        await add_patient(info["first_name"], info["last_name"], info["birthday"], info["sex"], external_id=str(patient_amount+i))
-        pateient_info = await go_to_patient(context, 0,"upload")
-        await upload_patient_picture(picture,pateient_info.user_id)
-      #  move_picture(picture, OUTPUT_DIR)
-        await open_tooth_page()
+        #await click_new_patient_button()
+        #info = get_info(picture)
+        #await add_patient(info["first_name"], info["last_name"], info["birthday"], info["sex"], external_id=str(patient_amount+i+1))
+        pateient_info = await go_to_patient(context, 0,"test")
+        #await upload_patient_picture(picture,pateient_info.user_id)
+        await open_tooth_page(pateient_info.page)
 
-        tasks.append( await get_task(label_Data,patient_amount+i,info))
+        Session.user_page = Session.page
+        if pateient_info.info is None:
+            print("couldn find patient info")
+            continue
+
+        tasks.append( await get_task(label_Data,patient_amount+i,pateient_info.info))
+        move_picture(picture, OUTPUT_DIR)
     return tasks
 
 
@@ -163,7 +170,7 @@ async def add_patient(
         submit_btn = page.locator('button[form="patient-form"][type="submit"]')
 
 
-        #await submit_btn.click()
+        await submit_btn.click()
         print(f"Patient '{first_name} {last_name}' submitted")
 
 async def upload_patient_picture(picture_dir:Path,curren_user:int):

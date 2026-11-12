@@ -5,7 +5,6 @@ import logging
 from pathlib import Path
 import sys
 from typing import cast
-from typing_extensions import Type
 
 from playwright.async_api import BrowserContext, Page, async_playwright
 
@@ -170,7 +169,7 @@ async def main():
                     task.extend(await process_page_task(i, page_amount, context, output_dir, label_Data))
             except TypeError:
                 print(input)
-                task.extend(await upload_pitcutres(input,page_amount,label_Data))
+                task.extend(await upload_pitcutres(input,page_amount,label_Data,context))
         finally:
             task_dic: dict[str, list[TaskItem]] = {}
             try:

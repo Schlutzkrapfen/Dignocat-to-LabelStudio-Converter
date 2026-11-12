@@ -180,21 +180,28 @@ async def get_patient_amount(tries_unitl_retry: int = 3) -> int:
                 await page.wait_for_timeout(poll_interval)
 
             return previous_count
-async def open_tooth_page(new_page: Page|None = None):
+async def open_tooth_page(new_page: Page | None = None, retries: int = 3):
     if new_page is None:
         new_page = Session.page
-
     if new_page is None:
         raise ValueError("Page is None")
-    _div = await new_page.wait_for_selector(Sel.IMAGE_BUTTON)
 
-    button = await new_page.query_selector(Sel.IMAGE_BUTTON)
-    if button is None:
-        print("couldn't find button")
-        raise ValueError("Button Isn't here")
-    await button.click()
+    # Precondition: we should be on the patient page
+    if not Url.PATIENT_URL.match(new_page.url):
+        raise ValueError(f"Unexpected starting URL: {new_page.url}")
 
-
+    for attempt in range(1, retries + 1):
+        try:
+            button = await new_page.wait_for_selector(Sel.IMAGE_BUTTON, timeout=10_000)
+            await button.click()
+            # Postcondition: we landed on the pano report page
+            await new_page.wait_for_url(Url.PANO_URL, timeout=15_000)
+            return
+        except PlaywrightTimeoutError as e:
+            print(f"Attempt {attempt}/{retries} failed: {e}")
+            if attempt == retries:
+                raise
+            await new_page.reload()
 
 
 
@@ -257,7 +264,7 @@ async def _get_patient_id(page: Page, user_id: int) -> str | int:
 async def go_to_patient(
     context: BrowserContext,
     user_id: int,
-    mode: Literal["report", "upload"] = "report",
+    mode: Literal["report", "upload","test"] = "report",
     max_retries: int = 20,
 ) -> PatientResult:
     """Opens a patient's page by row index in the patients table.
@@ -282,6 +289,7 @@ async def go_to_patient(
                 information, opens the tooth page, and removes the overlay.
             "upload": Opens the patient in the existing page and skips
                 patients that already have a preview image.
+            "test": just opens one of the images
         max_retries: Max retry attempts on page load/timeout errors.
             Defaults to 20.
 
@@ -321,8 +329,16 @@ async def go_to_patient(
                     print(f"skip user_id={user_id}: picture already there")
                     user_id += 1
                     continue
+                info = await get_patient_information()
 
-                return PatientResult(user_id, page)
+                return PatientResult(user_id, page,info)
+            if mode == "test":
+                new_page = Session.user_page = await context.new_page()
+                await new_page.goto(patient_url, wait_until="commit", timeout=60000)
+                await new_page.wait_for_timeout(1500)
+                info = await get_patient_information()
+                return PatientResult(user_id, new_page,info)
+
 
             # ---------- report mode ----------
             new_page = Session.user_page = await context.new_page()
