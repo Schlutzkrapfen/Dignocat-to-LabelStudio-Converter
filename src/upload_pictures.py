@@ -4,20 +4,20 @@ from pathlib import Path
 import shutil
 
 from json_maker import get_task
-from navigation import  go_to_upload_patient_report, open_tooth_page
+from navigation import  go_to_patient, open_tooth_page
 from session import Session
 from task_item import TaskItem
 
 
 OUTPUT_DIR = Path("./used_pictures")
-async def  upload_pitcutres(pictures,patient_amount,label_Data)-> list[TaskItem]:
+async def  upload_pitcutres(pictures,patient_amount,label_Data,context)-> list[TaskItem]:
     tasks = []
     for i, picture in enumerate(pictures):
         await click_new_patient_button()
         info = get_info(picture)
         await add_patient(info["first_name"], info["last_name"], info["birthday"], info["sex"], external_id=str(patient_amount+i))
-        current_user = await go_to_upload_patient_report(0)
-      #  await upload_patient_picture(picture,current_user)
+        pateient_info = await go_to_patient(context, 0,"upload")
+        await upload_patient_picture(picture,pateient_info.user_id)
       #  move_picture(picture, OUTPUT_DIR)
         await open_tooth_page()
 

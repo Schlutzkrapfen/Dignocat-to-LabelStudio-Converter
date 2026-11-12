@@ -2,11 +2,13 @@ import asyncio
 import json
 from pathlib import Path
 
+from typing import Literal
 
 from controll import check_preview_image, find_duplaceted_info, find_duplicates_of
 from get_info import get_patient_information
 from helper_functions import make_path
 from locators import Sel, Url
+from patient_result import PatientResult
 from screenshots import deactivated_show_buttons, get_refrence_image
 from session import Session, ensure_page, remove_overlay
 import time
@@ -64,7 +66,11 @@ async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:
         try:
             if Session.user_page is not None:
                 await Session.user_page.close()
-            Session.user_page, info = await go_to_patient_report(context, user)
+            result  = await go_to_patient(context, user)
+            Session.user_page = result.page
+            if result.info is None:
+                raise ValueError ("info is None")
+            info = result.info
         except OSError as e:
             print(e)
             raise OSError(e)
@@ -188,205 +194,183 @@ async def open_tooth_page(new_page: Page|None = None):
         raise ValueError("Button Isn't here")
     await button.click()
 
-async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries:int=20,locked:bool=False)-> tuple[Page, dict[str,str]]:
-                """Navigates to a specific patient's report page.
-
-                 Opens the patients list page (or reloads if `locked`), scrolls the
-                 infinite-scroll table until `user_id`'s row loads, opens that patient
-                 in a new page, and opens their report card. Retries recursively on
-                 failure: page/row timeouts reload and retry (decrementing
-                 `max_retries`); an out-of-range `user_id` restarts from 0; unresolved
-                 row data restarts from 0; a missing report card retries with
-                 `user_id + 1`; a report-card timeout reloads and retries from 0.
-
-                 Args:
-                     context: Browser context used to open the new patient page.
-                     user_id: Index of the patient row to open in the table.
-                     max_retries: Max retry attempts on page load/timeout errors.
-                         Defaults to 20.
-                     locked: If True, forces a reload of the patients page. Defaults
-                         to False.
-
-                 Returns:
-                     Page: The new page, navigated to the patient's report.
-
-                 Raises:
-                     OSError: If the patients page/row can't be found after exhausting
-                         `max_retries`.
-                     ValueError: If the report card can't be loaded after exhausting
-                         `max_retries`.
-
-                 """
-                page = Session.page
-                try:
-                    if page.url.rstrip("/") != Url.PATIENTS.rstrip("/") or locked == True:
-                        print("Opening data page...")
-                        _website = await page.goto(
-                        Url.PATIENTS,
-                        wait_until="domcontentloaded",
-                        timeout=10000,
-                        )
-                    max_patiens = await get_patient_amount()
-                    if user_id >= max_patiens:
-                               print("User ID exceeds patient amount, starting from the first patient")
-                               return await go_to_patient_report(context,0, max_retries, True)
-
-                    row_selector =  Sel.PATIENT_ROW
-
-                    _body = await page.wait_for_selector("body", timeout=15000)
-                    _row = await page.wait_for_selector(row_selector, timeout=15000)
-                except (PlaywrightTimeoutError, PlaywrightError) as e:
-                    print(f"URL: {Session.page.url if not Session.page.is_closed() else 'Closed'}")
-                    if not Session.page.is_closed():
-                            await Session.page.screenshot(path=f"fail_{int(time.time())}.png")
-
-                    print(f"couldn't find body/row,skipping page: {e}")
-                    await ensure_page(context)
 
 
-                    if max_retries <= 0:
-                         raise OSError("Could not load the patients page after all retries")
-                    return await go_to_patient_report(context,user_id ,max_retries -1, True)
-
-                # Scroll until we have enough rows loaded to reach user_id
-                # Wait for the next page
-                Session.user_page = await context.new_page()
-                new_page = Session.user_page
-                if new_page is None:
-                    raise ValueError("new_page is null")
-                try:
-                    while True:
-                           rows = await page.query_selector_all(row_selector)
-
-                           if len(rows) > user_id:
-                               break  # We have enough rows, stop scrolling
-
-                           # Not enough rows yet — scroll down to load more
-                           await rows[-1].scroll_into_view_if_needed()
 
 
-                    try:
-                       # await rows[user_id].click()
-                        row_data_json = await rows[user_id].evaluate("""
-                        el => {
-                            const key = Object.keys(el).find(k => k.startsWith('__reactProps$'));
-                            if (!key) return null;
-                            const props = el[key];
-                            return JSON.stringify(props, (k, v) => typeof v === 'function' ? undefined : v);
-                        }
-                        """)
+async def load_patients_list(page: Page, force_reload: bool = False) -> None:
+    """Opens the patients list page and waits for the first row to be visible.
 
-                        import json
-                        row_data = json.loads(row_data_json)
-                        patient_id = row_data["children"][0]["props"]["children"]["props"]["row"]["original"]["ID"]
-                        patient_url = f"{Url.PATIENTS}/{patient_id}"
+    If the page is already on the patients list, it is reused unless
+    `force_reload` is True.
 
-                        await Session.user_page.goto(patient_url, wait_until="domcontentloaded", timeout=10000)
+    Args:
+        page: Page to navigate.
+        force_reload: If True, reloads the page even when already on the list.
 
-                        # ... do your work on new_page ...
-
-                       # #await new_page.close()
-
-                    except IndexError as e:
-                        print(f"User_id: {user_id} the picture wasn't there: {e} ")
-                        await new_page.close()
-                        return await go_to_patient_report(context, user_id + 1, max_retries)
-
-
-                    print("Clicked first patient row")
-
-                    print(f"Now on: {page.url}")
-                    info = await get_patient_information()
-                    await open_tooth_page(new_page)
-
-                except ValueError as e:
-                    print(f"User_id: {user_id} the picture wasn't there: {e} ")
-                     #await new_page.close()
-                    # TODO: find a more efficent way to go true the loop if it failed
-                    await new_page.close()
-                    return await go_to_patient_report(context, user_id + 1,max_retries )
-
-                except PlaywrightTimeoutError as e:
-                    print(f"Something went wrong, skipping: {e}")
-                    if max_retries <= 0:
-                        raise ValueError("Max retries exceeded")
-                    await new_page.close()
-                    return await go_to_patient_report(context, user_id + 1, max_retries - 1, True)
-
-
-                await remove_overlay(new_page)
-                print(f"Now on: {new_page.url}")
-                return new_page, info
-
-
-async def load_patients_list(page: Page) -> None:
-    if page.url.rstrip("/") != Url.PATIENTS.rstrip("/"):
+    Raises:
+        PlaywrightTimeoutError: If navigation or the first row times out.
+    """
+    on_list = page.url.rstrip("/") == Url.PATIENTS.rstrip("/")
+    if not on_list:
         await page.goto(Url.PATIENTS, wait_until="domcontentloaded", timeout=15000)
-    else:
+    elif force_reload:
         await page.reload(wait_until="domcontentloaded")
     await page.locator(Sel.PATIENT_ROW).first.wait_for(state="visible", timeout=15000)
 
-async def go_to_upload_patient_report(user_id: int,max_retries:int=20)-> int:
-    """Opens a patient's page by row index in the patients table.
 
-        Reloads the patients list, scrolls the infinite-scroll table until
-        the row at `user_id` is loaded, extracts that patient's ID from the
-        row's React props, and navigates to their patient page.
+async def _get_patient_id(page: Page, user_id: int) -> str | int:
+    """Scrolls the infinite-scroll table to the given row and returns its patient ID.
 
-        Retries recursively on failure: a timeout waiting for the page/table
-        reloads and retries with `max_retries` decremented; a preview image
-        already present, or a missing row (`IndexError`), restarts from
-        `user_id + 1` or `0` respectively.
+    Keeps scrolling the last loaded row into view until the row at `user_id`
+    exists. The ID is read from the row's React props.
 
-        Args:
-            user_id: Index of the patient row to open in the table.
-            max_retries: Max retry attempts on page load/timeout errors.
-                Defaults to 20.
+    Args:
+        page: Page showing the patients list.
+        user_id: Index of the patient row.
 
-        Raises:
-            OSError: If the patients page/row can't be loaded after
-                exhausting `max_retries`.
-        """
-    page: Page = Session.page
+    Returns:
+        The patient ID stored in the row's data.
 
+    Raises:
+        IndexError: If scrolling stops loading new rows before `user_id` is
+            reached (i.e. `user_id` is past the end of the table).
+    """
     rows = page.locator(Sel.PATIENT_ROW)
-    errors = 0
+    before, stale = 0, 0
 
     while True:
+        count = await rows.count()
+        if count > user_id:
+            break
+        await rows.nth(count - 1).scroll_into_view_if_needed(timeout=5000)
+        await page.wait_for_timeout(500)  # Wait for new rows to load
+        stale = stale + 1 if count == before else 0
+        if stale >= 10:
+            raise IndexError(f"row {user_id} not found (only {count} rows)")
+        before = count
+
+    row_json = await rows.nth(user_id).evaluate(Sel.GET_PROPS_JS, timeout=10000)
+    return json.loads(row_json)["children"][0]["props"]["children"]["props"]["row"]["original"]["ID"]
+
+
+async def go_to_patient(
+    context: BrowserContext,
+    user_id: int,
+    mode: Literal["report", "upload"] = "report",
+    max_retries: int = 20,
+) -> PatientResult:
+    """Opens a patient's page by row index in the patients table.
+
+    Loads the patients list, scrolls the infinite-scroll table until the row at
+    `user_id` is loaded, reads the patient ID from the row's React props, and
+    navigates to that patient. Failures are handled in a retry loop:
+
+    - Row not found (`IndexError`): restart from `user_id = 0`.
+    - Report card missing (`ValueError`, report mode): move on to `user_id + 1`
+      without consuming a retry.
+    - Page/row timeouts and other Playwright errors: take a screenshot,
+      recover the page, reload the list, and consume one retry. In report
+      mode, a timeout also moves on to `user_id + 1`.
+    - `user_id` beyond the patient count: restart from 0.
+
+    Args:
+        context: Browser context used to open a new page (report mode).
+        user_id: Index of the patient row to open.
+        mode: Behavior to use.
+            "report": Opens the patient in a new page, fetches patient
+                information, opens the tooth page, and removes the overlay.
+            "upload": Opens the patient in the existing page and skips
+                patients that already have a preview image.
+        max_retries: Max retry attempts on page load/timeout errors.
+            Defaults to 20.
+
+    Returns:
+        PatientResult containing the row index actually opened, the patient
+        page, and (in report mode) the patient information.
+
+    Raises:
+        OSError: If the patients page/row can't be loaded after exhausting
+            `max_retries`.
+    """
+    errors = 0
+    force_reload = False
+
+    while True:
+        new_page: Page | None = None
         try:
-            await load_patients_list(page)
+            # Re-read each loop: ensure_page() may replace Session.page
+            page: Page = Session.page
+            await load_patients_list(page, force_reload=force_reload or mode == "upload")
+            force_reload = False
 
-            stale = 0
-            before = 0
-            while True:
-                count = await rows.count()
-                print(f"before:{before}, count:{count}")
-                if count > user_id:
-                    break
-                await rows.nth(count - 1).scroll_into_view_if_needed(timeout=5000)
-                await page.wait_for_timeout(500)   # 読み込み待ち
-                stale = stale + 1 if count == before else 0
-                if stale >= 10:
-                    raise OSError("scroll is stale")
-                before = count
+            # Wrap around if the index is out of range
+            if user_id >= await get_patient_amount():
+                print("User ID exceeds patient amount, starting from the first patient")
+                user_id = 0
 
-            row_json = await rows.nth(user_id).evaluate(Sel.GET_PROPS_JS, timeout=10000)
-            patient_id = json.loads(row_json)["children"][0]["props"]["children"]["props"]["row"]["original"]["ID"]
+            patient_id = await _get_patient_id(page, user_id)
             patient_url = f"{Url.PATIENTS}/{patient_id}"
 
-            await page.goto(patient_url, wait_until="commit", timeout=60000)
-            await page.wait_for_timeout(1500)
+            # ---------- upload mode ----------
+            if mode == "upload":
+                await page.goto(patient_url, wait_until="commit", timeout=60000)
+                await page.wait_for_timeout(1500)
 
-            if await check_preview_image(page):
-                print(f"skip user_id={user_id}: picture already there")
-                user_id += 1
-                continue
+                if await check_preview_image(page):
+                    print(f"skip user_id={user_id}: picture already there")
+                    user_id += 1
+                    continue
 
-            return user_id
+                return PatientResult(user_id, page)
+
+            # ---------- report mode ----------
+            new_page = Session.user_page = await context.new_page()
+            await new_page.goto(patient_url, wait_until="domcontentloaded", timeout=10000)
+
+            info = await get_patient_information()
+            await open_tooth_page(new_page)  # Raises ValueError if no report card
+            await remove_overlay(new_page)
+            print(f"Now on: {new_page.url}")
+            return PatientResult(user_id, new_page, info)
+
+        except IndexError as e:
+            # Row doesn't exist: we ran past the end, so start over from 0
+            print(f"user_id={user_id}: {e}. Restarting from 0")
+            await _close_quietly(new_page)
+            user_id = 0
+            force_reload = True
+
+        except ValueError as e:
+            # No report card: move on to the next patient (no retry consumed)
+            print(f"user_id={user_id}: report card missing: {e}")
+            await _close_quietly(new_page)
+            user_id += 1
 
         except (PlaywrightTimeoutError, PlaywrightError, KeyError, TypeError) as e:
             errors += 1
             print(f"error {errors}/{max_retries}: {type(e).__name__}: {e}")
-            page.reload()
+            await _close_quietly(new_page)
+
+            if not Session.page.is_closed():
+                await Session.page.screenshot(path=f"fail_{int(time.time())}.png")
+            await ensure_page(context)
+
             if errors > max_retries:
                 raise OSError("Can't load patients page/row") from e
+            force_reload = True
+            if mode == "report" and isinstance(e, PlaywrightTimeoutError):
+                user_id += 1  # Original behavior: skip to the next patient on timeout
+
+
+async def _close_quietly(page: Page | None) -> None:
+    """Closes a page if it exists and is still open, ignoring Playwright errors.
+
+    Args:
+        page: Page to close, or None (no-op).
+    """
+    if page is not None and not page.is_closed():
+        try:
+            await page.close()
+        except PlaywrightError:
+            pass
