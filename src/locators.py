@@ -28,7 +28,13 @@ class Sel:
     CONDITION_BUTTON: Final = "button" + _cls("ConditionButton-module_container")
     MASK_FILTER_BUTTON: Final = "button" + _cls("MaskFilterButton-module_container")
     IMAGE_BUTTON: Final = "div" + _cls("ReportCardLayout-module_container_tPN-J")
-
+    GET_PROPS_JS = """
+                    el => {
+        const key = Object.keys(el).find(k => k.startsWith('__reactProps$'));
+        if (!key) return null;
+        return JSON.stringify(el[key], (k, v) => typeof v === 'function' ? undefined : v);
+                    }
+                    """
 
     # locators.py, inside class Sel
     PATIENT_NAME: Final = "h1" + _cls("PatientPersonalInfo-module_patientName")

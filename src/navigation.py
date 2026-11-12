@@ -1,4 +1,5 @@
 import asyncio
+import json
 from pathlib import Path
 
 
@@ -317,6 +318,14 @@ async def go_to_patient_report(context: BrowserContext, user_id: int,max_retries
                 print(f"Now on: {new_page.url}")
                 return new_page, info
 
+
+async def load_patients_list(page: Page) -> None:
+    if page.url.rstrip("/") != Url.PATIENTS.rstrip("/"):
+        await page.goto(Url.PATIENTS, wait_until="domcontentloaded", timeout=15000)
+    else:
+        await page.reload(wait_until="domcontentloaded")
+    await page.locator(Sel.PATIENT_ROW).first.wait_for(state="visible", timeout=15000)
+
 async def go_to_upload_patient_report(user_id: int,max_retries:int=20)-> int:
     """Opens a patient's page by row index in the patients table.
 
@@ -338,94 +347,46 @@ async def go_to_upload_patient_report(user_id: int,max_retries:int=20)-> int:
             OSError: If the patients page/row can't be loaded after
                 exhausting `max_retries`.
         """
-    page = Session.page
+    page: Page = Session.page
 
-    await page.reload()
-    await page.wait_for_timeout(500)
-    print("the start works right")
-
-    try:
-        if page.url.rstrip("/") != Url.PATIENTS.rstrip("/"):
-            print("Opening data page...")
-            _website = await page.goto(
-            Url.PATIENTS,
-            wait_until="domcontentloaded",
-            timeout=10000,
-            )
-            Session.page = page
-
-        row_selector =  Sel.PATIENT_ROW
-
-        _body = await page.wait_for_selector("body", timeout=15000)
-        _row = await page.wait_for_selector(row_selector, timeout=15000)
-    except (TimeoutError, PlaywrightTimeoutError) as e:
-        print(f"couldn't find body/row,skipping page: {e}")
-        if max_retries <= 0:
-            raise OSError("Window is closed or can't be seen")
-        return await go_to_upload_patient_report(user_id ,max_retries -1)
-
-
-    # Scroll until we have enough rows loaded to reach user_id
-    # Wait for the next page
-    print("I was here")
-    stale_scrolls = 0
-    before = 0
-
+    rows = page.locator(Sel.PATIENT_ROW)
+    errors = 0
 
     while True:
-            rows = await page.query_selector_all(row_selector)
-
-            if len(rows) > user_id:
-                break  # We have enough rows, stop scrolling
-
-            # Not enough rows yet — scroll down to load more
-            await rows[-1].scroll_into_view_if_needed()
-            if len(rows) == before:
-                stale_scrolls += 1
-                if stale_scrolls >= 10:
-                    return await go_to_upload_patient_report(0, max_retries-1)
-                    break
-            else:
-                stale_scrolls = 0
-            before = len(rows)
-
-
-    try:
-        # await rows[user_id].click()
-        row_data_json = await rows[user_id].evaluate("""
-        el => {
-            const key = Object.keys(el).find(k => k.startsWith('__reactProps$'));
-            if (!key) return null;
-            const props = el[key];
-            return JSON.stringify(props, (k, v) => typeof v === 'function' ? undefined : v);
-        }
-        """)
-        import json
-        row_data = json.loads(row_data_json)
-        patient_id = row_data["children"][0]["props"]["children"]["props"]["row"]["original"]["ID"]
-        patient_url = f"https://app.diagnocat.eu/patients/{patient_id}"
-
-
-        retries = 0
         try:
-            print("HELLO")
+            await load_patients_list(page)
+
+            stale = 0
+            before = 0
+            while True:
+                count = await rows.count()
+                print(f"before:{before}, count:{count}")
+                if count > user_id:
+                    break
+                await rows.nth(count - 1).scroll_into_view_if_needed(timeout=5000)
+                await page.wait_for_timeout(500)   # 読み込み待ち
+                stale = stale + 1 if count == before else 0
+                if stale >= 10:
+                    raise OSError("scroll is stale")
+                before = count
+
+            row_json = await rows.nth(user_id).evaluate(Sel.GET_PROPS_JS, timeout=10000)
+            patient_id = json.loads(row_json)["children"][0]["props"]["children"]["props"]["row"]["original"]["ID"]
+            patient_url = f"{Url.PATIENTS}/{patient_id}"
+
             await page.goto(patient_url, wait_until="commit", timeout=60000)
             await page.wait_for_timeout(1500)
-        except PlaywrightTimeoutError as e:
-            retries += 1
-            print(f"Patient page timeout for {patient_url} ({retries}/{max_retries}): {e}")
 
-            if retries > max_retries:
-                raise OSError(f"Can't open {patient_url}")
-            return await go_to_upload_patient_report(user_id,max_retries)
+            if await check_preview_image(page):
+                print(f"skip user_id={user_id}: picture already there")
+                user_id += 1
+                continue
 
-        if await check_preview_image(page):
-            print("Something is wrong: the picture is already there")
-            return await go_to_upload_patient_report(user_id+1,max_retries-1)
+            return user_id
 
-
-
-    except IndexError as e:
-        print(f"User_id: {user_id} the picture wasn't there: {e} ")
-        return await go_to_upload_patient_report(0,max_retries)
-    return user_id
+        except (PlaywrightTimeoutError, PlaywrightError, KeyError, TypeError) as e:
+            errors += 1
+            print(f"error {errors}/{max_retries}: {type(e).__name__}: {e}")
+            page.reload()
+            if errors > max_retries:
+                raise OSError("Can't load patients page/row") from e
