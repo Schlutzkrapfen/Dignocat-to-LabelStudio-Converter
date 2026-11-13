@@ -1,5 +1,6 @@
 # locators.py
 from typing import Final
+import re
 
 
 def _cls(prefix: str) -> str:
@@ -17,7 +18,7 @@ def _cls(prefix: str) -> str:
 
 
 class Sel:
-    # Patient list
+# Patient list"tr.TableWithInfiniteScroll-module_tableRow_7Ru4e"
     PATIENT_ROW: Final = "tr" + _cls("TableWithInfiniteScroll-module_tableRow")
     PATIENT_COUNT_BADGE: Final = "span" + _cls("Filters-module_amountActive")
 
@@ -27,6 +28,14 @@ class Sel:
     CONDITION_TITLE: Final = "div" + _cls("ConditionTitle-module_container")
     CONDITION_BUTTON: Final = "button" + _cls("ConditionButton-module_container")
     MASK_FILTER_BUTTON: Final = "button" + _cls("MaskFilterButton-module_container")
+    IMAGE_BUTTON: Final = "div" + _cls("ReportCardLayout-module_container_tPN-J")
+    GET_PROPS_JS = """
+                    el => {
+        const key = Object.keys(el).find(k => k.startsWith('__reactProps$'));
+        if (!key) return null;
+        return JSON.stringify(el[key], (k, v) => typeof v === 'function' ? undefined : v);
+                    }
+                    """
 
     # locators.py, inside class Sel
     PATIENT_NAME: Final = "h1" + _cls("PatientPersonalInfo-module_patientName")
@@ -44,6 +53,8 @@ class Sel:
 class Url:
     SIGN_IN: Final = "https://app.diagnocat.eu/sign-in"
     PATIENTS: Final = "https://app.diagnocat.eu/patients"
+    PATIENT_URL = re.compile(r"^https://app\.diagnocat\.eu/patients/[^/]+/?$")
+    PANO_URL = re.compile(r"^https://app\.diagnocat\.eu/patients/[^/]+/reports/[^/]+/pano/?$")
 
     @staticmethod
     def patient(patient_id: str) -> str:

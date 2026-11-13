@@ -11,6 +11,8 @@ from playwright.async_api import BrowserContext, Page, async_playwright
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
+from upload_pictures import upload_pitcutres
+
 from navigation import find_page, get_patient_amount
 from session import login, reset_starting_page
 from add_options import check_task_options
@@ -24,12 +26,13 @@ from task_item import  TaskItem
 logger = logging.getLogger(__name__)
 
 USER_DATA_DIR = "user_data"
+
 screenshot_quality_mulitplayer: float = 4
 refrence_image_path = Path("")
 
 
 
-def parse_id_range(total: int) -> list[int]:
+def parse_id_range(total: int) ->list[Path]  | list[int]:
     """Parse "ids" CLI args into a flipped list of indices.
 
         Accepts: no args (all indices), "N+" (N..end), "N-" (0..N),
@@ -50,7 +53,7 @@ def parse_id_range(total: int) -> list[int]:
 
     if args.u:
         print(f"upload files from {args.u}")
-        return []
+        return list(Path(args.u).iterdir())
 
     raw_ids = cast(list[str], args.ids)
     raw_indices: list[int] = []
@@ -130,12 +133,16 @@ async def process_page_task(i:int, page_amount:int, context, output_dir, label_D
     return task
 
 async def main():
-    """Runs the full pipeline: login, iterate patients, and extract task data.
+    """Run the full pipeline: login, process patients, and export task data.
 
-        Raises:
-            OSError: If a patient's page can't be found/loaded.
-            RecursionError: If the maximum number of retries is exceeded.
-            ValueError: If a patient's page is out of bounds.
+        Depending on the CLI arguments, either iterates over a range of patients
+        in Diagnocat (``process_page_task``) or uploads a local folder and
+        processes the result (``upload_pitcutres``). Collected tasks are grouped
+        by ``check_task_options`` and written to JSON files. Screenshot folders
+        are removed at the end, even if an error occurs.
+
+        Errors raised while grouping tasks (OSError, RecursionError, ValueError)
+        are caught and logged; the raw task list is then dumped to JSON instead.
         """
     output_dir = Path("output")
     os.makedirs(output_dir, exist_ok=True)
@@ -158,8 +165,16 @@ async def main():
             await login(page)
             page_amount = await get_patient_amount()
             print(f"You have {page_amount} patience")
-            for i in parse_id_range(page_amount):
-                task.extend(await process_page_task(i, page_amount, context, output_dir, label_Data))
+            input =parse_id_range(page_amount)
+
+            try:
+                for i in input:
+                    # type: ignore
+                    i = int(i)
+                    task.extend(await process_page_task(i, page_amount, context, output_dir, label_Data))
+            except TypeError:
+                print(input)
+                task.extend(await upload_pitcutres(input,page_amount,label_Data,context))
         finally:
             task_dic: dict[str, list[TaskItem]] = {}
             try:
