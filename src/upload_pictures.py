@@ -196,4 +196,4 @@ async def upload_patient_picture(picture_dir:Path,curren_user:int):
         await upload_patient_picture(picture_dir, curren_user)
         return
     await submit_btn.click()
-    await page.wait_for_timeout(5000)
+    await page.wait_for_timeout(10000)

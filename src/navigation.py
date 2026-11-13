@@ -196,6 +196,7 @@ async def open_tooth_page(new_page: Page | None = None, retries: int = 3):
             await button.click()
             # Postcondition: we landed on the pano report page
             await new_page.wait_for_url(Url.PANO_URL, timeout=15_000)
+            await deactivated_show_buttons()
             return
         except PlaywrightTimeoutError as e:
             print(f"Attempt {attempt}/{retries} failed: {e}")
