@@ -7,10 +7,31 @@ from json_maker import get_task
 from navigation import  go_to_patient, open_tooth_page
 from session import Session
 from task_item import TaskItem
+from playwright.sync_api import sync_playwright
 
 
 OUTPUT_DIR = Path("./used_pictures")
 async def  upload_pitcutres(pictures,patient_amount,label_Data,context)-> list[TaskItem]:
+    """Uploads patient pictures and creates a task for each patient.
+
+        For each picture, creates a new patient from info extracted from the
+        picture, uploads the picture, and builds a task. Processed pictures are
+        moved to OUTPUT_DIR.
+
+        Args:
+            pictures: Paths to the picture files to upload.
+            patient_amount: Number of existing patients. Used as an offset for
+                external IDs and label data indexing.
+            label_Data: Label data used to build each task.
+            context: Browser context used to open the new patient's page.
+
+        Returns:
+            A list of tasks, one per successfully processed picture. Pictures
+            with missing patient info are skipped.
+
+        Raises:
+            FileNotFoundError: If `pictures` is empty.
+        """
     tasks = []
     if len(pictures) == 0:
         raise FileNotFoundError(f"no file in folder {len(pictures)}")
@@ -196,4 +217,5 @@ async def upload_patient_picture(picture_dir:Path,curren_user:int):
         await upload_patient_picture(picture_dir, curren_user)
         return
     await submit_btn.click()
-    await page.wait_for_timeout(10000)
+    # Wait until it hits 100
+    await page.locator('[role="progressbar"][data-value="100"]').wait_for(timeout=300_000)
