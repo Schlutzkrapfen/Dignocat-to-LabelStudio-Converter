@@ -1,5 +1,4 @@
 
-import asyncio
 from pathlib import Path
 import shutil
 
@@ -7,8 +6,8 @@ from json_maker import get_task
 from navigation import  go_to_patient, open_tooth_page
 from session import Session
 from task_item import TaskItem
-from playwright.sync_api import sync_playwright
 
+from playwright.async_api import   TimeoutError as PlaywrightError
 
 OUTPUT_DIR = Path("./used_pictures")
 async def  upload_pitcutres(pictures,patient_amount,label_Data,context)-> list[TaskItem]:
@@ -69,6 +68,25 @@ async def click_new_patient_button():
     print("button clicked")
 
 def refine_info(picture_path: Path)-> tuple[str,str|None,str,str]:
+    """Extract patient details from a picture filename.
+
+        The stem is split by ``-``; if that yields only one or two parts, it is
+        split by ``_`` instead. Supported layouts:
+
+        - ``first-sex-age`` (3 parts, no last name)
+        - ``first-last-sex-age`` (4 parts)
+        - ``first-last-<ignored>-sex-age`` (5 parts)
+
+        Args:
+            picture_path: Path to the picture; only the stem is used.
+
+        Returns:
+            Tuple of ``(first_name, last_name, age, sex)``. ``last_name`` is
+            None for the 3-part layout. Note that age comes before sex.
+
+        Raises:
+            ValueError: If the stem does not split into 3, 4 or 5 parts.
+        """
     parts = picture_path.stem.split("-")
     if len(parts) == 1 or len(parts) == 2:
         parts = picture_path.stem.split("_")
@@ -92,6 +110,22 @@ def refine_info(picture_path: Path)-> tuple[str,str|None,str,str]:
     return first_name,last_name, age, sex
 
 def get_info(picture_path: Path):
+    """Build the patient data dictionary from a picture filename.
+
+        Keys: ``first_name``, ``last_name``, ``sex``, ``age``, ``birthday``.
+
+        - If no last name is in the filename, ``first_name`` is used for it.
+        - ``sex`` is ``"Männlich"`` if the filename says ``"M"``, otherwise
+          ``"Weiblich"``.
+        - ``birthday`` is an approximation: ``11-11-<2026 - age>``.
+
+        Args:
+            picture_path: Path to the picture, parsed by ``refine_info``.
+
+        Returns:
+            Dictionary with the patient details as strings.
+
+        """
     first_name, last_name, age, sex = refine_info(picture_path)
 
     dictionary: dict[str, str] = {}
@@ -210,7 +244,7 @@ async def upload_patient_picture(picture_dir:Path,curren_user:int):
         file_input = page.locator('#upload-study-form input[type="file"]')
         await file_input.set_input_files(picture_dir,timeout= 5000)
         submit_btn = page.locator('button[type="submit"]')
-    except Exception as e:
+    except PlaywrightError as e:
         print(f"Failed to set input files: {e}now opening patient with index {curren_user+1}")
 
         #curren_user =await go_to_upload_patient_report(curren_user+1)

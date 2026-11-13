@@ -6,6 +6,14 @@ from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
 
 def get_all_ids() -> list[str]:
+    """Collect the IDs of all files already saved in the ``output`` folder.
+
+        The ID is expected as the fifth ``_``-separated part of the filename,
+        without the file extension. Files with fewer than five parts are skipped.
+
+        Returns:
+            List of ID strings found in the filenames.
+        """
     ids: list[str] = []
 
     for filename in os.listdir("output"):
@@ -15,7 +23,14 @@ def get_all_ids() -> list[str]:
             ids.append(id[0])
     return ids
 def find_duplaceted_info(info):
-    """Returns true when there is found a id 2 types"""
+    """Returns true when there is found a id 2 types
+    Args:
+          info: Entry data containing an ``"id"`` key.
+
+      Returns:
+          True if ``info["id"]`` matches an ID already present in the
+          ``output`` folder. False if the entry has no ID or the ID is new.
+      """
     if not info.get("id"):
         return False
     ids=  get_all_ids()

@@ -133,12 +133,16 @@ async def process_page_task(i:int, page_amount:int, context, output_dir, label_D
     return task
 
 async def main():
-    """Runs the full pipeline: login, iterate patients, and extract task data.
+    """Run the full pipeline: login, process patients, and export task data.
 
-        Raises:
-            OSError: If a patient's page can't be found/loaded.
-            RecursionError: If the maximum number of retries is exceeded.
-            ValueError: If a patient's page is out of bounds.
+        Depending on the CLI arguments, either iterates over a range of patients
+        in Diagnocat (``process_page_task``) or uploads a local folder and
+        processes the result (``upload_pitcutres``). Collected tasks are grouped
+        by ``check_task_options`` and written to JSON files. Screenshot folders
+        are removed at the end, even if an error occurs.
+
+        Errors raised while grouping tasks (OSError, RecursionError, ValueError)
+        are caught and logged; the raw task list is then dumped to JSON instead.
         """
     output_dir = Path("output")
     os.makedirs(output_dir, exist_ok=True)
@@ -165,6 +169,7 @@ async def main():
 
             try:
                 for i in input:
+                    # type: ignore
                     i = int(i)
                     task.extend(await process_page_task(i, page_amount, context, output_dir, label_Data))
             except TypeError:

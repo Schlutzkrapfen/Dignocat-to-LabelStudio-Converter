@@ -180,7 +180,22 @@ async def get_patient_amount(tries_unitl_retry: int = 3) -> int:
                 await page.wait_for_timeout(poll_interval)
 
             return previous_count
-async def open_tooth_page(new_page: Page | None = None, retries: int = 3):
+async def open_tooth_page(new_page: Page | None = None, retries: int = 5):
+    """Open the pano report page from the current patient page.
+
+        Clicks the image button and waits for the pano report URL. On a timeout
+        the page is reloaded and the attempt repeated, up to ``retries`` times.
+        After a successful navigation, the "show" buttons are deactivated.
+
+        Args:
+            new_page: Page to use. Defaults to ``Session.page``.
+            retries: Maximum number of attempts before giving up.
+
+        Raises:
+            ValueError: If no page is available, or the page is not on a
+                patient URL when the function starts.
+            TimeoutError:(PlaywrightTimeoutError) If the last attempt times out.
+        """
     if new_page is None:
         new_page = Session.page
     if new_page is None:
@@ -216,8 +231,6 @@ async def load_patients_list(page: Page, force_reload: bool = False) -> None:
         page: Page to navigate.
         force_reload: If True, reloads the page even when already on the list.
 
-    Raises:
-        PlaywrightTimeoutError: If navigation or the first row times out.
     """
     on_list = page.url.rstrip("/") == Url.PATIENTS.rstrip("/")
     if not on_list:
@@ -324,6 +337,7 @@ async def go_to_patient(
             # ---------- upload mode ----------
             if mode == "upload":
                 new_page = Session.user_page = await context.new_page()
+                
 
                 await new_page.goto(patient_url, wait_until="commit", timeout=60000)
                 await new_page.wait_for_timeout(1500)
