@@ -67,7 +67,7 @@ async def reset_starting_page(page: Page):
             page: The new page instance (already opened in `main`) that will
                 replace the current global `page`.
                 """
-    await page.close()
+    await Session.page.close()
     Session.page = page
 
 async def ensure_page(context: BrowserContext):

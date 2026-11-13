@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 from upload_pictures import upload_pitcutres
 
 from navigation import find_page, get_patient_amount
-from session import login, reset_starting_page
+from session import Session, login, reset_starting_page
 from add_options import check_task_options
 from json_maker import (
     delete_screenshot_folders,
@@ -125,7 +125,8 @@ async def process_page_task(i:int, page_amount:int, context, output_dir, label_D
         if max_tries <= 0:
             raise RecursionError
 
-        page: Page = await context.new_page()
+
+        page = Session.page
         await reset_starting_page(page)
         return await process_page_task(i, page_amount, context, output_dir, label_Data,max_tries-1)
     task.append(single_task)

@@ -64,8 +64,6 @@ async def find_page(context: BrowserContext, i:int, page_amount:int, output_dir:
 
 
         try:
-            if Session.user_page is not None:
-                await Session.user_page.close()
             result  = await go_to_patient(context, user)
             Session.user_page = result.page
             if result.info is None:
@@ -314,6 +312,7 @@ async def go_to_patient(
     Raises:
         OSError: If the patients page/row can't be loaded after exhausting
             `max_retries`.
+        ValueError: When new page is none (should never happen)
     """
     errors = 0
     force_reload = False
@@ -334,12 +333,15 @@ async def go_to_patient(
             patient_id = await _get_patient_id(page, user_id)
             patient_url = f"{Url.PATIENTS}/{patient_id}"
 
+            try:
+                await _close_quietly(Session.require_user_page())
+            except ValueError:
+                pass
+            new_page = Session.user_page = await context.new_page()
+            if new_page is None:
+                raise ValueError("new_page is none")
             # ---------- upload mode ----------
             if mode == "upload":
-                new_page = Session.user_page = await context.new_page()
-                
-
-                await new_page.goto(patient_url, wait_until="commit", timeout=60000)
                 await new_page.wait_for_timeout(1500)
 
                 if await check_preview_image(new_page):
@@ -350,7 +352,6 @@ async def go_to_patient(
 
                 return PatientResult(user_id, new_page,info)
             if mode == "test":
-                new_page = Session.user_page = await context.new_page()
                 await new_page.goto(patient_url, wait_until="commit", timeout=60000)
                 await new_page.wait_for_timeout(1500)
                 info = await get_patient_information()
@@ -358,7 +359,6 @@ async def go_to_patient(
 
 
             # ---------- report mode ----------
-            new_page = Session.user_page = await context.new_page()
             await new_page.goto(patient_url, wait_until="domcontentloaded", timeout=10000)
 
             info = await get_patient_information()
@@ -383,10 +383,10 @@ async def go_to_patient(
         except (PlaywrightTimeoutError, PlaywrightError, KeyError, TypeError) as e:
             errors += 1
             print(f"error {errors}/{max_retries}: {type(e).__name__}: {e}")
-            await _close_quietly(new_page)
 
             if not Session.page.is_closed():
                 await Session.page.screenshot(path=f"fail_{int(time.time())}.png")
+            await _close_quietly(Session.page)
             await ensure_page(context)
 
             if errors > max_retries:
