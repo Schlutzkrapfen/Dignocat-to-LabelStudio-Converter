@@ -129,6 +129,7 @@ You can optionally pass **ID arguments** to control which items are processed:
 | `N` | Process a single item by index | `python main.py 3` |
 | `N+` | Process from index N to the end | `python main.py 5+` |
 | `A B` | Process a range from index A to B (inclusive) | `python main.py 2 7` |
+| `--u <input_path>` | Upload the given folder to Diagnocat, then process the uploaded items| `python main --u input  ` |
 
 
 A browser window will pop up asking you to Sign In to DiagnoCat.
