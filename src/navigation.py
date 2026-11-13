@@ -322,16 +322,18 @@ async def go_to_patient(
 
             # ---------- upload mode ----------
             if mode == "upload":
-                await page.goto(patient_url, wait_until="commit", timeout=60000)
-                await page.wait_for_timeout(1500)
+                new_page = Session.user_page = await context.new_page()
 
-                if await check_preview_image(page):
+                await new_page.goto(patient_url, wait_until="commit", timeout=60000)
+                await new_page.wait_for_timeout(1500)
+
+                if await check_preview_image(new_page):
                     print(f"skip user_id={user_id}: picture already there")
                     user_id += 1
                     continue
                 info = await get_patient_information()
 
-                return PatientResult(user_id, page,info)
+                return PatientResult(user_id, new_page,info)
             if mode == "test":
                 new_page = Session.user_page = await context.new_page()
                 await new_page.goto(patient_url, wait_until="commit", timeout=60000)

@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from typing import cast
 
+from locators import Sel
 from playwright.async_api import ElementHandle, Error as PlaywrightError, TimeoutError as PlaywrightTimeoutError
 
 from session import Session
@@ -92,6 +93,7 @@ async def get_user_screenshoots( user_id: int) -> list[Path]:
 
     if count == 0 or canvas is None:
         print("No Buttons or Canvas found, lets try again.")
+        await asyncio.sleep(0.5)
 
         return await get_user_screenshoots(user_id)
 
@@ -164,10 +166,10 @@ async def deactivated_show_buttons() :
         Raises:
             TimeoutError: if the selector can't be selected
         """
-        selector = "button.MaskFilterButton-module_container_EFNpE"
-
+        selector = Sel.MASK_FILTER_BUTTON
         try:
             user_page = Session.require_user_page()
+            print(user_page)
             await user_page.wait_for_selector(selector, state="visible")
         except PlaywrightTimeoutError:
             raise PlaywrightTimeoutError("waitforselector didn't work")

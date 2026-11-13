@@ -282,7 +282,7 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,info:d
     id_addition:int = 0
 
     try:
-        refrence_image_path:Path = await get_refrence_image( make_path(user_id, info), not delete_refrence_image)
+        refrence_image_path:Path = await get_refrence_image(make_path(user_id, info), not delete_refrence_image)
     except LookupError as e:
         print(f"Fatal Error:{e}, tries again")
         return await get_task(label_Data,user_id,info)
@@ -292,7 +292,6 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,info:d
         if refrence_image_amount > 0:
             print(f"Warning: found duplicates of {refrence_image_path}")
             await asyncio.to_thread(refrence_image_path.unlink, missing_ok=True)
-
             raise ValueError(f"found duplicates of {refrence_image_path}")
 
     for i, non_conv_label in enumerate(not_conv_labels):

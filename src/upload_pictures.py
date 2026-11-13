@@ -15,19 +15,18 @@ async def  upload_pitcutres(pictures,patient_amount,label_Data,context)-> list[T
     if len(pictures) == 0:
         raise FileNotFoundError(f"no file in folder {len(pictures)}")
     for i, picture in enumerate(pictures):
-        #await click_new_patient_button()
-        #info = get_info(picture)
-        #await add_patient(info["first_name"], info["last_name"], info["birthday"], info["sex"], external_id=str(patient_amount+i+1))
-        pateient_info = await go_to_patient(context, 0,"test")
-        #await upload_patient_picture(picture,pateient_info.user_id)
-        await open_tooth_page(pateient_info.page)
+        await click_new_patient_button()
+        info = get_info(picture)
+        await add_patient(info["first_name"], info["last_name"], info["birthday"], info["sex"], external_id=str(patient_amount+i+1))
+        patient_info = await go_to_patient(context, 0,"upload")
+        await upload_patient_picture(picture,patient_info.user_id)
+        await open_tooth_page(patient_info.page)
 
-        Session.user_page = Session.page
-        if pateient_info.info is None:
+        if patient_info.info is None:
             print("couldn find patient info")
             continue
 
-        tasks.append( await get_task(label_Data,patient_amount+i,pateient_info.info))
+        tasks.append( await get_task(label_Data,patient_amount+i,patient_info.info))
         move_picture(picture, OUTPUT_DIR)
     return tasks
 
@@ -184,7 +183,7 @@ async def upload_patient_picture(picture_dir:Path,curren_user:int):
        """
 
     try:
-        page = Session.page
+        page = Session.require_user_page()
         button = page.locator('button[type="button"]').filter(has_text="Pano")
         await button.click()
         file_input = page.locator('#upload-study-form input[type="file"]')
@@ -193,7 +192,7 @@ async def upload_patient_picture(picture_dir:Path,curren_user:int):
     except Exception as e:
         print(f"Failed to set input files: {e}now opening patient with index {curren_user+1}")
 
-        curren_user =await go_to_upload_patient_report(curren_user+1)
+        #curren_user =await go_to_upload_patient_report(curren_user+1)
         await upload_patient_picture(picture_dir, curren_user)
         return
     await submit_btn.click()
