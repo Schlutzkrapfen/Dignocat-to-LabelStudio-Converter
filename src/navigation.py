@@ -384,8 +384,6 @@ async def go_to_patient(
             errors += 1
             print(f"error {errors}/{max_retries}: {type(e).__name__}: {e}")
 
-            if not Session.page.is_closed():
-                await Session.page.screenshot(path=f"fail_{int(time.time())}.png")
             await _close_quietly(Session.page)
             await ensure_page(context)
 
