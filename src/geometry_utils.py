@@ -3,8 +3,6 @@
 from pathlib import Path
 
 
-import cv2
-import numpy as np
 from PIL import Image
 
 from dental_logic import convert_thooth_id_to_number, find_tooth_id_around
