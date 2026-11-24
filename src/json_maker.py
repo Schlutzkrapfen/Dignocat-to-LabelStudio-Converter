@@ -5,7 +5,6 @@ import logging
 
 from pathlib import Path
 
-from geometry_utils import fill_mask
 import numpy as np
 from PIL import Image, ImageChops
 from check_options import check_if_hole, test_if_brush, test_if_fill

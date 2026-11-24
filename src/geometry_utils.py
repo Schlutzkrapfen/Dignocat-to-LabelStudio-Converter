@@ -10,7 +10,6 @@ import numpy as np
 from PIL import Image
 
 from dental_logic import convert_thooth_id_to_number, find_tooth_id_around
-from label_studio_converter.brush import mask2rle
 
 from helper_functions import is_rect
 from json_maker import get_difference, get_json_cordinates
