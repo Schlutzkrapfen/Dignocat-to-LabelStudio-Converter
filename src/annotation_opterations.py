@@ -4,9 +4,9 @@ from pathlib import Path
 from PIL import Image
 
 from add_ai import ai_predict
-from check_options import  get_which_ai_modell_to_use, test_if_ai, test_if_connections, test_if_fill, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp,  test_if_outward, test_if_single
+from check_options import  get_which_ai_modell_to_use, test_if_ai, test_if_connections,  test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp,  test_if_outward, test_if_single
 from dental_logic import check_if_teeth_left, check_if_theeth_top_row, check_if_two_theeth_are_near_each_other, create_cluster, get_thooth_id_from_cluster
-from geometry_utils import crop_with_padding, enhance_contrast, fill_rectangle, find_left_top_corner, find_right_bottom_corner,  get_new_rectangle, is_overlapping
+from geometry_utils import crop_with_padding, enhance_contrast,  find_left_top_corner, find_right_bottom_corner,  get_new_rectangle, is_overlapping
 from helper_functions import  find_heighest_height, get_path_from_TaskItem, get_user_id_from_TaskItem, is_rect
 from task_item import InnerAnnotation, TaskItem, Value
 import statistics
@@ -196,34 +196,6 @@ async def remove_labels(task:TaskItem)-> TaskItem:
     task["predictions"][0]["result"] = cur_anotation
     return task
 
-def add_fill(task: TaskItem, img) -> TaskItem:
-        """Fills all rectangle annotations of a task so the whole area is shown.
-
-        The image size is read from `img`. Every rectangle annotation in the
-        first prediction is replaced by a filled brush annotation (see
-        `fill_rectangle`). All other annotations stay unchanged.
-
-        Args:
-            task (TaskItem): Task whose rectangles should be filled.
-            img: Image of the task, either a numpy array (H, W[, C]) as
-                returned by cv2 or a PIL image.
-
-        Returns:
-            TaskItem: A deep copy of the task with filled rectangles.
-        """
-        img_w, img_h = img.size
-
-        new_task = copy.deepcopy(task)
-        result = new_task["predictions"][0]["result"]
-
-        filled_result = []
-        for annotation in result:
-            if test_if_fill(annotation["options"]):
-                annotation = fill_rectangle(annotation, img_w, img_h)
-            filled_result.append(annotation)
-
-        new_task["predictions"][0]["result"] = filled_result
-        return new_task
 
 def combine_labels(task:TaskItem)-> TaskItem:
     """Combines nearby annotations that share the same label.
