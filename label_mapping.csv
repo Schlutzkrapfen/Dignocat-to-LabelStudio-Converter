@@ -4,9 +4,9 @@ Endodontisch behandelter Zahn	Zement-Rootfilling	"Zement/Guttapercha
 Füllung	Metall-Filling	metal	ai:filling.pth
 Künstliche Zahnkrone	Metal-Crown	metal	ai:crown.pth
 Zahn	Horizontal Bone loss (to enamel-dentin-border)	Peridontology	hole
-Periapikale Radioluzenz	PPC/Ostitis/Zyst	PPC-labels	brush
-Periimplantitis	PPC/Ostitis/Zyst	PPC-labels	brush
-Sekundäre Karies	Caries	pathology-labels	brush
+Periapikale Radioluzenz	PPC/Ostitis/Zyst	PPC-labels	brush,fill
+Periimplantitis	PPC/Ostitis/Zyst	PPC-labels	brush,fill
+Sekundäre Karies	Caries	pathology-labels	brush,fill
 Implantat	Metal-Implant	metal	ai:implant.pth
 Brückenglied	Metal-Bridge	metal	
 Fehlt	Missing/lost Odontom	Odontoms	
