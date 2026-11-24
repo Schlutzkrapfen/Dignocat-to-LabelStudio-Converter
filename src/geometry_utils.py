@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import copy
-import math
 
 import cv2
 import numpy as np
@@ -195,12 +193,3 @@ def find_right_bottom_corner(annotions:list[InnerAnnotation]) -> tuple[float,flo
         max_x = max(max_x, annotation["value"]["x"] + annotation["value"]["width"])
         max_y = max(max_y, annotation["value"]["y"] + annotation["value"]["height"])
     return max_x, max_y
-
-def fill_mask(mask: np.ndarray) -> np.ndarray:
-    """Fills the whole bounding box of all painted pixels."""
-    ys, xs = np.nonzero(mask)
-    if len(ys) == 0:
-        return mask
-    filled = np.zeros_like(mask)
-    filled[ys.min():ys.max() + 1, xs.min():xs.max() + 1] = 255
-    return filled

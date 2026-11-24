@@ -462,8 +462,17 @@ def delete_screenshot_folders(teeth_folder:Path =Path("output/teeth-screenshoots
         shutil.rmtree(screenshot_folder)
     print("Deleted the old screenshots of the single labels")
 
+
 def fill_mask(mask: np.ndarray) -> np.ndarray:
-    """Fills the whole bounding box of all painted pixels."""
+    """Return a mask with the bounding box of all painted pixels filled with 255.
+
+       Args:
+           mask: 2D array where non-zero values are painted pixels.
+
+       Returns:
+           Array of the same shape and dtype. If nothing is painted,
+           ``mask`` is returned as is.
+       """
     ys, xs = np.nonzero(mask)
     if len(ys) == 0:
         return mask
