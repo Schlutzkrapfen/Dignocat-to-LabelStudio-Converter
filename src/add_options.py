@@ -6,8 +6,9 @@ import copy
 from PIL import Image
 
 from add_ai import add_local_ai
-from annotation_opterations import add_ai, add_heigt, add_single, combine_labels,   remove_labels, split_labels
+from annotation_opterations import add_ai, add_fill, add_heigt, add_single, combine_labels,   remove_labels, split_labels
 from check_options import test_if_ownjson
+from geometry_utils import fill_rectangle
 from helper_functions import get_path_from_taskItem, is_brush, is_rect
 from label_converter import load_label_mapping
 from task_item import  InnerAnnotation, TaskItem
@@ -55,7 +56,9 @@ async def check_task_options(tasks:list[TaskItem])->dict[str,list[TaskItem]]:
                 continue
 
         task = split_labels(task, image.convert("L"))
+
         task = add_ai(task, labels,image)
+        task = add_fill(task,image)
         try:
             task = add_local_ai(task,labels)
         except ValueError as e :
@@ -91,6 +94,7 @@ def split_tasks(tasks: list[TaskItem]) -> dict[str, list[TaskItem]]:
                     key = anotation["value"]["rectanglelabels"][0]
                 elif is_brush(anotation["value"]):
                     key = anotation["value"]["brushlabels"][0]
+
                 else:
                     key = "main"
             else:

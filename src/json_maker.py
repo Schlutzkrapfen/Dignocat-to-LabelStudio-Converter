@@ -344,8 +344,6 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,info:d
                 if mask.shape != (IMG_H, IMG_W):
                     mask = mask[:IMG_H, :IMG_W]          # if it was padded
                     # mask = cv2.resize(mask, (IMG_W, IMG_H), interpolation=cv2.INTER_NEAREST)  # if it was scaled
-
-
                 rle = brush.mask2rle(mask)
             inner_task.append( inner_json(
                 labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k],options[k],thooth_id, rle
@@ -405,6 +403,7 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
                 if check_if_hole(options[i]):
                     hole = True
                 if test_if_brush(options[i]):
+                    difference_path = await get_difference(refrence_image_path, paths)
                     mask_img = Image.open(difference_path).convert("L")
                     mask = ((np.array(mask_img) > 20) * 255).astype(np.uint8)
 
@@ -414,6 +413,8 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
                         mask = mask[:IMG_H, :IMG_W]          # if it was padded
                         # mask = cv2.resize(mask, (IMG_W, IMG_H), interpolation=cv2.INTER_NEAREST)  # if it was scaled
 
+                    print(Image.open(refrence_image_path).size, Image.open(difference_path).size, mask.shape)
+                    Image.fromarray(mask).save(f"debug_mask_{id}.png")
 
                     rle = brush.mask2rle(mask)
             try:

@@ -11,7 +11,6 @@ from locators import Sel, Url
 from patient_result import PatientResult
 from screenshots import deactivated_show_buttons, get_refrence_image
 from session import Session, ensure_page, remove_overlay
-import time
 
 from playwright.async_api import  Error as PlaywrightError, TimeoutError as PlaywrightTimeoutError,BrowserContext, Page
 

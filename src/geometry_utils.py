@@ -2,9 +2,15 @@
 
 from pathlib import Path
 
+import copy
+import math
+
+import cv2
+import numpy as np
 from PIL import Image
 
 from dental_logic import convert_thooth_id_to_number, find_tooth_id_around
+from label_studio_converter.brush import mask2rle
 
 from helper_functions import is_rect
 from json_maker import get_difference, get_json_cordinates
@@ -190,3 +196,51 @@ def find_right_bottom_corner(annotions:list[InnerAnnotation]) -> tuple[float,flo
         max_x = max(max_x, annotation["value"]["x"] + annotation["value"]["width"])
         max_y = max(max_y, annotation["value"]["y"] + annotation["value"]["height"])
     return max_x, max_y
+
+def fill_rectangle(annotation: InnerAnnotation, img_w: int, img_h: int) -> InnerAnnotation:
+    """Converts a rectangle annotation into a filled brush annotation.
+
+    The rectangle (x, y, width, height in percent, rotation in degrees
+    clockwise around the top-left corner) is rasterized into a binary mask
+    of the image size and RLE-encoded, so the whole area is filled.
+
+    Args:
+        annotation (InnerAnnotation): Annotation with a rectangle value.
+            Non-rectangle annotations are returned unchanged.
+        img_w (int): Image width in pixels.
+        img_h (int): Image height in pixels.
+
+    Returns:
+        InnerAnnotation: A copy of the annotation as a filled brush.
+    """
+    value = annotation["value"]
+    if not is_rect(value):
+        return annotation
+
+    # percent -> pixels
+    x = value["x"] / 100 * img_w
+    y = value["y"] / 100 * img_h
+    w = value["width"] / 100 * img_w
+    h = value["height"] / 100 * img_h
+
+    # corners relative to the top-left, rotated around the top-left corner
+    angle = math.radians(value.get("rotation", 0))
+    cos_a, sin_a = math.cos(angle), math.sin(angle)
+    corners = np.array(
+        [
+            [x + dx * cos_a - dy * sin_a, y + dx * sin_a + dy * cos_a]
+            for dx, dy in [(0, 0), (w, 0), (w, h), (0, h)]
+        ]
+    )
+
+    mask = np.zeros((img_h, img_w), dtype=np.uint8)
+    cv2.fillPoly(mask, [np.round(corners).astype(np.int32)], 255)
+
+    filled = copy.deepcopy(annotation)
+    filled["type"] = "brushlabels"
+    filled["value"] = {
+        "format": "rle",
+        "rle": mask2rle(mask),
+        "brushlabels": value["rectanglelabels"],
+    }
+    return filled
