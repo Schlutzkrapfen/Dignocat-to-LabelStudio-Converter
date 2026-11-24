@@ -1,21 +1,14 @@
 diagnocat_label	code	label_category	option
 Endodontisch behandelter Zahn	Zement-Rootfilling	"Zement/Guttapercha
 "	
-Füllung	Metall-Filling	"metal
-"	ai:filling.pth
-Künstliche Zahnkrone	Metal-Crown	"metal
-"	ai:crown.pth
+Füllung	Metall-Filling	metal	ai:filling.pth
+Künstliche Zahnkrone	Metal-Crown	metal	ai:crown.pth
 Zahn	Horizontal Bone loss (to enamel-dentin-border)	Peridontology	hole
-Periapikale Radioluzenz	PPC/Ostitis/Zyst	"PPC/Ostitis/Zyst
-"	
-Periimplantitis	PPC/Ostitis/Zyst	"PPC/Ostitis/Zyst
-"	
-Sekundäre Karies	Caries	pathology	
-Zeichen von Karies	Caries	pathology	
-Implantat	Metal-Implant	"metal
-"	ai:implant.pth
-Brückenglied	Metal-Bridge	"metal
-"	
+Periapikale Radioluzenz	PPC/Ostitis/Zyst	PPC-labels	brush
+Periimplantitis	PPC/Ostitis/Zyst	PPC-labels	brush
+Sekundäre Karies	Caries	pathology-labels	brush
+Implantat	Metal-Implant	metal	ai:implant.pth
+Brückenglied	Metal-Bridge	metal	
 Fehlt	Missing/lost Odontom	Odontoms	
 Fehlt 	Gap	Restauration	combine,inward,neighbors_connect
 Brückenglied	Blocking	Restauration	connections

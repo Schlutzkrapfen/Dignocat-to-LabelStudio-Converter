@@ -1,6 +1,18 @@
 
 from pathlib import Path
 
+def test_if_fill(options:str) -> bool:
+    """
+    Checks whether an annotation has the option fill.
+        Args:
+            options (str): Comma-separated list of option flags.
+
+        Returns:
+            bool: True if the annotation has the option fill,
+                 False otherwise.
+    """
+    parts = options.split(",")
+    return any(part == "fill" for part in parts)
 def test_if_brush(options:str) -> bool:
     """
     Checks whether an annotation has the option brush.
