@@ -4,9 +4,9 @@ from pathlib import Path
 from PIL import Image
 
 from add_ai import ai_predict
-from check_options import  get_which_ai_modell_to_use, test_if_ai, test_if_connections, test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp,  test_if_outward, test_if_single
+from check_options import  get_which_ai_modell_to_use, test_if_ai, test_if_connections,  test_if_height, test_if_inward, test_if_needs_combine, test_if_no_overlapp,  test_if_outward, test_if_single
 from dental_logic import check_if_teeth_left, check_if_theeth_top_row, check_if_two_theeth_are_near_each_other, create_cluster, get_thooth_id_from_cluster
-from geometry_utils import crop_with_padding, enhance_contrast, find_left_top_corner, find_right_bottom_corner,  get_new_rectangle, is_overlapping
+from geometry_utils import crop_with_padding, enhance_contrast,  find_left_top_corner, find_right_bottom_corner,  get_new_rectangle, is_overlapping
 from helper_functions import  find_heighest_height, get_path_from_TaskItem, get_user_id_from_TaskItem, is_rect
 from task_item import InnerAnnotation, TaskItem, Value
 import statistics
@@ -195,6 +195,7 @@ async def remove_labels(task:TaskItem)-> TaskItem:
         cur_anotation.append(anotation)
     task["predictions"][0]["result"] = cur_anotation
     return task
+
 
 def combine_labels(task:TaskItem)-> TaskItem:
     """Combines nearby annotations that share the same label.

@@ -5,9 +5,10 @@ import logging
 
 from pathlib import Path
 
+from geometry_utils import fill_mask
 import numpy as np
 from PIL import Image, ImageChops
-from check_options import check_if_hole, test_if_brush
+from check_options import check_if_hole, test_if_brush, test_if_fill
 from controll import find_duplicates_of
 from get_info import get_thooth_id, get_tooth_descriptions
 from screenshots import get_anatomie, get_refrence_image, get_theeh_picture, get_user_screenshoots
@@ -344,8 +345,6 @@ async def get_task(label_Data:dict[str, list[dict[str, str]]],user_id:int,info:d
                 if mask.shape != (IMG_H, IMG_W):
                     mask = mask[:IMG_H, :IMG_W]          # if it was padded
                     # mask = cv2.resize(mask, (IMG_W, IMG_H), interpolation=cv2.INTER_NEAREST)  # if it was scaled
-
-
                 rle = brush.mask2rle(mask)
             inner_task.append( inner_json(
                 labels[k], x, y, w, h, i +id_addition , "100%", label_categories[k],options[k],thooth_id, rle
@@ -407,13 +406,8 @@ async def make_json(images_paths:list[Path], label_Data: dict[str, list[dict[str
                 if test_if_brush(options[i]):
                     mask_img = Image.open(difference_path).convert("L")
                     mask = ((np.array(mask_img) > 20) * 255).astype(np.uint8)
-
-                    # match the image size (2400 x 1920)
-                    IMG_W, IMG_H = 2400, 1920
-                    if mask.shape != (IMG_H, IMG_W):
-                        mask = mask[:IMG_H, :IMG_W]          # if it was padded
-                        # mask = cv2.resize(mask, (IMG_W, IMG_H), interpolation=cv2.INTER_NEAREST)  # if it was scaled
-
+                    if test_if_fill(options[i]):      # your fill option
+                        mask = fill_mask(mask)
 
                     rle = brush.mask2rle(mask)
             try:
@@ -468,3 +462,12 @@ def delete_screenshot_folders(teeth_folder:Path =Path("output/teeth-screenshoots
     if screenshot_folder.exists():
         shutil.rmtree(screenshot_folder)
     print("Deleted the old screenshots of the single labels")
+
+def fill_mask(mask: np.ndarray) -> np.ndarray:
+    """Fills the whole bounding box of all painted pixels."""
+    ys, xs = np.nonzero(mask)
+    if len(ys) == 0:
+        return mask
+    filled = np.zeros_like(mask)
+    filled[ys.min():ys.max() + 1, xs.min():xs.max() + 1] = 255
+    return filled
