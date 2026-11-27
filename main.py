@@ -170,8 +170,7 @@ async def main():
 
             try:
                 for i in input:
-                    # type: ignore
-                    i = int(i)
+                    i = int(i)# type: ignore
                     task.extend(await process_page_task(i, page_amount, context, output_dir, label_Data))
             except TypeError:
                 print(input)

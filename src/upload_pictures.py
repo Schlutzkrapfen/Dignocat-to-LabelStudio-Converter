@@ -106,7 +106,7 @@ def refine_info(picture_path: Path)-> tuple[str,str|None,str,str]:
         age = parts[3]
         sex = parts[2]
     else:
-        raise ValueError(f"Invalid picture name: {picture_path}")
+        return  parts[0], None, "0", "M"
     return first_name,last_name, age, sex
 
 def get_info(picture_path: Path):
