@@ -348,6 +348,7 @@ async def go_to_patient(
                     user_id += 1
                     continue
                 info = await get_patient_information()
+                await open_tooth_page(new_page)  # Raises ValueError if no report card
 
                 return PatientResult(user_id, new_page,info)
             if mode == "test":
